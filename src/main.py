@@ -58,7 +58,7 @@ if STATIC_DIR.exists():
 async def ui():
     index = STATIC_DIR / "index.html"
     if index.exists():
-        return FileResponse(index)
+        return FileResponse(index, headers={"Cache-Control": "no-cache, must-revalidate"})
     return {"message": "UI not found. Use /docs for API."}
 
 

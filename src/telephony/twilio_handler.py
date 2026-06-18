@@ -176,7 +176,7 @@ class TwilioVoiceHandler:
             def __init__(self, payload: CallFormData):
                 self._payload = payload
 
-            async def form(self_inner):
+            async def form(self):
                 data: dict[str, str] = {
                     "CallSid": self._payload.call_sid,
                     "From": self._payload.from_number,

@@ -71,10 +71,85 @@ class AgentOrchestrator:
         first_sentence = re.split(r"(?<=[.!?])\s+", text.strip(), maxsplit=1)[0]
         return first_sentence
 
+    async def _invoke_copilot_mock(self, user_input: str, extra_context: str) -> dict[str, Any]:
+        """Agent-assist mode — drafts, summaries, and escalation guidance for human reps."""
+        start = time.perf_counter()
+        tool_calls: list[dict[str, Any]] = []
+        lower = user_input.lower().strip()
+        summary = extra_context.strip() or "No prior conversation provided."
+
+        if any(k in lower for k in ["summarize", "summary", "recap", "handoff"]):
+            if "summarize_conversation" in TOOL_REGISTRY:
+                TOOL_REGISTRY["summarize_conversation"].invoke(summary)
+                tool_calls.append({"name": "summarize_conversation", "args": {"transcript": summary[:200]}})
+            lines = [ln.strip() for ln in summary.split(".") if ln.strip()][:3]
+            response_text = (
+                "**Conversation summary**\n"
+                f"{summary[:400]}{'...' if len(summary) > 400 else ''}\n\n"
+                "**Key points for handoff**\n"
+                + "\n".join(f"- {point}" for point in lines)
+                + "\n\n**Recommended action:** Review account history before replying."
+            )
+            assist_type = "summary"
+        elif any(k in lower for k in ["escalat", "compliance", "risk", "flag", "supervisor"]):
+            response_text = (
+                "**Escalation advisory**\n"
+                "- Customer may need supervisor involvement\n"
+                "- Document issue in CRM before transfer\n"
+                "- Confirm identity and prior troubleshooting steps\n\n"
+                f"**Context:** {summary[:300]}"
+            )
+            assist_type = "escalation_advisory"
+            tool_calls.append({"name": "draft_response", "args": {"context": summary}})
+        else:
+            kb_hit = best_answer(user_input) or best_answer(summary)
+            if kb_hit and "search_knowledge_base" in TOOL_REGISTRY:
+                TOOL_REGISTRY["search_knowledge_base"].invoke(user_input)
+                tool_calls.append({"name": "search_knowledge_base", "args": {"query": user_input}})
+            tool_calls.append({"name": "draft_response", "args": {"context": summary}})
+
+            if kb_hit:
+                draft = (
+                    f"Hi — thanks for contacting Acme Support. {kb_hit.split('.')[0].strip()}. "
+                    "Let me know if you need anything else."
+                )
+                kb_section = kb_hit
+            else:
+                draft = (
+                    "Hi — thanks for your patience. I'd like to help resolve this. "
+                    "Could you confirm your account email so I can investigate further?"
+                )
+                kb_section = "No specific KB article matched — verify account details and gather error messages."
+
+            response_text = (
+                f"**Suggested reply to customer**\n{draft}\n\n"
+                f"**Knowledge base**\n{kb_section}\n\n"
+                f"**Conversation context**\n{summary[:280]}{'...' if len(summary) > 280 else ''}\n\n"
+                "**Collect if missing:** account email, error details, steps already tried"
+            )
+            assist_type = "draft"
+
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        return {
+            "response": response_text,
+            "agent_id": self.agent_id,
+            "channel": "copilot",
+            "tool_calls": tool_calls,
+            "metrics": {
+                "response_time_ms": round(elapsed_ms),
+                "mode": "mock",
+                "assist_type": assist_type,
+                "for_human_agent": True,
+            },
+        }
+
     async def _invoke_mock(self, user_input: str, customer_info: str, extra_context: str) -> dict[str, Any]:
-        """Offline demo mode with real KB answers, CRM lookup, and escalation handling."""
+        """Offline mode with real KB answers, CRM lookup, and escalation handling."""
         start = time.perf_counter()
         channel = self._get_channel()
+        if channel == "copilot":
+            return await self._invoke_copilot_mock(user_input, extra_context)
+
         tool_calls: list[dict[str, Any]] = []
         lower = user_input.lower().strip()
         email_match = re.search(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", user_input, re.IGNORECASE)
@@ -112,15 +187,6 @@ class AgentOrchestrator:
                 )
             else:
                 response_text = f"I couldn't find an account for {identifier}. Could you double-check the email address?"
-
-        # Copilot draft mode
-        elif channel == "copilot" and any(k in lower for k in ["draft", "suggest", "response", "reply"]):
-            tool_calls.append({"name": "draft_response", "args": {"context": extra_context or user_input}})
-            response_text = (
-                "Suggested reply: Hi there — I understand your concern and I'm here to help. "
-                "Based on our records, I can walk you through the next steps or escalate if needed. "
-                "Could you confirm your account email so I can assist further?"
-            )
 
         # Knowledge base questions
         else:
@@ -206,7 +272,12 @@ class AgentOrchestrator:
 
         if self._agent is None:
             raise RuntimeError("Agent is not initialized (missing LLM).")
-        result = await self._agent.ainvoke({"messages": prompt_messages})
+        try:
+            result = await self._agent.ainvoke({"messages": prompt_messages})
+        except Exception as exc:
+            logger.warning("llm_invoke_failed_using_mock", agent=self.agent_id, error=str(exc))
+            return await self._invoke_mock(user_input, customer_info, extra_context)
+
         messages = result["messages"]
         response_msg = messages[-1]
         response_text = response_msg.content if isinstance(response_msg, AIMessage) else str(response_msg)
@@ -217,6 +288,7 @@ class AgentOrchestrator:
                 response_text = output_check.sanitized_output
 
         grounding = score_grounding(response_text, rag_context)
+        retrieved = self.retriever.retrieve(user_input)
 
         self.chat_history.append(HumanMessage(content=user_input))
         self.chat_history.append(AIMessage(content=response_text))
@@ -237,29 +309,49 @@ class AgentOrchestrator:
             grounding=grounding.score,
         )
 
+        metrics: dict[str, Any] = {
+            "response_time_ms": round(elapsed_ms),
+            "rag_chunks_used": len(retrieved),
+            "sources": [
+                {
+                    "source": r["metadata"].get("source", "unknown"),
+                    "score": round(r.get("score", 0), 2),
+                }
+                for r in retrieved[:3]
+            ],
+            "grounding_score": grounding.score,
+            "hallucination_risk": grounding.hallucination_risk,
+            "llm_params": {
+                "temperature": self.llm_params.get("temperature"),
+                "max_tokens": self.llm_params.get("max_tokens"),
+                "top_p": self.llm_params.get("top_p"),
+                "top_k": self.llm_params.get("top_k"),
+                "frequency_penalty": self.llm_params.get("frequency_penalty"),
+                "presence_penalty": self.llm_params.get("presence_penalty"),
+                "n": self.llm_params.get("n"),
+                "chain_of_thought": self.llm_params.get("chain_of_thought"),
+                "few_shot_enabled": self.llm_params.get("few_shot_enabled"),
+            },
+        }
+        if channel == "copilot":
+            metrics["for_human_agent"] = True
+            metrics["assist_type"] = self._detect_copilot_assist_type(user_input)
+
         return {
             "response": response_text,
             "agent_id": self.agent_id,
             "channel": channel,
             "tool_calls": tool_calls,
-            "metrics": {
-                "response_time_ms": round(elapsed_ms),
-                "rag_chunks_used": len(self.retriever.retrieve(user_input)),
-                "grounding_score": grounding.score,
-                "hallucination_risk": grounding.hallucination_risk,
-                "llm_params": {
-                    "temperature": self.llm_params.get("temperature"),
-                    "max_tokens": self.llm_params.get("max_tokens"),
-                    "top_p": self.llm_params.get("top_p"),
-                    "top_k": self.llm_params.get("top_k"),
-                    "frequency_penalty": self.llm_params.get("frequency_penalty"),
-                    "presence_penalty": self.llm_params.get("presence_penalty"),
-                    "n": self.llm_params.get("n"),
-                    "chain_of_thought": self.llm_params.get("chain_of_thought"),
-                    "few_shot_enabled": self.llm_params.get("few_shot_enabled"),
-                },
-            },
+            "metrics": metrics,
         }
+
+    def _detect_copilot_assist_type(self, user_input: str) -> str:
+        lower = user_input.lower()
+        if any(k in lower for k in ["summarize", "summary", "recap", "handoff"]):
+            return "summary"
+        if any(k in lower for k in ["escalat", "compliance", "risk", "flag", "supervisor"]):
+            return "escalation_advisory"
+        return "draft"
 
     def reset(self) -> None:
         self.chat_history = []

@@ -1,17 +1,22 @@
 """FastAPI routes for chat, voice, copilot, RAG, and evaluation."""
 
+import asyncio
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from src.api.session_manager import SessionManager
+from src.config import get_settings
 from src.evaluation.evaluator import AgentEvaluator
 from src.integrations.webhooks import IntegrationRouter
 from src.rag.ingestion import ingest_directory, ingest_file
 from src.rag.vector_store import VectorStore
 from src.telephony.call_router import CallMetadata, CallRouter, RoutingRule
+from src.telephony.stt import transcribe_audio
+from src.telephony.tts import DEFAULT_VOICE, synthesize_speech
 from src.telephony.twilio_handler import TwilioVoiceHandler
 from src.telephony.twiml_parser import parse_twiml
 from src.workflows.orchestrator import AgentOrchestrator
@@ -58,6 +63,11 @@ class VoiceSimulateRequest(BaseModel):
     sip_headers: dict[str, str] = Field(default_factory=dict)
 
 
+class SpeakRequest(BaseModel):
+    text: str
+    voice: str = DEFAULT_VOICE
+
+
 _call_router = CallRouter()
 _call_router.add_rule(RoutingRule("vip", "from:+1555", "+15559999999", priority=10))
 _call_router.set_fallback("+15551111111")
@@ -71,8 +81,15 @@ def _get_session(session_id: str, agent_id: str) -> AgentOrchestrator:
 
 
 @router.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "healthy", "service": "enterprise-voice-agents"}
+async def health() -> dict[str, Any]:
+    settings = get_settings()
+    return {
+        "status": "healthy",
+        "service": "enterprise-voice-agents",
+        "stt_available": bool(settings.openai_api_key),
+        "tts_available": bool(settings.openai_api_key),
+        "tts_voice": DEFAULT_VOICE,
+    }
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -159,6 +176,45 @@ async def voice_status(request: Request) -> dict[str, Any]:
     return await voice_handler.handle_status_callback(request)
 
 
+@router.post("/telephony/transcribe")
+async def transcribe_voice(audio: UploadFile = File(...)) -> dict[str, str]:
+    """Transcribe caller speech audio via OpenAI Whisper."""
+    settings = get_settings()
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Server transcription requires OPENAI_API_KEY. Type caller speech and tap Send.",
+        )
+
+    content = await audio.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty audio recording.")
+
+    text = await asyncio.to_thread(
+        transcribe_audio,
+        content,
+        audio.filename or "speech.webm",
+    )
+    if not text:
+        raise HTTPException(status_code=422, detail="Could not transcribe audio. Speak longer and try again.")
+
+    return {"text": text}
+
+
+@router.post("/telephony/speak")
+async def speak_agent(request: SpeakRequest) -> Response:
+    """Synthesize agent voice audio (OpenAI TTS — warm female voice)."""
+    settings = get_settings()
+    if not settings.openai_api_key:
+        raise HTTPException(status_code=503, detail="TTS requires OPENAI_API_KEY.")
+
+    audio = await asyncio.to_thread(synthesize_speech, request.text, request.voice)
+    if not audio:
+        raise HTTPException(status_code=400, detail="Nothing to speak.")
+
+    return Response(content=audio, media_type="audio/mpeg")
+
+
 @router.post("/telephony/simulate")
 async def telephony_simulate(request: VoiceSimulateRequest) -> dict[str, Any]:
     """Simulate PSTN/CCaaS voice call flow without Twilio credentials."""
@@ -183,6 +239,7 @@ async def telephony_simulate(request: VoiceSimulateRequest) -> dict[str, Any]:
         "from_number": request.from_number,
         "caller_said": request.speech,
         "agent_says": parsed["agent_says"],
+        "agent_response": parsed.get("agent_response", ""),
         "spoken_responses": parsed["spoken_responses"],
         "transfer_to": parsed["transfer_to"],
         "listening": parsed["listening"],

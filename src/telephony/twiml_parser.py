@@ -34,6 +34,7 @@ def parse_twiml(twiml: str) -> dict:
     return {
         "spoken_responses": spoken,
         "agent_says": " ".join(spoken),
+        "agent_response": spoken[0] if spoken else "",
         "transfer_to": transfer_to,
         "listening": listening,
         "actions": actions,

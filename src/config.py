@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     salesforce_client_id: str = ""
     salesforce_client_secret: str = ""
 
+    webhook_signing_secret: str = ""
+    settings_admin_token: str = ""
+    integrations_encryption_key: str = ""
+
     app_host: str = "0.0.0.0"
     app_port: int = 8000
     log_level: str = "INFO"
@@ -52,11 +56,33 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+    return _merge_vault_credentials(settings)
+
+
+def _merge_vault_credentials(settings: Settings) -> Settings:
+    """Overlay encrypted vault credentials onto environment settings."""
+    try:
+        from src.integrations.secrets_vault import CREDENTIAL_KEYS, get_secrets_vault
+
+        vault_creds = get_secrets_vault().get_credentials()
+        for key in CREDENTIAL_KEYS:
+            value = vault_creds.get(key)
+            if value:
+                setattr(settings, key, value)
+    except Exception:
+        pass
+    return settings
 
 
 def reload_settings() -> Settings:
     get_settings.cache_clear()
+    try:
+        from src.integrations.secrets_vault import reload_secrets_vault
+
+        reload_secrets_vault()
+    except Exception:
+        pass
     return get_settings()
 
 

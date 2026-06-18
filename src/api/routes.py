@@ -9,8 +9,10 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from src.api.session_manager import SessionManager
-from src.config import get_settings
+from src.config import Settings, get_settings, reload_settings
 from src.evaluation.evaluator import AgentEvaluator
+from src.integrations.crm import CRMClient, HubSpotClient
+from src.integrations.secrets_vault import CREDENTIAL_KEYS, WEBHOOK_EVENTS, get_secrets_vault
 from src.integrations.webhooks import IntegrationRouter
 from src.rag.ingestion import ingest_directory, ingest_file
 from src.rag.vector_store import VectorStore
@@ -56,6 +58,17 @@ class WebhookRegisterRequest(BaseModel):
     url: str
 
 
+class CredentialsUpdateRequest(BaseModel):
+    openai_api_key: str | None = None
+    anthropic_api_key: str | None = None
+    twilio_account_sid: str | None = None
+    twilio_auth_token: str | None = None
+    twilio_phone_number: str | None = None
+    twilio_webhook_base_url: str | None = None
+    hubspot_api_key: str | None = None
+    webhook_signing_secret: str | None = None
+
+
 class VoiceSimulateRequest(BaseModel):
     call_sid: str = "SIM-CALL-001"
     from_number: str = "+15551234567"
@@ -78,6 +91,20 @@ _sessions = SessionManager(ttl_seconds=3600, max_sessions=1000)
 
 def _get_session(session_id: str, agent_id: str) -> AgentOrchestrator:
     return _sessions.get(session_id, agent_id)
+
+
+def _require_settings_token(request: Request) -> None:
+    token = get_settings().settings_admin_token.strip()
+    if not token:
+        return
+    provided = request.headers.get("X-Settings-Token", "")
+    if provided != token:
+        raise HTTPException(status_code=401, detail="Invalid or missing X-Settings-Token header.")
+
+
+def _env_credentials() -> dict[str, str]:
+    env_settings = Settings()
+    return {key: getattr(env_settings, key, "") or "" for key in CREDENTIAL_KEYS}
 
 
 @router.get("/health")
@@ -254,9 +281,101 @@ async def telephony_simulate(request: VoiceSimulateRequest) -> dict[str, Any]:
 
 
 @router.post("/integrations/webhooks")
-async def register_webhook(request: WebhookRegisterRequest) -> dict[str, str]:
-    integration_router.register_webhook(request.event_type, request.url)
-    return {"status": "registered", "event_type": request.event_type}
+async def register_webhook(request: Request, body: WebhookRegisterRequest) -> dict[str, str]:
+    _require_settings_token(request)
+    if body.event_type not in WEBHOOK_EVENTS:
+        raise HTTPException(status_code=400, detail=f"Unsupported event type: {body.event_type}")
+    integration_router.register_webhook(body.event_type, body.url)
+    return {"status": "registered", "event_type": body.event_type}
+
+
+@router.delete("/integrations/webhooks/{event_type}")
+async def delete_webhook(request: Request, event_type: str) -> dict[str, str]:
+    _require_settings_token(request)
+    if event_type not in WEBHOOK_EVENTS:
+        raise HTTPException(status_code=400, detail=f"Unsupported event type: {event_type}")
+    integration_router.unregister_webhook(event_type)
+    return {"status": "removed", "event_type": event_type}
+
+
+@router.get("/integrations/status")
+async def integrations_status() -> dict[str, Any]:
+    settings = get_settings()
+    vault = get_secrets_vault()
+    creds = vault.credential_status(_env_credentials())
+    hooks = vault.webhook_status()
+
+    return {
+        "encryption": {
+            "enabled": vault.path.exists(),
+            "vault_path": str(vault.path),
+            "key_source": "env" if settings.integrations_encryption_key else "local_file",
+        },
+        "providers": {
+            "openai": {
+                "configured": creds["openai_api_key"]["configured"],
+                "source": creds["openai_api_key"]["source"],
+                "masked_key": creds["openai_api_key"]["masked"],
+                "features": ["llm", "embeddings", "stt", "tts"],
+            },
+            "anthropic": {
+                "configured": creds["anthropic_api_key"]["configured"],
+                "source": creds["anthropic_api_key"]["source"],
+                "masked_key": creds["anthropic_api_key"]["masked"],
+                "features": ["llm"],
+            },
+            "twilio": {
+                "configured": all(
+                    creds[key]["configured"]
+                    for key in ("twilio_account_sid", "twilio_auth_token", "twilio_phone_number")
+                ),
+                "webhook_base_url": creds["twilio_webhook_base_url"]["masked"] or None,
+                "source": "vault" if vault.get_credentials().get("twilio_account_sid") else (
+                    "env" if _env_credentials().get("twilio_account_sid") else "none"
+                ),
+                "features": ["pstn", "voice_webhooks"],
+            },
+            "hubspot": {
+                "configured": creds["hubspot_api_key"]["configured"],
+                "source": creds["hubspot_api_key"]["source"],
+                "masked_key": creds["hubspot_api_key"]["masked"],
+                "features": ["crm_lookup", "ticket_sync"],
+            },
+            "ipaas": {
+                "configured": any(item["configured"] for item in hooks.values()),
+                "webhook_signing": creds["webhook_signing_secret"]["configured"],
+                "events": hooks,
+                "features": ["n8n", "zapier"],
+            },
+        },
+        "mock_mode": not bool(settings.openai_api_key or settings.anthropic_api_key),
+    }
+
+
+@router.put("/integrations/credentials")
+async def save_credentials(request: Request, body: CredentialsUpdateRequest) -> dict[str, Any]:
+    _require_settings_token(request)
+    vault = get_secrets_vault()
+    updates = body.model_dump(exclude_unset=True)
+    vault.set_credentials(updates)
+    reload_settings()
+    integration_router.load_from_vault()
+    return {
+        "status": "saved",
+        "updated": list(updates.keys()),
+        "providers": (await integrations_status())["providers"],
+    }
+
+
+@router.delete("/integrations/credentials/{credential_key}")
+async def delete_credential(request: Request, credential_key: str) -> dict[str, str]:
+    _require_settings_token(request)
+    if credential_key not in CREDENTIAL_KEYS:
+        raise HTTPException(status_code=400, detail=f"Unsupported credential: {credential_key}")
+    get_secrets_vault().clear_credential(credential_key)
+    reload_settings()
+    integration_router.load_from_vault()
+    return {"status": "cleared", "credential": credential_key}
 
 
 @router.post("/evaluation/run")

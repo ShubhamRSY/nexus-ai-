@@ -7,7 +7,7 @@
 [![CI](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-65%2B%20passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-75%2B%20passing-brightgreen.svg)](tests/)
 
 [Quick Start](#quick-start) · [Architecture](#architecture) · [API](#api-reference) · [Project Layout](#project-layout)
 
@@ -524,6 +524,19 @@ Copy `.env.example` → `.env`:
 | `TWILIO_PHONE_NUMBER` | No | Your Twilio number |
 | `TWILIO_WEBHOOK_BASE_URL` | No | ngrok or production URL |
 | `HUBSPOT_API_KEY` | No | Live HubSpot CRM (mock if empty) |
+| `INTEGRATIONS_ENCRYPTION_KEY` | No | Fernet key for `data/integrations.vault` |
+| `SETTINGS_ADMIN_TOKEN` | No | Protect credential saves with `X-Settings-Token` header |
+| `WEBHOOK_SIGNING_SECRET` | No | HMAC signature for outbound n8n/Zapier events |
+
+### Encrypted integrations (UI or API)
+
+Optional providers can be configured in the **Nexus sidebar → Integrations** panel or via API. Credentials are encrypted at rest in `data/integrations.vault` (Fernet). Vault values override `.env` when both are set. API responses only show masked keys.
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/v1/integrations/status` | Provider status (masked) |
+| `PUT /api/v1/integrations/credentials` | Save encrypted API keys |
+| `POST /api/v1/integrations/webhooks` | Register n8n/Zapier webhook URL |
 
 ---
 
@@ -534,7 +547,7 @@ Copy `.env.example` → `.env`:
 pytest tests/ tests/e2e/ -v      # quick local run
 ```
 
-65+ tests run in offline mock mode (no API keys). Report: [`tests/reports/TEST_REPORT.md`](tests/reports/TEST_REPORT.md)
+75+ tests run in offline mock mode (no API keys). Report: [`tests/reports/TEST_REPORT.md`](tests/reports/TEST_REPORT.md)
 
 ---
 

@@ -55,9 +55,29 @@ class IntegrationRouter:
     def __init__(self):
         self.webhooks: dict[str, str] = {}
         self.dispatcher = WebhookDispatcher()
+        self.load_from_vault()
 
-    def register_webhook(self, event_type: str, url: str) -> None:
+    def load_from_vault(self) -> None:
+        from src.config import get_settings
+        from src.integrations.secrets_vault import get_secrets_vault
+
+        settings = get_settings()
+        self.webhooks = get_secrets_vault().get_webhooks()
+        self.dispatcher = WebhookDispatcher(secret=settings.webhook_signing_secret)
+
+    def register_webhook(self, event_type: str, url: str, *, persist: bool = True) -> None:
         self.webhooks[event_type] = url
+        if persist:
+            from src.integrations.secrets_vault import get_secrets_vault
+
+            get_secrets_vault().set_webhook(event_type, url)
+
+    def unregister_webhook(self, event_type: str, *, persist: bool = True) -> None:
+        self.webhooks.pop(event_type, None)
+        if persist:
+            from src.integrations.secrets_vault import get_secrets_vault
+
+            get_secrets_vault().clear_webhook(event_type)
 
     async def on_conversation_start(self, session_id: str, channel: str, metadata: dict) -> None:
         await self._emit("conversation.started", {

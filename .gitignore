@@ -5,6 +5,8 @@ __pycache__/
 .venv/
 venv/
 data/chroma/
+data/integrations.vault
+data/.vault_key
 *.egg-info/
 dist/
 build/

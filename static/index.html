@@ -469,6 +469,73 @@
       border-top: 1px solid var(--border);
     }
 
+    .integrations-panel {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .integrations-panel h3 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.65rem;
+    }
+    .integration-group {
+      margin-bottom: 0.85rem;
+      padding: 0.75rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+    }
+    .integration-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.55rem;
+    }
+    .integration-head strong { font-size: 0.82rem; }
+    .integration-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.18rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .integration-badge.on {
+      color: var(--voice);
+      border-color: rgba(16,185,129,0.35);
+      background: rgba(16,185,129,0.08);
+    }
+    .integration-hint {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin: 0.35rem 0 0.5rem;
+      line-height: 1.35;
+    }
+    .integration-masked {
+      font-size: 0.68rem;
+      color: var(--accent);
+      font-family: ui-monospace, monospace;
+      margin-bottom: 0.45rem;
+    }
+    .integrations-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .integrations-actions .btn { flex: 1; font-size: 0.78rem; padding: 0.55rem 0.65rem; }
+    .field input[type="password"],
+    .field input.integration-input {
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -1632,6 +1699,83 @@
         </div>
       </div>
 
+      <div class="integrations-panel" id="integrationsPanel">
+        <h3>Integrations</h3>
+        <p class="integration-hint">Optional API keys — stored encrypted on this server. Leave blank to keep existing values.</p>
+
+        <div class="integration-group">
+          <div class="integration-head">
+            <strong>OpenAI</strong>
+            <span class="integration-badge" id="badgeOpenAI">Off</span>
+          </div>
+          <div class="integration-masked" id="maskedOpenAI"></div>
+          <div class="field">
+            <label for="credOpenAI">API Key</label>
+            <input type="password" id="credOpenAI" class="integration-input" placeholder="OpenAI API key" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="integration-group">
+          <div class="integration-head">
+            <strong>Anthropic</strong>
+            <span class="integration-badge" id="badgeAnthropic">Off</span>
+          </div>
+          <div class="integration-masked" id="maskedAnthropic"></div>
+          <div class="field">
+            <label for="credAnthropic">API Key</label>
+            <input type="password" id="credAnthropic" class="integration-input" placeholder="Anthropic API key" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="integration-group">
+          <div class="integration-head">
+            <strong>Twilio</strong>
+            <span class="integration-badge" id="badgeTwilio">Off</span>
+          </div>
+          <div class="field"><label for="credTwilioSid">Account SID</label><input type="password" id="credTwilioSid" class="integration-input" autocomplete="off" /></div>
+          <div class="field"><label for="credTwilioToken">Auth Token</label><input type="password" id="credTwilioToken" class="integration-input" autocomplete="off" /></div>
+          <div class="field"><label for="credTwilioPhone">Phone Number</label><input type="text" id="credTwilioPhone" class="integration-input" placeholder="+1..." autocomplete="off" /></div>
+          <div class="field"><label for="credTwilioWebhook">Webhook Base URL</label><input type="text" id="credTwilioWebhook" class="integration-input" placeholder="https://your-tunnel.ngrok.io" autocomplete="off" /></div>
+        </div>
+
+        <div class="integration-group">
+          <div class="integration-head">
+            <strong>HubSpot</strong>
+            <span class="integration-badge" id="badgeHubspot">Off</span>
+          </div>
+          <div class="integration-masked" id="maskedHubspot"></div>
+          <div class="field">
+            <label for="credHubspot">API Key</label>
+            <input type="password" id="credHubspot" class="integration-input" placeholder="HubSpot API key" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="integration-group">
+          <div class="integration-head">
+            <strong>n8n / Zapier</strong>
+            <span class="integration-badge" id="badgeIpaas">Off</span>
+          </div>
+          <div class="field">
+            <label for="webhookStarted">conversation.started URL</label>
+            <input type="url" id="webhookStarted" class="integration-input" placeholder="https://hooks.zapier.com/..." autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="webhookSigning">Webhook signing secret (optional)</label>
+            <input type="password" id="webhookSigning" class="integration-input" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="settingsAdminToken">Admin token (if required)</label>
+          <input type="password" id="settingsAdminToken" class="integration-input" placeholder="X-Settings-Token" autocomplete="off" />
+        </div>
+
+        <div class="integrations-actions">
+          <button class="btn btn-primary" type="button" id="saveIntegrationsBtn">Save encrypted</button>
+          <button class="btn btn-ghost" type="button" id="refreshIntegrationsBtn">Refresh</button>
+        </div>
+      </div>
+
       <div class="sidebar-footer">
         <button class="btn btn-ghost" id="sidebarClearBtn" type="button">Clear Session</button>
       </div>
@@ -2333,6 +2477,107 @@
       );
     }
 
+    const SETTINGS_TOKEN_KEY = 'nexus_settings_token';
+
+    function settingsHeaders() {
+      const headers = { 'Content-Type': 'application/json' };
+      const token = document.getElementById('settingsAdminToken')?.value.trim()
+        || sessionStorage.getItem(SETTINGS_TOKEN_KEY) || '';
+      if (token) headers['X-Settings-Token'] = token;
+      return headers;
+    }
+
+    function setIntegrationBadge(el, on, label) {
+      if (!el) return;
+      el.textContent = label || (on ? 'On' : 'Off');
+      el.classList.toggle('on', !!on);
+    }
+
+    async function loadIntegrationsStatus() {
+      try {
+        const res = await fetch(`${API}/integrations/status`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const p = data.providers || {};
+        setIntegrationBadge(document.getElementById('badgeOpenAI'), p.openai?.configured);
+        setIntegrationBadge(document.getElementById('badgeAnthropic'), p.anthropic?.configured);
+        setIntegrationBadge(document.getElementById('badgeTwilio'), p.twilio?.configured);
+        setIntegrationBadge(document.getElementById('badgeHubspot'), p.hubspot?.configured);
+        setIntegrationBadge(document.getElementById('badgeIpaas'), p.ipaas?.configured);
+        const mOpen = document.getElementById('maskedOpenAI');
+        const mAnth = document.getElementById('maskedAnthropic');
+        const mHub = document.getElementById('maskedHubspot');
+        if (mOpen) mOpen.textContent = p.openai?.masked_key ? `Saved: ${p.openai.masked_key}` : '';
+        if (mAnth) mAnth.textContent = p.anthropic?.masked_key ? `Saved: ${p.anthropic.masked_key}` : '';
+        if (mHub) mHub.textContent = p.hubspot?.masked_key ? `Saved: ${p.hubspot.masked_key}` : '';
+      } catch {
+        /* status panel optional */
+      }
+    }
+
+    async function saveIntegrations() {
+      const tokenEl = document.getElementById('settingsAdminToken');
+      if (tokenEl?.value.trim()) {
+        sessionStorage.setItem(SETTINGS_TOKEN_KEY, tokenEl.value.trim());
+      }
+
+      const credPayload = {};
+      const fields = [
+        ['credOpenAI', 'openai_api_key'],
+        ['credAnthropic', 'anthropic_api_key'],
+        ['credTwilioSid', 'twilio_account_sid'],
+        ['credTwilioToken', 'twilio_auth_token'],
+        ['credTwilioPhone', 'twilio_phone_number'],
+        ['credTwilioWebhook', 'twilio_webhook_base_url'],
+        ['credHubspot', 'hubspot_api_key'],
+        ['webhookSigning', 'webhook_signing_secret'],
+      ];
+      fields.forEach(([id, key]) => {
+        const val = document.getElementById(id)?.value.trim();
+        if (val) credPayload[key] = val;
+      });
+
+      try {
+        if (Object.keys(credPayload).length) {
+          const res = await fetch(`${API}/integrations/credentials`, {
+            method: 'PUT',
+            headers: settingsHeaders(),
+            body: JSON.stringify(credPayload),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || 'Failed to save credentials');
+          }
+        }
+
+        const webhookUrl = document.getElementById('webhookStarted')?.value.trim();
+        if (webhookUrl) {
+          const res = await fetch(`${API}/integrations/webhooks`, {
+            method: 'POST',
+            headers: settingsHeaders(),
+            body: JSON.stringify({ event_type: 'conversation.started', url: webhookUrl }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || 'Failed to save webhook');
+          }
+        }
+
+        fields.forEach(([id]) => {
+          const el = document.getElementById(id);
+          if (el && el.type === 'password') el.value = '';
+        });
+        const webhookEl = document.getElementById('webhookStarted');
+        if (webhookEl) webhookEl.value = '';
+
+        await loadIntegrationsStatus();
+        await checkHealth();
+        showToast('Integrations saved (encrypted at rest)', 'success');
+      } catch (err) {
+        showToast(err.message || 'Failed to save integrations', 'error');
+      }
+    }
+
     async function checkHealth() {
       try {
         const res = await fetch(`${API}/health`);
@@ -2876,7 +3121,11 @@
       if (e.key === '3') setMode('voice');
     });
 
+    document.getElementById('saveIntegrationsBtn')?.addEventListener('click', saveIntegrations);
+    document.getElementById('refreshIntegrationsBtn')?.addEventListener('click', loadIntegrationsStatus);
+
     checkHealth();
+    loadIntegrationsStatus();
     setInterval(checkHealth, 30000);
     document.body.dataset.mode = 'chat';
     bindSessionListEvents();

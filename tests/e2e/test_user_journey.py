@@ -239,7 +239,7 @@ class TestIntegrationsJourney:
         res = client.post(
             "/api/v1/integrations/webhooks",
             json={
-                "event_type": "conversation.start",
+                "event_type": "conversation.started",
                 "url": "https://hooks.example.com/voice-agents",
             },
         )

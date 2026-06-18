@@ -10,8 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.api.routes import router
+from src.api.routes import integration_router, router
 from src.config import ROOT_DIR, get_settings, reload_settings
+from src.integrations.secrets_vault import get_secrets_vault
 from src.logging_config import setup_logging
 
 STATIC_DIR = ROOT_DIR / "static"
@@ -23,11 +24,13 @@ logger = structlog.get_logger()
 async def lifespan(app: FastAPI):
     setup_logging()
     settings = reload_settings()
+    integration_router.load_from_vault()
     logger.info(
         "starting_platform",
         host=settings.app_host,
         port=settings.app_port,
         openai_configured=bool(settings.openai_api_key),
+        vault_enabled=get_secrets_vault().path.exists(),
     )
     yield
     logger.info("shutting_down")

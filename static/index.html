@@ -342,8 +342,8 @@
     <main class="chat-area">
       <div class="messages" id="messages">
         <div class="welcome" id="welcome">
-          <h2>Enterprise AI Agent Demo</h2>
-          <p>Test chat, copilot, RAG, and CRM tools — no API keys required.</p>
+          <h2>Enterprise Support Agent Console</h2>
+          <p>Chat, copilot, RAG, and CRM operations — runs in offline mode when API keys are not configured.</p>
           <div class="suggestions">
             <button class="suggestion" onclick="sendSuggestion('How do I reset my password?')">Reset password</button>
             <button class="suggestion" onclick="sendSuggestion('Can you look up jane@example.com?')">Lookup customer</button>
@@ -444,8 +444,8 @@
       if (mode === 'voice') showVoiceWelcome();
       else document.getElementById('messages').innerHTML = `
         <div class="welcome" id="welcome">
-          <h2>Enterprise AI Agent Demo</h2>
-          <p>Chat cleared. Start a new conversation.</p>
+          <h2>Enterprise Support Agent Console</h2>
+          <p>Session cleared. Start a new conversation.</p>
         </div>`;
     }
 

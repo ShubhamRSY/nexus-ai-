@@ -1,8 +1,8 @@
 # Enterprise Voice & Chat AI Agent Platform
 
-A full-stack **enterprise AI agent platform** for building, testing, and demoing voice agents, chat agents, and agent copilots — with RAG, CRM integrations, telephony (Twilio/SIP/PSTN), evaluation frameworks, and iPaaS webhooks.
+A production-grade **enterprise AI agent platform** for deploying and operating omnichannel voice agents, chat agents, and agent-assist copilots — with RAG, CRM integrations, telephony (Twilio/SIP/PSTN), quality evaluation, and iPaaS event routing.
 
-Built as a portfolio and interview-ready reference for **AI Agent Engineer**, **Solutions Engineer**, and **Conversational AI** roles.
+Designed for enterprise contact centers, CCaaS deployments, and customer-support automation at scale.
 
 **Repository:** [github.com/ShubhamRSY/voice-agents](https://github.com/ShubhamRSY/voice-agents)
 
@@ -10,7 +10,7 @@ Built as a portfolio and interview-ready reference for **AI Agent Engineer**, **
 
 ## Overview
 
-This platform simulates how a real enterprise would deploy AI support agents across multiple channels:
+The platform runs AI support agents across multiple customer-facing channels:
 
 | Channel | What it does |
 |---------|----------------|
@@ -29,7 +29,7 @@ Agents can search a knowledge base (RAG), look up customers (CRM), create ticket
 - **RAG pipeline** — Document ingestion, ChromaDB vector store, keyword + semantic retrieval
 - **LLM providers** — OpenAI, Anthropic, Gemini via unified factory; mock fallback when no API key
 - **Telephony** — Twilio voice webhooks, TwiML generation, call routing, SIP header extraction, human transfer
-- **CRM integration** — HubSpot adapter with mock fallback for demos
+- **CRM integration** — HubSpot adapter with graceful degradation when credentials are unavailable
 - **iPaaS webhooks** — Outbound events for n8n/Zapier (`integrations/templates/`)
 - **Evaluation framework** — Automated test suites for containment, tool accuracy, latency, grounding, and hallucination rate
 - **LLM parameter control** — Temperature, max tokens, top P, top K, repetition penalty, stop sequences, n sequences
@@ -427,36 +427,36 @@ Expected: **14 tests passing** (routing, prompts, tools, CRM, guardrails, ground
 
 ---
 
-## Demo Script (2-minute interview walkthrough)
+## Deployment Verification
 
-1. **Start:** `./run.sh` → open [http://127.0.0.1:8001/](http://127.0.0.1:8001/)
-2. **Chat:** Ask *"How do I reset my password?"* → show RAG + tool usage
-3. **CRM:** Ask *"Can you look up jane@example.com?"* → show customer lookup
-4. **Voice:** Switch to Voice tab → Answer call → ask a question → request manager → show transfer
-5. **API:** Open `/docs` → show telephony simulate endpoint and evaluation runner
-6. **Architecture:** Mention LangGraph orchestration, ChromaDB RAG, Twilio PSTN, HubSpot CRM, n8n webhooks
+Standard smoke test after install or release:
+
+1. **Start services:** `./run.sh` → open [http://127.0.0.1:8001/](http://127.0.0.1:8001/)
+2. **Chat channel:** *"How do I reset my password?"* — verify RAG retrieval and tool invocation
+3. **CRM lookup:** *"Can you look up jane@example.com?"* — verify customer record resolution
+4. **Voice channel:** Voice tab → answer inbound call → submit utterance → request escalation — verify transfer routing
+5. **API surface:** `/docs` — exercise telephony simulate and evaluation endpoints
+6. **Observability:** Confirm `grounding_score`, `hallucination_risk`, and `response_time_ms` in API responses
 
 ---
 
-## Skills Demonstrated
+## Enterprise Capabilities
 
-This project maps directly to enterprise AI agent engineering requirements:
-
-- Prompt design and workflow configuration (few-shot, chain-of-thought)
-- LLM orchestration (LangChain / LangGraph) with full parameter control
-- Retrieval-augmented generation (RAG) with grounding scores
-- Guardrails and hallucination detection
-- API and CRM integrations
-- Telephony (SIP, CCaaS, PSTN via Twilio)
-- iPaaS event routing (n8n, Zapier)
-- Agent evaluation and containment testing
-- Customer-facing demo readiness
+| Capability | Implementation |
+|------------|----------------|
+| Prompt & workflow configuration | Few-shot and chain-of-thought templates per channel |
+| LLM orchestration | LangChain / LangGraph with per-agent parameter control |
+| Knowledge grounding | ChromaDB RAG + keyword fallback with grounding scores |
+| Safety & compliance | Input guardrails, output sanitization, hallucination risk scoring |
+| System integrations | REST API, HubSpot CRM, n8n/Zapier webhooks |
+| Telephony | Twilio PSTN/CCaaS, SIP header routing, human transfer |
+| Quality assurance | Containment, tool accuracy, latency, and benchmark regression tests |
 
 ---
 
 ## License
 
-MIT — free to use, modify, and showcase in portfolios.
+MIT — free to use, modify, and distribute.
 
 ## Author
 

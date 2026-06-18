@@ -293,7 +293,7 @@ cd voice-agents
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 ### 2. Configure environment (optional)
@@ -590,7 +590,7 @@ voice-agents/
 │   └── test_llm_features.py
 ├── .env.example
 ├── requirements.txt
-├── run.sh                       # One-command startup script
+├── Dockerfile                   # Container image for production deployment
 └── README.md
 ```
 
@@ -618,7 +618,18 @@ Copy `.env.example` to `.env`:
 pytest tests/ -v
 ```
 
-Expected: **14 tests passing** (routing, prompts, tools, CRM, guardrails, grounding, LLM params).
+Expected: **28 tests passing** (routing, prompts, tools, CRM, guardrails, grounding, sessions, telephony, containment).
+
+---
+
+## Docker
+
+```bash
+docker build -t enterprise-voice-agents .
+docker run -p 8000:8000 --env-file .env enterprise-voice-agents
+```
+
+App available at `http://localhost:8000/` with health check on `/api/v1/health`.
 
 ---
 

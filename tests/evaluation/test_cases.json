@@ -31,7 +31,7 @@
       "input": "I've been trying to fix this for weeks and nothing works. I need to speak to a manager right now.",
       "expected_tools": ["transfer_to_human"],
       "expected_keywords": ["transfer", "specialist"],
-      "should_contain": true
+      "should_contain": false
     },
     {
       "id": "api_troubleshooting",

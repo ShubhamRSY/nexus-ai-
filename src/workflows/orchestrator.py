@@ -15,7 +15,7 @@ from src.llm.factory import get_llm
 from src.llm.guardrails import check_input, check_output
 from src.llm.hallucination import score_grounding
 from src.llm.params import resolve_llm_params
-from src.prompts.templates import PROMPT_REGISTRY, build_system_vars
+from src.prompts.templates import PROMPT_REGISTRY, build_system_vars, messages_from_prompt_value
 from src.rag.keyword_search import best_answer, search_faq
 from src.rag.retriever import KnowledgeRetriever
 
@@ -95,7 +95,7 @@ class AgentOrchestrator:
             tool_calls.append({"name": "transfer_to_human", "args": {"reason": "User requested a human agent"}})
             response_text = json.loads(out).get("message", "Connecting you with a specialist now.")
             if channel == "voice":
-                response_text = "I understand. Let me connect you with a specialist right away. One moment please."
+                response_text = "I understand. Let me transfer you to a specialist right away. One moment please."
 
         # Customer lookup
         elif email_match and "lookup_customer" in TOOL_REGISTRY:
@@ -202,10 +202,11 @@ class AgentOrchestrator:
 
         prompt_template = PROMPT_REGISTRY[channel]
         formatted = prompt_template.invoke(system_vars)
+        prompt_messages = messages_from_prompt_value(formatted)
 
         if self._agent is None:
             raise RuntimeError("Agent is not initialized (missing LLM).")
-        result = await self._agent.ainvoke({"messages": formatted.messages})
+        result = await self._agent.ainvoke({"messages": prompt_messages})
         messages = result["messages"]
         response_msg = messages[-1]
         response_text = response_msg.content if isinstance(response_msg, AIMessage) else str(response_msg)

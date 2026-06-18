@@ -6,6 +6,7 @@ import structlog
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from src.api.session_manager import SessionManager
 from src.evaluation.evaluator import AgentEvaluator
 from src.integrations.webhooks import IntegrationRouter
 from src.rag.ingestion import ingest_directory, ingest_file
@@ -62,13 +63,11 @@ _call_router.add_rule(RoutingRule("vip", "from:+1555", "+15559999999", priority=
 _call_router.set_fallback("+15551111111")
 
 
-_sessions: dict[str, AgentOrchestrator] = {}
+_sessions = SessionManager(ttl_seconds=3600, max_sessions=1000)
 
 
 def _get_session(session_id: str, agent_id: str) -> AgentOrchestrator:
-    if session_id not in _sessions:
-        _sessions[session_id] = AgentOrchestrator(agent_id)
-    return _sessions[session_id]
+    return _sessions.get(session_id, agent_id)
 
 
 @router.get("/health")
@@ -110,9 +109,16 @@ async def copilot(request: CopilotRequest) -> dict[str, Any]:
 
 @router.delete("/chat/{session_id}")
 async def end_session(session_id: str) -> dict[str, str]:
-    _sessions.pop(session_id, None)
+    _sessions.remove(session_id)
     await integration_router.on_conversation_end(session_id, "completed", {})
     return {"status": "session_ended"}
+
+
+@router.get("/sessions/stats")
+async def session_stats() -> dict[str, int]:
+    """Expose active session count for observability."""
+    _sessions.evict_stale()
+    return {"active_sessions": _sessions.active_count}
 
 
 @router.post("/rag/ingest")
@@ -145,7 +151,7 @@ async def voice_inbound(request: Request):
 
 @router.post("/telephony/voice/process")
 async def voice_process(request: Request):
-    return await voice_handler.handle_inbound(request)
+    return await voice_handler.handle_process(request)
 
 
 @router.post("/telephony/voice/status")

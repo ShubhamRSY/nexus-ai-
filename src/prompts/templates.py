@@ -1,5 +1,8 @@
 """Prompt templates for voice, chat, and copilot agents."""
 
+from typing import Any
+
+from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 FEW_SHOT_EXAMPLES = """
@@ -133,3 +136,15 @@ PROMPT_REGISTRY = {
     "chat": CHAT_PROMPT,
     "copilot": COPILOT_PROMPT,
 }
+
+
+def messages_from_prompt_value(prompt_value: Any) -> list[BaseMessage]:
+    """Normalize ChatPromptValue (or compatible) into a message list for agent invoke."""
+    if isinstance(prompt_value, list) and prompt_value:
+        return list(prompt_value)
+    if hasattr(prompt_value, "messages"):
+        return list(prompt_value.messages)
+    if hasattr(prompt_value, "to_messages"):
+        return list(prompt_value.to_messages())
+    raise TypeError(f"Unsupported prompt value type: {type(prompt_value)!r}")
+

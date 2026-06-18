@@ -8,7 +8,7 @@ from typing import Any
 
 import structlog
 
-from src.config import load_agent_config
+from src.config import load_agent_config, project_path
 from src.llm.hallucination import score_grounding
 from src.workflows.orchestrator import AgentOrchestrator
 
@@ -55,11 +55,11 @@ class AgentEvaluator:
             self.load_benchmarks(benchmark_path)
 
     def load_test_suite(self, path: str | Path) -> None:
-        data = json.loads(Path(path).read_text())
+        data = json.loads(project_path(path).read_text())
         self.test_cases = [EvalCase(**tc) for tc in data["test_cases"]]
 
     def load_benchmarks(self, path: str | Path) -> None:
-        data = json.loads(Path(path).read_text())
+        data = json.loads(project_path(path).read_text())
         self.benchmarks = data.get("benchmarks", [])
 
     def add_test_case(self, test_case: EvalCase) -> None:

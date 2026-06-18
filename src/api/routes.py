@@ -261,7 +261,9 @@ async def register_webhook(request: WebhookRegisterRequest) -> dict[str, str]:
 
 @router.post("/evaluation/run")
 async def run_evaluation() -> dict[str, Any]:
-    evaluator = AgentEvaluator("tests/evaluation/test_cases.json")
+    from src.config import EVALUATION_DIR
+
+    evaluator = AgentEvaluator(str(EVALUATION_DIR / "test_cases.json"))
     return await evaluator.run_suite()
 
 

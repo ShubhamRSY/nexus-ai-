@@ -99,6 +99,6 @@ evaluation:
     - tool_accuracy
     - hallucination_rate
     - grounding_score
-  test_suite: tests/evaluation/test_cases.json
-  benchmark_suite: tests/evaluation/benchmarks.json
+  test_suite: config/evaluation/test_cases.json
+  benchmark_suite: config/evaluation/benchmarks.json
   hallucination_threshold: 0.15

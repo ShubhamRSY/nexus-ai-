@@ -18,7 +18,7 @@ COPY src ./src
 COPY static ./static
 COPY data ./data
 COPY scripts ./scripts
-COPY integrations ./integrations
+COPY docs ./docs
 
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \

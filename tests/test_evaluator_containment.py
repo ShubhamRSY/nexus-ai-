@@ -32,7 +32,7 @@ class TestEvaluatorContainment:
         assert result.passed is True
 
     async def test_suite_returns_containment_rate(self):
-        evaluator = AgentEvaluator("tests/evaluation/test_cases.json")
+        evaluator = AgentEvaluator("config/evaluation/test_cases.json")
         report = await evaluator.run_suite()
         summary = report["summary"]
         assert "containment_rate" in summary

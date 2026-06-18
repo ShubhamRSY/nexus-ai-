@@ -9,7 +9,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT_DIR / "config"
+EVALUATION_DIR = CONFIG_DIR / "evaluation"
+DOCS_DIR = ROOT_DIR / "docs"
+DATA_DIR = ROOT_DIR / "data"
 ENV_FILE = ROOT_DIR / ".env"
+
+
+def project_path(relative: str | Path) -> Path:
+    """Resolve a path relative to the repository root."""
+    return ROOT_DIR / relative
 
 
 class Settings(BaseSettings):

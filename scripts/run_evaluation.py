@@ -12,7 +12,7 @@ from src.evaluation.evaluator import AgentEvaluator
 
 
 async def main():
-    suite_path = Path(__file__).parent.parent / "tests" / "evaluation" / "test_cases.json"
+    suite_path = Path(__file__).parent.parent / "config" / "evaluation" / "test_cases.json"
     evaluator = AgentEvaluator(str(suite_path))
     results = await evaluator.run_suite()
 

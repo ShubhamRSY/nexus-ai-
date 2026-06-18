@@ -10,9 +10,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT_DIR / "config"
 EVALUATION_DIR = CONFIG_DIR / "evaluation"
+ENV_DIR = CONFIG_DIR / "environment"
 DOCS_DIR = ROOT_DIR / "docs"
 DATA_DIR = ROOT_DIR / "data"
-ENV_FILE = ROOT_DIR / ".env"
+ENV_FILE = ENV_DIR / ".env"
+ENV_EXAMPLE_FILE = ENV_DIR / ".env.example"
+DEPS_DIR = CONFIG_DIR / "deps"
+DEPLOY_DIR = ROOT_DIR / "deploy"
 
 
 def project_path(relative: str | Path) -> Path:

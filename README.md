@@ -57,10 +57,10 @@ Nexus packages all of this into a single FastAPI application with a built-in **N
 
 | Provider | Purpose | Configure via |
 |----------|---------|---------------|
-| **OpenAI** | LLM, embeddings, STT, TTS | `.env` or Nexus **Integrations** panel |
-| **Anthropic** | LLM (copilot / chat) | `.env` or UI |
-| **Twilio** | Real PSTN voice calls | `.env` or UI |
-| **HubSpot** | CRM lookup & tickets | `.env` or UI |
+| **OpenAI** | LLM, embeddings, STT, TTS | `config/environment/.env` or Nexus **Integrations** panel |
+| **Anthropic** | LLM (copilot / chat) | `config/environment/.env` or UI |
+| **Twilio** | Real PSTN voice calls | `config/environment/.env` or UI |
+| **HubSpot** | CRM lookup & tickets | `config/environment/.env` or UI |
 | **n8n / Zapier** | Workflow webhooks on lifecycle events | UI or API |
 
 Credentials saved in the UI are **encrypted at rest** (Fernet) in `data/integrations.vault`. Mock mode works when nothing is configured.
@@ -253,7 +253,7 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph Dev["Development / Staging"]
-        RUN["./run.sh<br/>Uvicorn :8001"]
+        RUN["./scripts/run.sh<br/>Uvicorn :8001"]
         NGROK["ngrok tunnel<br/><i>Twilio webhooks</i>"]
         RUN --> NGROK
     end
@@ -269,7 +269,7 @@ flowchart LR
     end
 ```
 
-**Default:** single-process Uvicorn on port **8001** (`./run.sh`). For production, run stateless instances behind a load balancer, persist ChromaDB to shared storage, and inject credentials via a secrets manager.
+**Default:** single-process Uvicorn on port **8001** (`./scripts/run.sh`). For production, run stateless instances behind a load balancer, persist ChromaDB to shared storage, and inject credentials via a secrets manager.
 
 ---
 
@@ -331,11 +331,11 @@ git clone https://github.com/ShubhamRSY/voice-agents.git
 cd voice-agents
 
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt && pip install -e ".[dev]"
+pip install -r config/deps/requirements.txt && pip install -e ".[dev]"
 
-cp .env.example .env          # optional — add API keys
+cp config/environment/.env.example config/environment/.env   # optional — add API keys
 python scripts/ingest_kb.py data/knowledge_base/
-./run.sh
+./scripts/run.sh
 ```
 
 | URL | Description |
@@ -377,7 +377,7 @@ The **Nexus AI Ops** console (`static/index.html`) at [http://127.0.0.1:8001](ht
 3. Saved keys show masked values (e.g. `sk-p••••IP0A`) with **Change** and **Remove**
 4. **Remove** shows a confirmation dialog before deleting from the vault
 
-Works alongside `.env` — vault values override env when both are set.
+Works alongside `config/environment/.env` — vault values override env when both are set.
 
 ---
 
@@ -444,7 +444,7 @@ Three agents are defined in `config/agents.yaml`:
 ## Telephony (Twilio)
 
 ```bash
-# .env
+# config/environment/.env
 TWILIO_ACCOUNT_SID=AC...
 TWILIO_AUTH_TOKEN=...
 TWILIO_PHONE_NUMBER=+1...
@@ -502,57 +502,73 @@ Fixtures: `config/evaluation/test_cases.json`, `config/evaluation/benchmarks.jso
 
 ```
 voice-agents/
+├── README.md                       # Project overview (this file)
+├── pyproject.toml                  # Python package & pytest config
+├── .gitignore
+│
 ├── config/
 │   ├── agents.yaml                 # Agents, RAG, guardrails, eval settings
-│   └── evaluation/                 # Test cases & benchmark fixtures
-│       ├── test_cases.json
-│       └── benchmarks.json
+│   ├── evaluation/                 # Test cases & benchmark fixtures
+│   │   ├── test_cases.json
+│   │   └── benchmarks.json
+│   ├── environment/                # Environment variables (not committed)
+│   │   ├── .env.example            # Template — copy to .env
+│   │   └── .env                    # Your local secrets (gitignored)
+│   └── deps/
+│       └── requirements.txt        # Pip install pointer
+│
+├── deploy/
+│   └── docker/
+│       ├── Dockerfile              # Production container image
+│       └── .dockerignore           # Docker build exclusions
+│
 ├── data/
-│   ├── knowledge_base/             # Sample FAQ documents (ingest source)
-│   └── chroma/                     # ChromaDB persistence (gitignored)
+│   ├── knowledge_base/             # FAQ documents (ingest source)
+│   ├── chroma/                     # ChromaDB persistence (gitignored)
+│   └── integrations.vault          # Encrypted API keys (gitignored)
+│
 ├── docs/
 │   └── integrations/templates/     # n8n & Zapier workflow templates
+│
 ├── scripts/
-│   ├── ci.sh                       # Full CI suite locally
+│   ├── run.sh                      # Start dev server (port 8001)
+│   ├── ci.sh                       # Full local CI suite
 │   ├── ingest_kb.py                # Knowledge base ingestion
 │   ├── run_evaluation.py           # Evaluation runner
 │   └── demo_chat.py                # CLI chat demo
-├── src/
-│   ├── main.py                     # FastAPI application entry
-│   ├── config.py                   # Settings & YAML loader
-│   ├── api/                        # REST routes & session manager
+│
+├── src/                            # Application source code
+│   ├── main.py                     # FastAPI entry point
+│   ├── config.py                   # Settings & path constants
+│   ├── api/                        # REST routes & sessions
 │   ├── workflows/                  # LangGraph orchestrator
-│   ├── agents/                     # LangChain tool definitions
+│   ├── agents/                     # LangChain tools
 │   ├── rag/                        # Ingestion, vector store, retriever
 │   ├── llm/                        # Factory, guardrails, grounding
 │   ├── telephony/                  # Twilio, call router, STT/TTS
-│   ├── integrations/               # CRM, webhooks, encrypted secrets vault
-│   │   ├── secrets_vault.py        # Fernet credential storage
-│   │   ├── webhooks.py
-│   │   └── crm.py
+│   ├── integrations/               # CRM, webhooks, secrets vault
 │   ├── evaluation/                 # Quality evaluator
 │   └── prompts/                    # Channel prompt templates
+│
 ├── static/
-│   └── index.html                  # Nexus AI Ops console
+│   └── index.html                  # Nexus AI Ops web console
+│
 ├── tests/
 │   ├── test_*.py                   # Unit & integration tests
-│   ├── test_secrets_vault.py       # Encrypted vault tests
-│   ├── test_integrations_api.py    # Integrations API tests
-│   ├── test_vector_store.py        # RAG score normalization tests
-│   ├── e2e/                        # End-to-end user journey tests
-│   └── reports/                    # CI reports (XML gitignored)
-├── .github/workflows/ci.yml        # GitHub Actions pipeline
-├── run.sh                          # Dev server (port 8001)
-├── Dockerfile
-├── pyproject.toml
-└── requirements.txt
+│   ├── test_secrets_vault.py
+│   ├── test_integrations_api.py
+│   ├── test_vector_store.py
+│   ├── e2e/                        # End-to-end journey tests
+│   └── reports/                    # CI output (XML gitignored)
+│
+└── .github/workflows/ci.yml        # GitHub Actions pipeline
 ```
 
 ---
 
 ## Environment variables
 
-Copy `.env.example` → `.env`:
+Copy `config/environment/.env.example` → `config/environment/.env`:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -569,7 +585,7 @@ Copy `.env.example` → `.env`:
 
 ### Encrypted integrations (UI or API)
 
-Optional providers can be configured in the **Nexus sidebar → Integrations** panel or via API. Credentials are encrypted at rest in `data/integrations.vault` (Fernet, AES). Vault values override `.env` when both are set. API responses only show **masked** keys — never full secrets.
+Optional providers can be configured in the **Nexus sidebar → Integrations** panel or via API. Credentials are encrypted at rest in `data/integrations.vault` (Fernet, AES). Vault values override `config/environment/.env` when both are set. API responses only show **masked** keys — never full secrets.
 
 | Endpoint | Description |
 |----------|-------------|
@@ -599,8 +615,8 @@ pytest tests/ tests/e2e/ -v      # quick local run
 ## Docker
 
 ```bash
-docker build -t nexus-voice-agents .
-docker run -p 8000:8000 --env-file .env nexus-voice-agents
+docker build -f deploy/docker/Dockerfile --ignorefile deploy/docker/.dockerignore -t nexus-voice-agents .
+docker run -p 8000:8000 --env-file config/environment/.env nexus-voice-agents
 ```
 
 Health: `GET /api/v1/health` · App: `http://localhost:8000/`

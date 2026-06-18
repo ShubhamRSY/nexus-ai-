@@ -1,0 +1,15 @@
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.git
+config/environment/.env
+.env
+*.egg-info
+data/chroma
+data/integrations.vault
+data/.vault_key
+.DS_Store
+.coverage
+htmlcov/
+tests/reports/

@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml requirements.txt README.md ./
+COPY pyproject.toml README.md ./
+COPY config/deps/requirements.txt requirements.txt
 COPY config ./config
 COPY src ./src
 COPY static ./static

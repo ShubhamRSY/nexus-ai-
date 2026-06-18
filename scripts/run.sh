@@ -1,24 +1,26 @@
 #!/bin/bash
-cd "$(dirname "$0")"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
 
 if [ ! -d ".venv" ]; then
-  echo "ERROR: .venv not found. Run: python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
+  echo "ERROR: .venv not found. Run:"
+  echo "  python3 -m venv .venv && source .venv/bin/activate"
+  echo "  pip install -r config/deps/requirements.txt && pip install -e \".[dev]\""
   exit 1
 fi
 
 source .venv/bin/activate
 
-# Load API keys from .env
-if [ -f .env ]; then
+ENV_FILE="config/environment/.env"
+if [ -f "$ENV_FILE" ]; then
   set -a
-  # shellcheck disable=SC1091
-  source .env
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
   set +a
 fi
 
 PORT=8001
 
-# Stop any old server on this port so restarts pick up new code
 if lsof -ti :$PORT >/dev/null 2>&1; then
   echo "Stopping old server on port $PORT..."
   kill $(lsof -ti :$PORT) 2>/dev/null || true
@@ -27,7 +29,7 @@ fi
 
 echo ""
 echo "=========================================="
-echo "  Voice Agents Platform"
+echo "  Nexus Voice Agents Platform"
 echo "=========================================="
 echo ""
 echo "  Chat UI:  http://127.0.0.1:$PORT/"

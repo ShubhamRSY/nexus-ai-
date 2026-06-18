@@ -137,7 +137,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build image
-        run: docker build -t voice-agents:ci .
+        run: docker build -f deploy/docker/Dockerfile --ignorefile deploy/docker/.dockerignore -t voice-agents:ci .
 
       - name: Smoke test container
         run: |

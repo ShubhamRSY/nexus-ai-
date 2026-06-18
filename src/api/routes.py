@@ -329,6 +329,8 @@ async def integrations_status() -> dict[str, Any]:
                     creds[key]["configured"]
                     for key in ("twilio_account_sid", "twilio_auth_token", "twilio_phone_number")
                 ),
+                "masked_sid": creds["twilio_account_sid"]["masked"],
+                "masked_phone": creds["twilio_phone_number"]["masked"],
                 "webhook_base_url": creds["twilio_webhook_base_url"]["masked"] or None,
                 "source": "vault" if vault.get_credentials().get("twilio_account_sid") else (
                     "env" if _env_credentials().get("twilio_account_sid") else "none"
@@ -344,6 +346,7 @@ async def integrations_status() -> dict[str, Any]:
             "ipaas": {
                 "configured": any(item["configured"] for item in hooks.values()),
                 "webhook_signing": creds["webhook_signing_secret"]["configured"],
+                "masked_signing_secret": creds["webhook_signing_secret"]["masked"],
                 "events": hooks,
                 "features": ["n8n", "zapier"],
             },

@@ -66,6 +66,10 @@
       -webkit-text-size-adjust: 100%;
     }
 
+    html {
+      height: 100%;
+    }
+
     body {
       font-family: var(--font);
       background: var(--bg);
@@ -332,10 +336,16 @@
     .app-shell {
       position: relative;
       z-index: 1;
-      flex: 1;
+      flex: 1 1 0;
       display: flex;
       min-height: 0;
+      max-height: calc(100dvh - var(--header-h));
       overflow: hidden;
+    }
+    @media (max-width: 640px) {
+      .app-shell {
+        max-height: calc(100dvh - var(--header-h) - 56px);
+      }
     }
 
     .sidebar-overlay {
@@ -363,11 +373,40 @@
       box-shadow: 4px 0 40px rgba(0,0,0,0.2), inset -1px 0 0 rgba(255,255,255,0.04);
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
-      padding: 1.25rem;
-      padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
-      overflow-y: auto;
+      min-height: 0;
+      height: 100%;
+      max-height: calc(100dvh - var(--header-h));
+      overflow: hidden;
+      padding: 0;
       transition: transform var(--transition);
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 1.25rem;
+      padding-bottom: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar,
+    .messages::-webkit-scrollbar,
+    .copilot-transcript-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .sidebar-scroll::-webkit-scrollbar-thumb,
+    .messages::-webkit-scrollbar-thumb,
+    .copilot-transcript-body::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
     }
 
     @media (max-width: 899px) {
@@ -378,6 +417,8 @@
         left: 0;
         bottom: 0;
         z-index: 45;
+        max-height: none;
+        height: calc(100dvh - var(--header-h));
         transform: translateX(-100%);
         box-shadow: var(--shadow);
       }
@@ -464,15 +505,18 @@
     }
 
     .sidebar-footer {
-      margin-top: auto;
-      padding-top: 1rem;
+      flex-shrink: 0;
+      margin-top: 0;
+      padding: 1rem 1.25rem;
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
       border-top: 1px solid var(--border);
+      background: color-mix(in srgb, var(--bg) 70%, transparent);
     }
 
     .integrations-panel {
-      margin-top: 1.25rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border);
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
     }
     .integrations-panel h3 {
       font-size: 0.72rem;
@@ -522,8 +566,63 @@
       font-size: 0.68rem;
       color: var(--accent);
       font-family: ui-monospace, monospace;
-      margin-bottom: 0.45rem;
     }
+    .integration-saved-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.65rem;
+      padding: 0.55rem 0.65rem;
+      margin-bottom: 0.55rem;
+      background: rgba(56, 189, 248, 0.06);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      border-radius: var(--radius-sm);
+    }
+    .integration-saved-row[hidden] { display: none !important; }
+    .integration-saved-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+    .integration-saved-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--voice);
+    }
+    .integration-inline-actions {
+      display: flex;
+      flex-shrink: 0;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .integration-action-btn {
+      padding: 0.28rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      font-size: 0.68rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .integration-action-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--surface-hover);
+    }
+    .integration-action-btn.danger:hover {
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.45);
+      background: rgba(248, 113, 113, 0.1);
+    }
+    .integration-edit.collapsed { display: none; }
+    .integration-edit.editing { display: block; }
     .integrations-actions {
       display: flex;
       gap: 0.5rem;
@@ -593,16 +692,17 @@
     /* ── Main chat area ── */
     .main {
       position: relative;
-      flex: 1;
+      flex: 1 1 0;
       display: flex;
       flex-direction: column;
       min-width: 0;
       min-height: 0;
+      overflow: hidden;
       background: transparent;
     }
 
     .messages {
-      flex: 1;
+      flex: 1 1 0;
       min-height: 0;
       overflow-y: auto;
       overflow-x: hidden;
@@ -1253,11 +1353,12 @@
 
     /* ── Copilot split workspace ── */
     .main-content {
-      flex: 1;
+      flex: 1 1 0;
       display: flex;
       flex-direction: column;
       min-height: 0;
       min-width: 0;
+      overflow: hidden;
     }
     body[data-mode="copilot"] .main-content {
       flex-direction: row;
@@ -1266,11 +1367,12 @@
       body[data-mode="copilot"] .main-content { flex-direction: column; }
     }
     .chat-column {
-      flex: 1;
+      flex: 1 1 0;
       display: flex;
       flex-direction: column;
       min-height: 0;
       min-width: 0;
+      overflow: hidden;
       position: relative;
     }
     .copilot-transcript-pane {
@@ -1278,10 +1380,12 @@
       width: 38%;
       max-width: 420px;
       min-width: 260px;
+      min-height: 0;
       border-right: 1px solid var(--border);
       flex-direction: column;
       background: linear-gradient(180deg, rgba(192,132,252,0.06), transparent);
       flex-shrink: 0;
+      overflow: hidden;
     }
     body[data-mode="copilot"] .copilot-transcript-pane { display: flex; }
     @media (max-width: 899px) {
@@ -1301,7 +1405,8 @@
       gap: 0.5rem;
     }
     .copilot-transcript-body {
-      flex: 1;
+      flex: 1 1 0;
+      min-height: 0;
       overflow-y: auto;
       padding: 1rem;
       font-size: 0.85rem;
@@ -1631,6 +1736,7 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <aside class="sidebar" id="sidebar">
+      <div class="sidebar-scroll" id="sidebarScroll">
       <div class="session-rail" id="sessionRail">
         <div class="session-rail-head">
           <h3>Recent Sessions</h3>
@@ -1703,65 +1809,132 @@
         <h3>Integrations</h3>
         <p class="integration-hint">Optional API keys — stored encrypted on this server. Leave blank to keep existing values.</p>
 
-        <div class="integration-group">
+        <div class="integration-group" data-provider="openai">
           <div class="integration-head">
             <strong>OpenAI</strong>
             <span class="integration-badge" id="badgeOpenAI">Off</span>
           </div>
-          <div class="integration-masked" id="maskedOpenAI"></div>
-          <div class="field">
-            <label for="credOpenAI">API Key</label>
-            <input type="password" id="credOpenAI" class="integration-input" placeholder="OpenAI API key" autocomplete="off" />
+          <div class="integration-saved-row" id="savedRowOpenAI" hidden>
+            <div class="integration-saved-meta">
+              <span class="integration-saved-label">Saved</span>
+              <span class="integration-masked" id="maskedOpenAI"></span>
+            </div>
+            <div class="integration-inline-actions">
+              <button type="button" class="integration-action-btn" data-action="change" data-provider="openai">Change</button>
+              <button type="button" class="integration-action-btn danger" data-action="delete" data-keys="openai_api_key">Remove</button>
+            </div>
+          </div>
+          <div class="integration-edit" id="editOpenAI">
+            <div class="field">
+              <label for="credOpenAI">API Key</label>
+              <input type="password" id="credOpenAI" class="integration-input" placeholder="Enter new OpenAI API key" autocomplete="off" />
+            </div>
           </div>
         </div>
 
-        <div class="integration-group">
+        <div class="integration-group" data-provider="anthropic">
           <div class="integration-head">
             <strong>Anthropic</strong>
             <span class="integration-badge" id="badgeAnthropic">Off</span>
           </div>
-          <div class="integration-masked" id="maskedAnthropic"></div>
-          <div class="field">
-            <label for="credAnthropic">API Key</label>
-            <input type="password" id="credAnthropic" class="integration-input" placeholder="Anthropic API key" autocomplete="off" />
+          <div class="integration-saved-row" id="savedRowAnthropic" hidden>
+            <div class="integration-saved-meta">
+              <span class="integration-saved-label">Saved</span>
+              <span class="integration-masked" id="maskedAnthropic"></span>
+            </div>
+            <div class="integration-inline-actions">
+              <button type="button" class="integration-action-btn" data-action="change" data-provider="anthropic">Change</button>
+              <button type="button" class="integration-action-btn danger" data-action="delete" data-keys="anthropic_api_key">Remove</button>
+            </div>
+          </div>
+          <div class="integration-edit" id="editAnthropic">
+            <div class="field">
+              <label for="credAnthropic">API Key</label>
+              <input type="password" id="credAnthropic" class="integration-input" placeholder="Enter new Anthropic API key" autocomplete="off" />
+            </div>
           </div>
         </div>
 
-        <div class="integration-group">
+        <div class="integration-group" data-provider="twilio">
           <div class="integration-head">
             <strong>Twilio</strong>
             <span class="integration-badge" id="badgeTwilio">Off</span>
           </div>
-          <div class="field"><label for="credTwilioSid">Account SID</label><input type="password" id="credTwilioSid" class="integration-input" autocomplete="off" /></div>
-          <div class="field"><label for="credTwilioToken">Auth Token</label><input type="password" id="credTwilioToken" class="integration-input" autocomplete="off" /></div>
-          <div class="field"><label for="credTwilioPhone">Phone Number</label><input type="text" id="credTwilioPhone" class="integration-input" placeholder="+1..." autocomplete="off" /></div>
-          <div class="field"><label for="credTwilioWebhook">Webhook Base URL</label><input type="text" id="credTwilioWebhook" class="integration-input" placeholder="https://your-tunnel.ngrok.io" autocomplete="off" /></div>
+          <div class="integration-saved-row" id="savedRowTwilio" hidden>
+            <div class="integration-saved-meta">
+              <span class="integration-saved-label">Saved</span>
+              <span class="integration-masked" id="maskedTwilio"></span>
+            </div>
+            <div class="integration-inline-actions">
+              <button type="button" class="integration-action-btn" data-action="change" data-provider="twilio">Change</button>
+              <button type="button" class="integration-action-btn danger" data-action="delete" data-keys="twilio_account_sid,twilio_auth_token,twilio_phone_number,twilio_webhook_base_url">Remove</button>
+            </div>
+          </div>
+          <div class="integration-edit" id="editTwilio">
+            <div class="field"><label for="credTwilioSid">Account SID</label><input type="password" id="credTwilioSid" class="integration-input" autocomplete="off" /></div>
+            <div class="field"><label for="credTwilioToken">Auth Token</label><input type="password" id="credTwilioToken" class="integration-input" autocomplete="off" /></div>
+            <div class="field"><label for="credTwilioPhone">Phone Number</label><input type="text" id="credTwilioPhone" class="integration-input" placeholder="+1..." autocomplete="off" /></div>
+            <div class="field"><label for="credTwilioWebhook">Webhook Base URL</label><input type="text" id="credTwilioWebhook" class="integration-input" placeholder="https://your-tunnel.ngrok.io" autocomplete="off" /></div>
+          </div>
         </div>
 
-        <div class="integration-group">
+        <div class="integration-group" data-provider="hubspot">
           <div class="integration-head">
             <strong>HubSpot</strong>
             <span class="integration-badge" id="badgeHubspot">Off</span>
           </div>
-          <div class="integration-masked" id="maskedHubspot"></div>
-          <div class="field">
-            <label for="credHubspot">API Key</label>
-            <input type="password" id="credHubspot" class="integration-input" placeholder="HubSpot API key" autocomplete="off" />
+          <div class="integration-saved-row" id="savedRowHubspot" hidden>
+            <div class="integration-saved-meta">
+              <span class="integration-saved-label">Saved</span>
+              <span class="integration-masked" id="maskedHubspot"></span>
+            </div>
+            <div class="integration-inline-actions">
+              <button type="button" class="integration-action-btn" data-action="change" data-provider="hubspot">Change</button>
+              <button type="button" class="integration-action-btn danger" data-action="delete" data-keys="hubspot_api_key">Remove</button>
+            </div>
+          </div>
+          <div class="integration-edit" id="editHubspot">
+            <div class="field">
+              <label for="credHubspot">API Key</label>
+              <input type="password" id="credHubspot" class="integration-input" placeholder="Enter new HubSpot API key" autocomplete="off" />
+            </div>
           </div>
         </div>
 
-        <div class="integration-group">
+        <div class="integration-group" data-provider="ipaas">
           <div class="integration-head">
             <strong>n8n / Zapier</strong>
             <span class="integration-badge" id="badgeIpaas">Off</span>
           </div>
-          <div class="field">
-            <label for="webhookStarted">conversation.started URL</label>
-            <input type="url" id="webhookStarted" class="integration-input" placeholder="https://hooks.zapier.com/..." autocomplete="off" />
+          <div class="integration-saved-row" id="savedRowIpaas" hidden>
+            <div class="integration-saved-meta">
+              <span class="integration-saved-label">Webhook</span>
+              <span class="integration-masked" id="maskedIpaas"></span>
+            </div>
+            <div class="integration-inline-actions">
+              <button type="button" class="integration-action-btn" data-action="change" data-provider="ipaas">Change</button>
+              <button type="button" class="integration-action-btn danger" data-action="delete-webhook" data-event="conversation.started">Remove</button>
+            </div>
           </div>
-          <div class="field">
-            <label for="webhookSigning">Webhook signing secret (optional)</label>
-            <input type="password" id="webhookSigning" class="integration-input" autocomplete="off" />
+          <div class="integration-edit" id="editIpaas">
+            <div class="field">
+              <label for="webhookStarted">conversation.started URL</label>
+              <input type="url" id="webhookStarted" class="integration-input" placeholder="https://hooks.zapier.com/..." autocomplete="off" />
+            </div>
+            <div class="integration-saved-row" id="savedRowWebhookSigning" hidden style="margin-top:0.5rem">
+              <div class="integration-saved-meta">
+                <span class="integration-saved-label">Signing secret</span>
+                <span class="integration-masked" id="maskedWebhookSigning"></span>
+              </div>
+              <div class="integration-inline-actions">
+                <button type="button" class="integration-action-btn" data-action="change-signing">Change</button>
+                <button type="button" class="integration-action-btn danger" data-action="delete" data-keys="webhook_signing_secret">Remove</button>
+              </div>
+            </div>
+            <div class="field" id="webhookSigningField">
+              <label for="webhookSigning">Webhook signing secret (optional)</label>
+              <input type="password" id="webhookSigning" class="integration-input" autocomplete="off" />
+            </div>
           </div>
         </div>
 
@@ -1774,6 +1947,7 @@
           <button class="btn btn-primary" type="button" id="saveIntegrationsBtn">Save encrypted</button>
           <button class="btn btn-ghost" type="button" id="refreshIntegrationsBtn">Refresh</button>
         </div>
+      </div>
       </div>
 
       <div class="sidebar-footer">
@@ -2326,7 +2500,9 @@
     function openSidebar() {
       sidebar.classList.add('open');
       overlay.classList.add('open');
-      document.body.style.overflow = 'hidden';
+      if (window.matchMedia('(max-width: 899px)').matches) {
+        document.body.style.overflow = 'hidden';
+      }
     }
     function closeSidebar() {
       sidebar.classList.remove('open');
@@ -2493,6 +2669,63 @@
       el.classList.toggle('on', !!on);
     }
 
+    const INTEGRATION_UI = {
+      openai: { saved: 'savedRowOpenAI', edit: 'editOpenAI', badge: 'badgeOpenAI' },
+      anthropic: { saved: 'savedRowAnthropic', edit: 'editAnthropic', badge: 'badgeAnthropic' },
+      twilio: { saved: 'savedRowTwilio', edit: 'editTwilio', badge: 'badgeTwilio' },
+      hubspot: { saved: 'savedRowHubspot', edit: 'editHubspot', badge: 'badgeHubspot' },
+      ipaas: { saved: 'savedRowIpaas', edit: 'editIpaas', badge: 'badgeIpaas' },
+    };
+
+    function setProviderUI(provider, configured, masked, editing = false) {
+      const ui = INTEGRATION_UI[provider];
+      if (!ui) return;
+      const savedRow = document.getElementById(ui.saved);
+      const editEl = document.getElementById(ui.edit);
+      if (savedRow) {
+        savedRow.hidden = !configured;
+        const maskedEl = savedRow.querySelector('.integration-masked');
+        if (maskedEl) maskedEl.textContent = masked || '';
+      }
+      if (editEl) {
+        const hideEdit = configured && !editing;
+        editEl.classList.toggle('collapsed', hideEdit);
+        editEl.classList.toggle('editing', editing);
+      }
+    }
+
+    function showIntegrationEdit(provider) {
+      setProviderUI(provider, true, '', true);
+      const ui = INTEGRATION_UI[provider];
+      const editEl = ui ? document.getElementById(ui.edit) : null;
+      const focusTarget = editEl?.querySelector('input, textarea');
+      focusTarget?.focus();
+    }
+
+    async function deleteCredentialKeys(keys) {
+      for (const key of keys) {
+        const res = await fetch(`${API}/integrations/credentials/${encodeURIComponent(key)}`, {
+          method: 'DELETE',
+          headers: settingsHeaders(),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Failed to remove ${key}`);
+        }
+      }
+    }
+
+    async function deleteWebhookEvent(eventType) {
+      const res = await fetch(`${API}/integrations/webhooks/${encodeURIComponent(eventType)}`, {
+        method: 'DELETE',
+        headers: settingsHeaders(),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Failed to remove webhook');
+      }
+    }
+
     async function loadIntegrationsStatus() {
       try {
         const res = await fetch(`${API}/integrations/status`);
@@ -2504,12 +2737,28 @@
         setIntegrationBadge(document.getElementById('badgeTwilio'), p.twilio?.configured);
         setIntegrationBadge(document.getElementById('badgeHubspot'), p.hubspot?.configured);
         setIntegrationBadge(document.getElementById('badgeIpaas'), p.ipaas?.configured);
-        const mOpen = document.getElementById('maskedOpenAI');
-        const mAnth = document.getElementById('maskedAnthropic');
-        const mHub = document.getElementById('maskedHubspot');
-        if (mOpen) mOpen.textContent = p.openai?.masked_key ? `Saved: ${p.openai.masked_key}` : '';
-        if (mAnth) mAnth.textContent = p.anthropic?.masked_key ? `Saved: ${p.anthropic.masked_key}` : '';
-        if (mHub) mHub.textContent = p.hubspot?.masked_key ? `Saved: ${p.hubspot.masked_key}` : '';
+
+        setProviderUI('openai', p.openai?.configured, p.openai?.masked_key);
+        setProviderUI('anthropic', p.anthropic?.configured, p.anthropic?.masked_key);
+        setProviderUI('hubspot', p.hubspot?.configured, p.hubspot?.masked_key);
+
+        const twilioMasked = [
+          p.twilio?.masked_sid && `SID ${p.twilio.masked_sid}`,
+          p.twilio?.masked_phone && `Phone ${p.twilio.masked_phone}`,
+        ].filter(Boolean).join(' · ') || 'Twilio credentials saved';
+        setProviderUI('twilio', p.twilio?.configured, twilioMasked);
+
+        const webhookEvent = p.ipaas?.events?.['conversation.started'];
+        const ipaasMasked = webhookEvent?.configured ? (webhookEvent.masked || 'Webhook configured') : '';
+        setProviderUI('ipaas', p.ipaas?.configured, ipaasMasked);
+
+        const signingRow = document.getElementById('savedRowWebhookSigning');
+        const signingField = document.getElementById('webhookSigningField');
+        const signingMasked = document.getElementById('maskedWebhookSigning');
+        const signingConfigured = p.ipaas?.webhook_signing;
+        if (signingRow) signingRow.hidden = !signingConfigured;
+        if (signingMasked) signingMasked.textContent = p.ipaas?.masked_signing_secret || '';
+        if (signingField) signingField.classList.toggle('collapsed', signingConfigured);
       } catch {
         /* status panel optional */
       }
@@ -2572,6 +2821,10 @@
 
         await loadIntegrationsStatus();
         await checkHealth();
+        Object.keys(INTEGRATION_UI).forEach((provider) => {
+          const editEl = document.getElementById(INTEGRATION_UI[provider].edit);
+          editEl?.classList.remove('editing');
+        });
         showToast('Integrations saved (encrypted at rest)', 'success');
       } catch (err) {
         showToast(err.message || 'Failed to save integrations', 'error');
@@ -3123,6 +3376,37 @@
 
     document.getElementById('saveIntegrationsBtn')?.addEventListener('click', saveIntegrations);
     document.getElementById('refreshIntegrationsBtn')?.addEventListener('click', loadIntegrationsStatus);
+    document.getElementById('integrationsPanel')?.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+
+      if (action === 'change') {
+        showIntegrationEdit(btn.dataset.provider);
+        return;
+      }
+      if (action === 'change-signing') {
+        document.getElementById('savedRowWebhookSigning').hidden = true;
+        document.getElementById('webhookSigningField')?.classList.remove('collapsed');
+        document.getElementById('webhookSigning')?.focus();
+        return;
+      }
+
+      if (!confirm('Remove this integration configuration?')) return;
+
+      try {
+        if (action === 'delete') {
+          await deleteCredentialKeys(btn.dataset.keys.split(',').map((k) => k.trim()).filter(Boolean));
+        } else if (action === 'delete-webhook') {
+          await deleteWebhookEvent(btn.dataset.event);
+        }
+        await loadIntegrationsStatus();
+        await checkHealth();
+        showToast('Integration removed', 'success');
+      } catch (err) {
+        showToast(err.message || 'Failed to remove integration', 'error');
+      }
+    });
 
     checkHealth();
     loadIntegrationsStatus();

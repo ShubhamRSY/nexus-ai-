@@ -12,7 +12,50 @@ import chromadb
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
+from langchain_core.documents import Document
+
 from src.config import get_settings, load_agent_config
+
+
+def _normalize_relevance_scores(
+    results: list[tuple[Document, float]],
+) -> list[tuple[Document, float]]:
+    """Map Chroma relevance scores into [0, 1] when they fall outside that range."""
+    if not results:
+        return []
+
+    scores = [score for _, score in results]
+    if all(0.0 <= score <= 1.0 for score in scores):
+        return results
+
+    lo, hi = min(scores), max(scores)
+    if hi <= lo:
+        return [(doc, 1.0) for doc, _ in results]
+
+    span = hi - lo
+    return [(doc, (score - lo) / span) for doc, score in results]
+
+
+def _filter_vector_hits(
+    results: list[tuple[Document, float]],
+    *,
+    threshold: float,
+) -> list[dict]:
+    """Apply score threshold without dropping all Chroma matches on bad score scales."""
+    normalized = _normalize_relevance_scores(results)
+    hits = [
+        {"content": doc.page_content, "metadata": doc.metadata, "score": score}
+        for doc, score in normalized
+        if score >= threshold
+    ]
+    if hits or not normalized:
+        return hits
+
+    # Chroma returned matches but the configured threshold is too strict for this scale.
+    return [
+        {"content": doc.page_content, "metadata": doc.metadata, "score": score}
+        for doc, score in normalized
+    ]
 
 
 class LocalHashEmbeddings:
@@ -90,11 +133,7 @@ class VectorStore:
 
         try:
             results = self.store.similarity_search_with_relevance_scores(query, k=k)
-            return [
-                {"content": doc.page_content, "metadata": doc.metadata, "score": score}
-                for doc, score in results
-                if score >= threshold
-            ]
+            return _filter_vector_hits(results, threshold=threshold)
         except Exception:
             faq = search_faq(query, top_k=k)
             return [

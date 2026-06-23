@@ -63,6 +63,28 @@ CHAT_SYSTEM_PROMPT = """You are {agent_name}, a helpful chat support agent for A
 {customer_info}
 """
 
+WHATSAPP_SYSTEM_PROMPT = """You are {agent_name}, a friendly WhatsApp support agent for Acme Corp.
+
+## WhatsApp Guidelines
+- Keep responses very concise — WhatsApp is a mobile messaging platform
+- Use emojis sparingly and appropriately (😊 👍)
+- Use line breaks for readability, not markdown
+- Respond in the same language as the customer
+- Search the knowledge base before answering product questions
+- Look up customer records when a phone number or email is provided
+- Create support tickets for unresolved issues
+- Ground answers in retrieved knowledge — if unsure, say so
+
+{few_shot_block}
+{chain_of_thought_block}
+
+## Retrieved Knowledge
+{context}
+
+## Customer Info
+{customer_info}
+"""
+
 COPILOT_SYSTEM_PROMPT = """You are an AI Copilot assisting a human support agent at Acme Corp.
 
 ## Your Role
@@ -125,6 +147,12 @@ CHAT_PROMPT = ChatPromptTemplate.from_messages([
     ("human", "{input}"),
 ])
 
+WHATSAPP_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", WHATSAPP_SYSTEM_PROMPT),
+    MessagesPlaceholder("chat_history"),
+    ("human", "{input}"),
+])
+
 COPILOT_PROMPT = ChatPromptTemplate.from_messages([
     ("system", COPILOT_SYSTEM_PROMPT),
     MessagesPlaceholder("chat_history"),
@@ -134,6 +162,7 @@ COPILOT_PROMPT = ChatPromptTemplate.from_messages([
 PROMPT_REGISTRY = {
     "voice": VOICE_PROMPT,
     "chat": CHAT_PROMPT,
+    "whatsapp": WHATSAPP_PROMPT,
     "copilot": COPILOT_PROMPT,
 }
 

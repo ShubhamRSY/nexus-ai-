@@ -6,10 +6,12 @@ from typing import Any
 from langchain_core.tools import tool
 
 from src.integrations.crm import get_crm_client
+from src.llm.factory import get_llm
 from src.rag.retriever import KnowledgeRetriever
 
 _retriever: KnowledgeRetriever | None = None
 _crm = get_crm_client()
+_draft_llm = None
 
 
 def _get_retriever() -> KnowledgeRetriever:
@@ -17,6 +19,18 @@ def _get_retriever() -> KnowledgeRetriever:
     if _retriever is None:
         _retriever = KnowledgeRetriever()
     return _retriever
+
+
+def _get_draft_llm():
+    global _draft_llm
+    if _draft_llm is None:
+        from src.config import get_settings
+        settings = get_settings()
+        if settings.openai_api_key:
+            _draft_llm = get_llm(provider="openai", model="gpt-4o-mini", agent_config={
+                "llm": {"temperature": 0.3, "max_tokens": 512}
+            })
+    return _draft_llm
 
 
 @tool
@@ -51,32 +65,81 @@ async def update_crm(customer_id: str, fields: str) -> str:
 
 
 @tool
-def transfer_to_human(reason: str) -> str:
-    """Transfer the conversation to a human agent. Use when you cannot resolve the issue."""
+async def transfer_to_human(reason: str) -> str:
+    """Transfer the conversation to a human agent. Use when you cannot resolve the issue.
+
+    Triggers an outbound webhook event for CCaaS integration, SIP REFER, or
+    queue insertion so the platform can actually route the caller to an agent.
+    """
+    from src.integrations.webhooks import IntegrationRouter
+
+    router = IntegrationRouter()
+    await router.on_escalation(session_id="", reason=reason)
     return json.dumps({
         "action": "transfer",
         "reason": reason,
         "message": "Connecting you with a specialist now.",
+        "transferred": True,
     })
 
 
 @tool
-def draft_response(context: str, tone: str = "professional") -> str:
-    """Draft a suggested response for the human agent to send to the customer."""
+async def draft_response(context: str, tone: str = "professional") -> str:
+    """Draft a suggested response for the human agent to send to the customer.
+
+    Uses the configured LLM to generate a context-aware draft. Falls back to
+    a template when the LLM is unavailable.
+    """
+    llm = _get_draft_llm()
+    if llm:
+        try:
+            prompt = (
+                f"Draft a {tone} customer support response based on this context.\n\n"
+                f"Context: {context[:1500]}\n\n"
+                f"Write a helpful, concise response in the agent's voice:"
+            )
+            result = await llm.ainvoke(prompt)
+            draft = result.content if hasattr(result, 'content') else str(result)
+        except Exception:
+            draft = f"Based on the context provided, here is a suggested response."
+    else:
+        draft = f"Based on the context provided, here is a suggested response."
+
     return json.dumps({
-        "draft": f"[{tone}] Based on the context provided, here is a suggested response.",
-        "context_used": context[:200],
+        "draft": draft,
+        "tone": tone,
+        "context_used": context[:500],
     })
 
 
 @tool
-def summarize_conversation(transcript: str) -> str:
-    """Summarize a conversation transcript for agent handoff."""
+async def summarize_conversation(transcript: str) -> str:
+    """Summarize a conversation transcript for agent handoff.
+
+    Uses the configured LLM to generate a semantic summary. Falls back to
+    extractive summary when the LLM is unavailable.
+    """
+    llm = _get_draft_llm()
+    if llm:
+        try:
+            prompt = (
+                "Summarize this customer support conversation concisely. "
+                "Include: customer issue, resolution status, any action items.\n\n"
+                f"Transcript:\n{transcript[:2000]}"
+            )
+            result = await llm.ainvoke(prompt)
+            summary = result.content if hasattr(result, 'content') else str(result)
+        except Exception:
+            summary = ""
+    else:
+        summary = ""
+
     lines = transcript.strip().split("\n")
     return json.dumps({
-        "summary": f"Conversation with {len(lines)} messages.",
-        "key_points": lines[:3],
+        "summary": summary or f"Conversation with {len(lines)} messages.",
+        "key_points": lines[:5],
         "message_count": len(lines),
+        "summary_source": "llm" if summary else "extractive",
     })
 
 

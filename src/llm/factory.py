@@ -66,7 +66,7 @@ def get_llm(
             stop=stop,
             n=n,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-            api_key=settings.openai_api_key or None,
+            api_key=settings.gemini_api_key or None,
         )
 
     if provider == "mock":

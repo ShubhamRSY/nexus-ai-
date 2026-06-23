@@ -14,12 +14,27 @@ logger = structlog.get_logger()
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Simple in-memory rate limiter (per-IP, per-tenant, per-endpoint)."""
+    """In-memory rate limiter with per-endpoint-group limits (per-IP, per-tenant)."""
+
+    _ENDPOINT_LIMITS: dict[str, int] = {
+        "/api/v1/chat": 30,
+        "/api/v1/copilot": 20,
+        "/api/v1/telephony": 15,
+        "/api/v1/evaluation": 10,
+        "/api/v1/rag": 30,
+        "/api/v1/messaging": 20,
+    }
+    _DEFAULT_LIMIT = 60
 
     def __init__(self, app: ASGIApp, rpm: int = 60):
         super().__init__(app)
-        self.rpm = rpm
         self._windows: dict[str, list[float]] = defaultdict(list)
+
+    def _get_limit(self, path: str) -> int:
+        for prefix, limit in self._ENDPOINT_LIMITS.items():
+            if path.startswith(prefix):
+                return limit
+        return self._DEFAULT_LIMIT
 
     async def dispatch(self, request: Request, call_next) -> Response:
         client_ip = request.client.host if request.client else "unknown"
@@ -31,6 +46,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 tenant_id = payload.get("tenant_id", "public")
 
         key = f"{tenant_id}:{client_ip}:{request.url.path}"
+        limit = self._get_limit(request.url.path)
 
         now = time.time()
         window = self._windows[key]
@@ -38,8 +54,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         while window and window[0] < cutoff:
             window.pop(0)
 
-        if len(window) >= self.rpm:
-            logger.warning("rate_limit_exceeded", key=key, count=len(window))
+        if len(window) >= limit:
+            logger.warning("rate_limit_exceeded", key=key, limit=limit, count=len(window))
             return Response(status_code=429, content="Rate limit exceeded. Try again soon.")
 
         window.append(now)

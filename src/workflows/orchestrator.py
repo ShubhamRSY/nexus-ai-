@@ -45,8 +45,10 @@ class AgentOrchestrator:
 
     def _has_llm_credentials(self, provider: str) -> bool:
         settings = get_settings()
-        if provider == "openai" or provider == "gemini":
+        if provider == "openai":
             return bool(settings.openai_api_key)
+        if provider == "gemini":
+            return bool(settings.gemini_api_key)
         if provider == "anthropic":
             return bool(settings.anthropic_api_key)
         return False
@@ -166,7 +168,7 @@ class AgentOrchestrator:
         # Escalation — voice agent or explicit manager/human request
         elif any(k in lower for k in ["manager", "human", "representative", "transfer", "speak to"]) and "transfer_to_human" in TOOL_REGISTRY:
             tool_fn = TOOL_REGISTRY["transfer_to_human"]
-            out = tool_fn.invoke("User requested a human agent")
+            out = await tool_fn.ainvoke("User requested a human agent")
             tool_calls.append({"name": "transfer_to_human", "args": {"reason": "User requested a human agent"}})
             response_text = json.loads(out).get("message", "Connecting you with a specialist now.")
             if channel == "voice":

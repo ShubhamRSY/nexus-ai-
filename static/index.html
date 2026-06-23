@@ -52,12 +52,83 @@
       --mode-accent: var(--copilot);
       --mode-glow: var(--copilot-glow);
     }
-    body[data-mode="voice"] {
-      --mode-accent: var(--voice);
-      --mode-glow: var(--voice-glow);
-    }
+body[data-mode="voice"] {
+  --mode-accent: var(--voice);
+  --mode-glow: var(--voice-glow);
+}
 
-    @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Syne:wght@600;700;800&display=swap");
+/* ── Light theme ── */
+body[data-theme="light"] {
+  --bg: #f4f4f6;
+  --bg-elevated: #ffffff;
+  --surface: rgba(0, 0, 0, 0.03);
+  --surface-hover: rgba(0, 0, 0, 0.06);
+  --surface-2: rgba(0, 0, 0, 0.04);
+  --glass: rgba(255, 255, 255, 0.78);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+  --text: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+  --accent: #2563eb;
+  --accent-2: #6366f1;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --accent-glow: rgba(37, 99, 235, 0.25);
+  --accent-hover: #1d4ed8;
+  --copilot: #7c3aed;
+  --copilot-glow: rgba(124, 58, 237, 0.25);
+  --success: #16a34a;
+  --success-soft: rgba(22, 163, 74, 0.1);
+  --warning: #d97706;
+  --danger: #dc2626;
+  --voice: #0891b2;
+  --voice-glow: rgba(8, 145, 178, 0.25);
+  --voice-soft: rgba(8, 145, 178, 0.08);
+  --shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+}
+body[data-theme="light"] body::before {
+  opacity: 0.3;
+}
+body[data-theme="light"] body::after {
+  opacity: 0.15;
+}
+body[data-theme="light"] .orb {
+  opacity: 0.2;
+}
+body[data-theme="light"] .brand-text h1 {
+  background: linear-gradient(135deg, var(--text) 30%, var(--mode-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+body[data-theme="light"] .brand-text p {
+  color: var(--text-secondary);
+}
+body[data-theme="light"] .status-pill {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--border);
+}
+body[data-theme="light"] .header-modes {
+  background: rgba(255, 255, 255, 0.6);
+}
+body[data-theme="light"] .sidebar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(1.3);
+}
+body[data-theme="light"] .composer-inner {
+  background: rgba(255, 255, 255, 0.85);
+}
+body[data-theme="light"] select,
+body[data-theme="light"] input[type="text"],
+body[data-theme="light"] input[type="password"],
+body[data-theme="light"] input[type="url"] {
+  background: #fff;
+}
+body[data-theme="light"] .session-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Syne:wght@600;700;800&display=swap");
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -299,6 +370,32 @@
       .channel-bar { display: flex; }
     }
 
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+    .theme-toggle:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+    .theme-toggle .light-icon { display: none; }
+    .theme-toggle .dark-icon { display: block; }
+    body[data-theme="light"] .theme-toggle .light-icon { display: block; }
+    body[data-theme="light"] .theme-toggle .dark-icon { display: none; }
+
     .header-actions {
       display: flex;
       align-items: center;
@@ -527,6 +624,38 @@
     }
     body.sidebar-closed .sidebar-reopen {
       display: inline-flex;
+    }
+
+    .sidebar-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem 0 1.25rem;
+      flex-shrink: 0;
+    }
+    .sidebar-top-title {
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-secondary);
+    }
+    .sidebar-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition), color var(--transition);
+    }
+    .sidebar-close:hover {
+      background: var(--surface-hover);
+      color: var(--text);
     }
 
     .tab {
@@ -1851,6 +1980,11 @@
       <button class="tab" data-mode="voice" type="button"><span class="tab-icon">◎</span>Voice</button>
     </div>
 
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+      <span class="dark-icon">☾</span>
+      <span class="light-icon">☀</span>
+    </button>
+
     <div class="header-actions">
       <div class="status-pill">
         <div class="status-dot" id="statusDot"></div>
@@ -1873,6 +2007,12 @@
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top-bar">
+        <h3 class="sidebar-top-title">Nexus</h3>
+        <button class="sidebar-close" id="sidebarCloseBtn" type="button" aria-label="Close panel" title="Close panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div class="sidebar-scroll" id="sidebarScroll">
       <div class="session-rail" id="sessionRail">
         <div class="session-rail-head">
@@ -2690,12 +2830,7 @@
     });
     overlay.addEventListener('click', closeSidebar);
 
-    document.querySelector('.main')?.addEventListener('click', (e) => {
-      if (e.target.closest('#sidebarReopenBtn, #menuBtn')) return;
-      if (appShell?.classList.contains('sidebar-open')) {
-        closeSidebar();
-      }
-    });
+    /* sidebar is managed only by explicit toggle — no auto-close on main click */
 
     window.addEventListener('resize', () => {
       if (window.innerWidth >= 900) {
@@ -2708,6 +2843,38 @@
       appShell?.classList.remove('sidebar-open');
     }
     syncSidebarUi();
+
+    /* ── Theme toggle ── */
+    const THEME_KEY = 'nexus_theme';
+    function getStoredTheme() { return localStorage.getItem(THEME_KEY) || 'system'; }
+    function setStoredTheme(t) { localStorage.setItem(THEME_KEY, t); }
+
+    function applyTheme(theme) {
+      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.body.dataset.theme = isDark ? '' : 'light';
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.title = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+    }
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+      const cur = getStoredTheme();
+      const next = cur === 'light' ? 'dark' : cur === 'dark' ? 'system' : 'light';
+      setStoredTheme(next);
+      applyTheme(next);
+      const names = { dark: 'Dark', light: 'Light', system: 'System' };
+      showToast(`Theme: ${names[next]}`, 'info');
+    });
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+    systemDark.addEventListener('change', () => {
+      if (getStoredTheme() === 'system') applyTheme('system');
+    });
+    applyTheme(getStoredTheme());
+
+    /* ── Sidebar close ── */
+    document.getElementById('sidebarCloseBtn')?.addEventListener('click', closeSidebar);
+
+    function toggleSidebar() {
+      appShell?.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+    }
 
     function setActiveTabs(newMode) {
       document.querySelectorAll('.tab[data-mode]').forEach(t => {

@@ -9,12 +9,15 @@ import hashlib
 from pathlib import Path
 
 import chromadb
+import structlog
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
 from langchain_core.documents import Document
 
 from src.config import get_settings, load_agent_config
+
+logger = structlog.get_logger()
 
 
 def _normalize_relevance_scores(
@@ -59,17 +62,28 @@ def _filter_vector_hits(
 
 
 class LocalHashEmbeddings:
-    """Deterministic local embeddings (no network, no keys).
+    """Local embeddings that attempt to use sentence-transformers when available.
 
-    Not semantically meaningful, but good enough to exercise the full RAG pipeline in demos/tests.
+    Falls back to deterministic hash-based vectors when no ML library is installed.
+    Hash vectors are not semantically meaningful but exercise the full RAG pipeline
+    in demos/tests. Sentence-transformers provide actual semantic similarity.
     """
 
     def __init__(self, dim: int = 384):
         self.dim = dim
+        self._model = None
+        self._load_model()
 
-    def _embed(self, text: str) -> list[float]:
+    def _load_model(self):
+        try:
+            from sentence_transformers import SentenceTransformer
+            self._model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+            self.dim = self._model.get_sentence_embedding_dimension()
+        except ImportError:
+            self._model = None
+
+    def _hash_embed(self, text: str) -> list[float]:
         digest = hashlib.sha256(text.encode("utf-8")).digest()
-        # Expand digest deterministically to dim floats in [-1, 1]
         out: list[float] = []
         buf = digest
         while len(out) < self.dim:
@@ -81,10 +95,16 @@ class LocalHashEmbeddings:
         return out
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        return [self._embed(t) for t in texts]
+        if self._model is not None:
+            emb = self._model.encode(texts, show_progress_bar=False)
+            return emb.tolist()
+        return [self._hash_embed(t) for t in texts]
 
     def embed_query(self, text: str) -> list[float]:
-        return self._embed(text)
+        if self._model is not None:
+            emb = self._model.encode([text], show_progress_bar=False)
+            return emb[0].tolist()
+        return self._hash_embed(text)
 
 
 class VectorStore:
@@ -148,6 +168,6 @@ class VectorStore:
     def delete_collection(self) -> None:
         try:
             self.client.delete_collection(self.collection_name)
-        except ValueError:
-            pass
+        except ValueError as exc:
+            logger.warning("collection_delete_failed", name=self.collection_name, error=str(exc))
         self._store = None

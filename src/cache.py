@@ -72,7 +72,8 @@ class RedisCache(CacheBackend):
         try:
             val = await client.get(key)
             return json.loads(val) if val else None
-        except Exception:
+        except Exception as exc:
+            logger.warning("cache_get_failed", key=key, error=str(exc))
             return None
 
     async def set(self, key: str, value: Any, ttl: int = 300) -> None:
@@ -81,8 +82,8 @@ class RedisCache(CacheBackend):
             return
         try:
             await client.setex(key, ttl, json.dumps(value))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("cache_set_failed", key=key, error=str(exc))
 
     async def delete(self, key: str) -> None:
         client = self._get_client()
@@ -90,8 +91,8 @@ class RedisCache(CacheBackend):
             return
         try:
             await client.delete(key)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("cache_delete_failed", key=key, error=str(exc))
 
     async def clear(self) -> None:
         client = self._get_client()
@@ -99,8 +100,8 @@ class RedisCache(CacheBackend):
             return
         try:
             await client.flushdb()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("cache_clear_failed", error=str(exc))
 
 
 def _cache_key(prefix: str, *parts: str) -> str:

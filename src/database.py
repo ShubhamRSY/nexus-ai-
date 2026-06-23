@@ -1,4 +1,7 @@
-"""SQLite persistence for sessions, conversations, and audit logs."""
+"""SQLite persistence for sessions, conversations, and audit logs.
+
+Supports database migrations and optional ChromaDB vector store backup.
+"""
 
 import json
 import sqlite3
@@ -14,6 +17,8 @@ logger = structlog.get_logger()
 
 DB_PATH = DATA_DIR / "nexus.db"
 
+_SCHEMA_VERSION = 2
+
 
 def get_connection() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -24,8 +29,13 @@ def get_connection() -> sqlite3.Connection:
     return conn
 
 
-def init_db() -> None:
-    with get_connection() as conn:
+def _get_user_version(conn: sqlite3.Connection) -> int:
+    row = conn.execute("PRAGMA user_version").fetchone()
+    return row[0] if row else 0
+
+
+def _run_migrations(conn: sqlite3.Connection, current: int) -> None:
+    if current < 1:
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS tenants (
                 id TEXT PRIMARY KEY,
@@ -116,8 +126,33 @@ def init_db() -> None:
             );
 
             CREATE INDEX IF NOT EXISTS idx_kb_versions_article ON kb_versions(article_id);
-        """)
 
+            PRAGMA user_version = 1;
+        """)
+        logger.info("migration_001_applied")
+
+    if current < 2:
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS migrations_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                version INTEGER NOT NULL,
+                applied_at REAL NOT NULL DEFAULT (strftime('%s','now')),
+                description TEXT DEFAULT ''
+            );
+            PRAGMA user_version = 2;
+        """)
+        conn.execute(
+            "INSERT INTO migrations_log (version, description) VALUES (?, ?)",
+            (2, "Add migrations_log table for tracking schema history"),
+        )
+        logger.info("migration_002_applied")
+
+
+def init_db() -> None:
+    with get_connection() as conn:
+        current = _get_user_version(conn)
+        if current < _SCHEMA_VERSION:
+            _run_migrations(conn, current)
         conn.execute(
             "INSERT OR IGNORE INTO tenants (id, name, slug, settings) VALUES (?, ?, ?, ?)",
             ("default", "Default Tenant", "default", "{}"),
@@ -127,8 +162,6 @@ def init_db() -> None:
 class Database:
     def __init__(self):
         init_db()
-
-    # --- Tenants ---
 
     def create_tenant(self, tenant_id: str, name: str, slug: str, settings: dict | None = None) -> dict:
         with get_connection() as conn:
@@ -151,8 +184,6 @@ class Database:
             if row:
                 return dict(row)
             return None
-
-    # --- Users ---
 
     def create_user(self, user_id: str, tenant_id: str, email: str, password_hash: str, name: str, role: str = "agent") -> dict:
         with get_connection() as conn:
@@ -179,8 +210,6 @@ class Database:
     def update_last_login(self, user_id: str) -> None:
         with get_connection() as conn:
             conn.execute("UPDATE users SET last_login = ? WHERE id = ?", (time.time(), user_id))
-
-    # --- Sessions ---
 
     def create_session(self, session_id: str, tenant_id: str, agent_id: str, channel: str = "chat", customer_info: str = "") -> dict:
         with get_connection() as conn:
@@ -209,8 +238,6 @@ class Database:
             ).fetchall()
             return [dict(r) for r in rows]
 
-    # --- Messages ---
-
     def save_message(self, session_id: str, role: str, content: str, tool_calls: list | None = None, metrics: dict | None = None) -> int:
         with get_connection() as conn:
             cur = conn.execute(
@@ -226,8 +253,6 @@ class Database:
                 (session_id,),
             ).fetchall()
             return [dict(r) for r in rows]
-
-    # --- Knowledge Articles ---
 
     def create_article(self, tenant_id: str, title: str, content: str, tags: str = "", category: str = "general") -> dict:
         with get_connection() as conn:
@@ -303,8 +328,6 @@ class Database:
                 return dict(row)
             return None
 
-    # --- CSAT ---
-
     def save_csat(self, session_id: str, tenant_id: str, score: int, feedback: str = "") -> dict:
         with get_connection() as conn:
             cur = conn.execute(
@@ -323,8 +346,6 @@ class Database:
                 return {"avg_score": round(row["avg_score"], 2), "total": row["total"], "positive": row["positive"]}
             return {"avg_score": 0, "total": 0, "positive": 0}
 
-    # --- Audit ---
-
     def log_audit(self, tenant_id: str, user_id: str | None, action: str, resource: str, details: dict | None = None) -> None:
         with get_connection() as conn:
             conn.execute(
@@ -339,8 +360,6 @@ class Database:
                 (tenant_id, limit),
             ).fetchall()
             return [dict(r) for r in rows]
-
-    # --- Analytics ---
 
     def get_conversation_analytics(self, tenant_id: str, hours: int = 24) -> dict:
         cutoff = time.time() - (hours * 3600)
@@ -377,6 +396,49 @@ class Database:
                 "avg_csat": round(avg_csat, 2),
                 "period_hours": hours,
             }
+
+    def get_migration_history(self) -> list[dict]:
+        with get_connection() as conn:
+            try:
+                rows = conn.execute(
+                    "SELECT * FROM migrations_log ORDER BY version ASC"
+                ).fetchall()
+                return [dict(r) for r in rows]
+            except Exception:
+                return []
+
+
+def backup_chromadb(s3_bucket: str | None = None, s3_prefix: str = "chroma-backup") -> dict:
+    """Backup ChromaDB persistent store to local archive or S3."""
+    from src.config import get_settings
+
+    settings = get_settings()
+    chroma_dir = Path(settings.chroma_persist_dir)
+    if not chroma_dir.exists():
+        return {"status": "skipped", "reason": "ChromaDB directory not found"}
+
+    backup_name = f"chroma_{int(time.time())}.tar.gz"
+    backup_path = DATA_DIR / backup_name
+
+    import tarfile
+    with tarfile.open(str(backup_path), "w:gz") as tar:
+        tar.add(str(chroma_dir), arcname=chroma_dir.name)
+
+    if s3_bucket:
+        try:
+            import boto3
+            s3 = boto3.client("s3")
+            s3_key = f"{s3_prefix}/{backup_name}"
+            s3.upload_file(str(backup_path), s3_bucket, s3_key)
+            backup_path.unlink()
+            logger.info("chroma_s3_backup_complete", bucket=s3_bucket, key=s3_key)
+            return {"status": "s3_uploaded", "bucket": s3_bucket, "key": s3_key}
+        except ImportError:
+            logger.warning("boto3 not installed, keeping local backup")
+            return {"status": "local", "path": str(backup_path)}
+    else:
+        logger.info("chroma_local_backup_complete", path=str(backup_path))
+        return {"status": "local", "path": str(backup_path)}
 
 
 db = Database()

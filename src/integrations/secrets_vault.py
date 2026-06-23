@@ -22,11 +22,14 @@ KEY_ENV = "INTEGRATIONS_ENCRYPTION_KEY"
 CREDENTIAL_KEYS = (
     "openai_api_key",
     "anthropic_api_key",
+    "gemini_api_key",
     "twilio_account_sid",
     "twilio_auth_token",
     "twilio_phone_number",
     "twilio_webhook_base_url",
     "hubspot_api_key",
+    "salesforce_client_id",
+    "salesforce_client_secret",
     "webhook_signing_secret",
 )
 

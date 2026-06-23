@@ -4,8 +4,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import structlog
 import yaml
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = structlog.get_logger()
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT_DIR / "config"
@@ -33,6 +36,7 @@ class Settings(BaseSettings):
 
     openai_api_key: str = ""
     anthropic_api_key: str = ""
+    gemini_api_key: str = ""
     default_llm_provider: str = "openai"
     default_llm_model: str = "gpt-4o-mini"
 
@@ -54,6 +58,7 @@ class Settings(BaseSettings):
     integrations_encryption_key: str = ""
 
     jwt_secret: str = ""
+    auth_required: bool = False
     rate_limit_rpm: int = 60
 
     slack_webhook_url: str = ""
@@ -86,8 +91,8 @@ def _merge_vault_credentials(settings: Settings) -> Settings:
             value = vault_creds.get(key)
             if value:
                 setattr(settings, key, value)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("vault_merge_failed", error=str(exc))
     return settings
 
 
@@ -97,8 +102,8 @@ def reload_settings() -> Settings:
         from src.integrations.secrets_vault import reload_secrets_vault
 
         reload_secrets_vault()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("vault_reload_failed", error=str(exc))
     return get_settings()
 
 

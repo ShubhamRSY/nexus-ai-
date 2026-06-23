@@ -14,14 +14,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.api.routes import integration_router, router
+from src.api.routes import _sessions, integration_router, router
 from src.auth import seed_demo_data
 from src.config import ROOT_DIR, get_settings, reload_settings
 from src.database import init_db
 from src.integrations.secrets_vault import get_secrets_vault
 from src.logging_config import setup_logging
 from src.middleware import RateLimitMiddleware, TenantMiddleware
-from src.workflows.orchestrator import AgentOrchestrator
 from src.tasks import task_queue
 from src.observability import setup_sentry, setup_opentelemetry, collector
 
@@ -146,13 +145,13 @@ async def chat_stream(websocket: WebSocket):
         logger.error("websocket_error", error=str(exc))
         try:
             await websocket.send_json({"type": "error", "content": str(exc)})
-        except Exception:
-            pass
+        except Exception as close_err:
+            logger.debug("websocket_send_failed", error=str(close_err))
     finally:
         try:
             await websocket.close()
-        except Exception:
-            pass
+        except Exception as close_err:
+            logger.debug("websocket_close_failed", error=str(close_err))
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +179,7 @@ async def prometheus_metrics():
         f'nexus_uptime_seconds{{service="nexus"}} {uptime:.0f}',
         "# HELP nexus_active_sessions Current active sessions",
         "# TYPE nexus_active_sessions gauge",
-        f'nexus_active_sessions{{service="nexus"}} 0',
+        f'nexus_active_sessions{{service="nexus"}} {_sessions.active_count}',
     ]
     return "\n".join(lines) + "\n", 200, {"Content-Type": "text/plain; charset=utf-8"}
 

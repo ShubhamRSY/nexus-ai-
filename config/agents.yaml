@@ -74,7 +74,7 @@ agents:
 
   whatsapp_support:
     name: "WhatsApp Support Agent"
-    channel: chat
+    channel: whatsapp
     llm_provider: openai
     llm_model: gpt-4o-mini
     temperature: 0.35

@@ -49,7 +49,7 @@ whatsapp = WhatsAppMessenger()
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(min_length=1)
     agent_id: str = "chat_support"
     customer_info: str = ""
     session_id: str = ""
@@ -80,11 +80,14 @@ class WebhookRegisterRequest(BaseModel):
 class CredentialsUpdateRequest(BaseModel):
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
+    gemini_api_key: str | None = None
     twilio_account_sid: str | None = None
     twilio_auth_token: str | None = None
     twilio_phone_number: str | None = None
     twilio_webhook_base_url: str | None = None
     hubspot_api_key: str | None = None
+    salesforce_client_id: str | None = None
+    salesforce_client_secret: str | None = None
     webhook_signing_secret: str | None = None
 
 
@@ -147,6 +150,15 @@ _sessions = SessionManager(ttl_seconds=3600, max_sessions=1000)
 
 def _get_session(session_id: str, agent_id: str, tenant_id: str = "default") -> AgentOrchestrator:
     return _sessions.get(session_id, agent_id)
+
+
+async def _require_auth(ctx: AuthContext | None = Depends(get_auth_context)) -> AuthContext | None:
+    """Require auth when the platform is configured for it, otherwise allow anonymous."""
+    from src.config import get_settings
+    if get_settings().auth_required:
+        if ctx is None:
+            raise HTTPException(status_code=401, detail="Authentication required")
+    return ctx
 
 
 def _require_settings_token(request: Request) -> None:
@@ -218,7 +230,7 @@ async def register(request: RegisterRequest) -> dict[str, Any]:
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
 
-    db.create_tenant(tenant_id, request.tenant_name, request.tenant_name.lower().replace(" ", "-"))
+    db.create_tenant(tenant_id, request.tenant_name, tenant_id)
     db.create_user(user_id, tenant_id, request.email, hash_password(request.password), request.name, "admin")
     db.log_audit(tenant_id, user_id, "tenant.created", "tenant", {"tenant_name": request.tenant_name})
 
@@ -249,7 +261,12 @@ async def me(ctx: AuthContext = Depends(require_auth)) -> dict:
 # ---------------------------------------------------------------------------
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, ctx: AuthContext | None = Depends(get_auth_context)) -> ChatResponse:
+async def chat(request: ChatRequest, ctx: AuthContext | None = Depends(_require_auth)) -> ChatResponse:
+    from src.config import load_agent_config
+    agent_config = load_agent_config()
+    if request.agent_id not in agent_config.get("agents", {}):
+        raise HTTPException(status_code=400, detail=f"Unknown agent: {request.agent_id}")
+
     tenant_id = ctx.tenant_id if ctx else "default"
     session_id = request.session_id or f"session-{uuid.uuid4().hex[:12]}"
     orchestrator = _get_session(session_id, request.agent_id, tenant_id)
@@ -289,7 +306,7 @@ async def chat(request: ChatRequest, ctx: AuthContext | None = Depends(get_auth_
 # ---------------------------------------------------------------------------
 
 @router.post("/copilot")
-async def copilot(request: CopilotRequest) -> dict[str, Any]:
+async def copilot(request: CopilotRequest, ctx: AuthContext | None = Depends(_require_auth)) -> dict[str, Any]:
     orchestrator = AgentOrchestrator(request.agent_id)
     result = await orchestrator.invoke(
         user_input=request.message,
@@ -375,15 +392,17 @@ async def submit_csat(body: CSATRequest) -> dict:
     tenant_id = session["tenant_id"] if session else "default"
     try:
         result = db.save_csat(body.session_id, tenant_id, body.score, body.feedback)
-    except Exception:
+    except Exception as exc:
+        logger.warning("csat_save_failed", session_id=body.session_id, error=str(exc))
         result = {"id": 0, "session_id": body.session_id, "score": body.score}
     logger.info("csat_submitted", session_id=body.session_id, score=body.score)
     return {"status": "recorded", "csat": result}
 
 
 @router.get("/csat/stats")
-async def csat_stats(ctx: AuthContext = Depends(require_auth)) -> dict:
-    return {"stats": db.get_csat_stats(ctx.tenant_id)}
+async def csat_stats(ctx: AuthContext | None = Depends(_require_auth)) -> dict:
+    tenant_id = ctx.tenant_id if ctx else "default"
+    return {"stats": db.get_csat_stats(tenant_id)}
 
 
 # ---------------------------------------------------------------------------
@@ -457,7 +476,7 @@ async def voice_status(request: Request) -> dict[str, Any]:
 
 
 @router.post("/telephony/transcribe")
-async def transcribe_voice(audio: UploadFile = File(...)) -> dict[str, str]:
+async def transcribe_voice(ctx: AuthContext | None = Depends(_require_auth), audio: UploadFile = File(...)) -> dict[str, str]:
     settings = get_settings()
     if not settings.openai_api_key:
         raise HTTPException(
@@ -481,7 +500,7 @@ async def transcribe_voice(audio: UploadFile = File(...)) -> dict[str, str]:
 
 
 @router.post("/telephony/speak")
-async def speak_agent(request: SpeakRequest) -> Response:
+async def speak_agent(request: SpeakRequest, ctx: AuthContext | None = Depends(_require_auth)) -> Response:
     settings = get_settings()
     if not settings.openai_api_key:
         raise HTTPException(status_code=503, detail="TTS requires OPENAI_API_KEY.")
@@ -494,7 +513,7 @@ async def speak_agent(request: SpeakRequest) -> Response:
 
 
 @router.post("/telephony/simulate")
-async def telephony_simulate(request: VoiceSimulateRequest) -> dict[str, Any]:
+async def telephony_simulate(request: VoiceSimulateRequest, ctx: AuthContext | None = Depends(_require_auth)) -> dict[str, Any]:
     sip_meta = _call_router.extract_sip_headers(request.sip_headers)
     metadata = CallMetadata(
         call_sid=request.call_sid,
@@ -541,7 +560,7 @@ async def messaging_inbound(request: Request) -> dict:
 
 
 @router.post("/messaging/send")
-async def messaging_send(to: str, body: str, channel: str = "whatsapp") -> dict:
+async def messaging_send(ctx: AuthContext | None = Depends(_require_auth), to: str = "", body: str = "", channel: str = "whatsapp") -> dict:
     return await whatsapp.send_message(to, body, channel)
 
 
@@ -560,25 +579,28 @@ async def receive_event(body: WebhookEventRequest) -> dict:
 # ---------------------------------------------------------------------------
 
 @router.post("/demo/reset")
-async def reset_demo(ctx: AuthContext = Depends(require_auth)) -> dict:
+async def reset_demo(ctx: AuthContext | None = Depends(_require_auth)) -> dict:
     """One-click demo reset — clears sessions, re-seeds KB, resets metrics."""
-    if ctx.tenant_id != "demo-acme":
+    if ctx and ctx.tenant_id != "demo-acme":
         raise HTTPException(status_code=403, detail="Demo reset only available for demo tenant")
+
+    tenant_id = ctx.tenant_id if ctx else "demo-acme"
 
     from src.auth import seed_demo_data
     from src.database import get_connection
 
     with get_connection() as conn:
-        conn.execute("DELETE FROM messages WHERE session_id IN (SELECT id FROM sessions WHERE tenant_id = ?)", (ctx.tenant_id,))
-        conn.execute("DELETE FROM sessions WHERE tenant_id = ?", (ctx.tenant_id,))
-        conn.execute("DELETE FROM csat_surveys WHERE tenant_id = ?", (ctx.tenant_id,))
-        conn.execute("DELETE FROM audit_log WHERE tenant_id = ?", (ctx.tenant_id,))
-        conn.execute("DELETE FROM knowledge_articles WHERE tenant_id = ?", (ctx.tenant_id,))
+        conn.execute("DELETE FROM messages WHERE session_id IN (SELECT id FROM sessions WHERE tenant_id = ?)", (tenant_id,))
+        conn.execute("DELETE FROM sessions WHERE tenant_id = ?", (tenant_id,))
+        conn.execute("DELETE FROM csat_surveys WHERE tenant_id = ?", (tenant_id,))
+        conn.execute("DELETE FROM audit_log WHERE tenant_id = ?", (tenant_id,))
+        conn.execute("DELETE FROM knowledge_articles WHERE tenant_id = ?", (tenant_id,))
 
     seed_demo_data()
+    global _sessions
     _sessions = SessionManager(ttl_seconds=3600, max_sessions=1000)
 
-    logger.info("demo_reset", tenant=ctx.tenant_id)
+    logger.info("demo_reset", tenant=tenant_id)
     return {"status": "demo_reset", "message": "Demo data has been reset. All sessions cleared, KB re-seeded."}
 
 
@@ -630,6 +652,12 @@ async def integrations_status() -> dict[str, Any]:
                 "masked_key": creds["anthropic_api_key"]["masked"],
                 "features": ["llm"],
             },
+            "gemini": {
+                "configured": creds["gemini_api_key"]["configured"],
+                "source": creds["gemini_api_key"]["source"],
+                "masked_key": creds["gemini_api_key"]["masked"],
+                "features": ["llm"],
+            },
             "twilio": {
                 "configured": all(
                     creds[key]["configured"]
@@ -650,8 +678,9 @@ async def integrations_status() -> dict[str, Any]:
                 "features": ["crm_lookup", "ticket_sync"],
             },
             "salesforce": {
-                "configured": bool(settings.salesforce_client_id),
-                "source": "env" if _env_credentials().get("salesforce_client_id") else "none",
+                "configured": creds["salesforce_client_id"]["configured"],
+                "source": creds["salesforce_client_id"]["source"],
+                "masked_key": creds["salesforce_client_id"]["masked"],
                 "features": ["crm_lookup", "case_management"],
             },
             "whatsapp": {
@@ -704,7 +733,7 @@ async def delete_credential(request: Request, credential_key: str) -> dict[str, 
 # ---------------------------------------------------------------------------
 
 @router.post("/evaluation/run")
-async def run_evaluation() -> dict[str, Any]:
+async def run_evaluation(ctx: AuthContext | None = Depends(_require_auth)) -> dict[str, Any]:
     from src.config import EVALUATION_DIR
 
     evaluator = AgentEvaluator(str(EVALUATION_DIR / "test_cases.json"))
@@ -756,18 +785,48 @@ async def get_llm_config() -> dict[str, Any]:
 
 @router.get("/telephony/voice/stream")
 async def voice_stream_sse(request: Request):
-    """SSE endpoint for real-time voice transcription + response streaming."""
+    """SSE endpoint for real-time voice transcription + response streaming.
+
+    Accept `?speech=<text>` query param (simulated speech input) and streams
+    back the agent response tokens one-by-one with grounding metrics.
+    """
     from fastapi.responses import StreamingResponse
 
     async def event_stream():
-        yield f"data: {json.dumps({'type': 'connected', 'message': 'Voice stream ready'})}\n\n"
-        try:
+        speech = request.query_params.get("speech", "").strip()
+        if not speech:
+            yield f"data: {json.dumps({'type': 'connected', 'message': 'Voice stream ready. Send ?speech=<text> to interact.'})}\n\n"
             while True:
                 await asyncio.sleep(1)
                 if await request.is_disconnected():
                     break
-        except Exception:
-            pass
+            return
+
+        yield f"data: {json.dumps({'type': 'transcribing', 'text': speech})}\n\n"
+
+        orchestrator = AgentOrchestrator("voice_support")
+        result = await orchestrator.invoke(
+            user_input=speech,
+            customer_info="Caller via SSE stream",
+        )
+
+        response_text = result.get("response", "")
+        tokens = response_text.split()
+
+        for i, token in enumerate(tokens):
+            if await request.is_disconnected():
+                break
+            chunk = token + (" " if i < len(tokens) - 1 else "")
+            yield f"data: {json.dumps({'type': 'token', 'content': chunk, 'index': i, 'total': len(tokens)})}\n\n"
+            await asyncio.sleep(0.03)
+
+        yield f"data: {json.dumps({
+            'type': 'done',
+            'content': response_text,
+            'agent_id': result.get('agent_id'),
+            'tool_calls': result.get('tool_calls', []),
+            'metrics': result.get('metrics', {}),
+        })}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream", headers={
         "Cache-Control": "no-cache",

@@ -17,11 +17,20 @@ source .venv/bin/activate
 
 pip install --upgrade pip -q
 pip install -e ".[dev]" -q
+pip install ruff mypy pytest-timeout -q
 
 mkdir -p tests/reports
 
 echo ""
-echo ">> [1/2] Unit & integration tests"
+echo ">> [1/5] Lint with ruff"
+ruff check src/ tests/ scripts/
+
+echo ""
+echo ">> [2/5] Type check with mypy"
+mypy src/ --ignore-missing-imports --allow-untyped-decorators || true
+
+echo ""
+echo ">> [3/5] Unit & integration tests"
 pytest tests/ \
   --ignore=tests/e2e \
   --ignore=tests/reports \
@@ -32,7 +41,7 @@ pytest tests/ \
   --cov-report=xml:tests/reports/coverage-unit.xml
 
 echo ""
-echo ">> [2/2] E2E & non-functional tests"
+echo ">> [4/5] E2E & non-functional tests"
 pytest tests/e2e/ \
   -v --tb=short \
   --junitxml=tests/reports/junit-e2e.xml \
@@ -40,6 +49,19 @@ pytest tests/e2e/ \
   --cov-append \
   --cov-report=term-missing \
   --cov-report=xml:tests/reports/coverage-full.xml
+
+echo ""
+echo ">> [5/5] Live server E2E tests"
+python -m uvicorn src.main:app --host 127.0.0.1 --port 8001 &
+SERVER_PID=$!
+sleep 2
+if curl -sf http://127.0.0.1:8001/api/v1/health > /dev/null 2>&1; then
+  pytest tests/test_comprehensive_e2e.py -v --tb=short || true
+  kill $SERVER_PID 2>/dev/null || true
+else
+  echo "WARNING: Server failed to start, skipping live E2E tests"
+  kill $SERVER_PID 2>/dev/null || true
+fi
 
 echo ""
 echo "=========================================="

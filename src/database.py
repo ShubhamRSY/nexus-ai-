@@ -242,7 +242,7 @@ class Database:
         init_db()
 
     def create_tenant(self, tenant_id: str, name: str, slug: str, settings: dict | None = None) -> dict:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             conn.execute(
                 "INSERT OR IGNORE INTO tenants (id, name, slug, settings) VALUES (?, ?, ?, ?)",
                 (tenant_id, name, slug, json.dumps(settings or {})),
@@ -250,21 +250,21 @@ class Database:
             return {"id": tenant_id, "name": name, "slug": slug}
 
     def get_tenant(self, tenant_id: str) -> dict | None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             row = conn.execute("SELECT * FROM tenants WHERE id = ?", (tenant_id,)).fetchone()
             if row:
                 return dict(row)
             return None
 
     def get_tenant_by_slug(self, slug: str) -> dict | None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             row = conn.execute("SELECT * FROM tenants WHERE slug = ?", (slug,)).fetchone()
             if row:
                 return dict(row)
             return None
 
     def create_user(self, user_id: str, tenant_id: str, email: str, password_hash: str, name: str, role: str = "agent") -> dict:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             conn.execute(
                 "INSERT OR IGNORE INTO users (id, tenant_id, email, password_hash, name, role) VALUES (?, ?, ?, ?, ?, ?)",
                 (user_id, tenant_id, email, password_hash, name, role),
@@ -272,25 +272,25 @@ class Database:
             return {"id": user_id, "email": email, "name": name, "role": role}
 
     def get_user_by_email(self, email: str) -> dict | None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
             if row:
                 return dict(row)
             return None
 
     def get_user(self, user_id: str) -> dict | None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
             if row:
                 return dict(row)
             return None
 
     def update_last_login(self, user_id: str) -> None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             conn.execute("UPDATE users SET last_login = ? WHERE id = ?", (time.time(), user_id))
 
     def create_session(self, session_id: str, tenant_id: str, agent_id: str, channel: str = "chat", customer_info: str = "") -> dict:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             conn.execute(
                 "INSERT INTO sessions (id, tenant_id, agent_id, channel, customer_info) VALUES (?, ?, ?, ?, ?)",
                 (session_id, tenant_id, agent_id, channel, customer_info),
@@ -298,18 +298,18 @@ class Database:
             return {"id": session_id, "tenant_id": tenant_id, "agent_id": agent_id}
 
     def get_session(self, session_id: str) -> dict | None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             row = conn.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
             if row:
                 return dict(row)
             return None
 
     def end_session(self, session_id: str) -> None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             conn.execute("UPDATE sessions SET status = 'ended', ended_at = ? WHERE id = ?", (time.time(), session_id))
 
     def get_active_sessions(self, tenant_id: str) -> list[dict]:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             rows = conn.execute(
                 "SELECT * FROM sessions WHERE tenant_id = ? AND status = 'active' ORDER BY created_at DESC",
                 (tenant_id,),
@@ -317,7 +317,7 @@ class Database:
             return [dict(r) for r in rows]
 
     def save_message(self, session_id: str, role: str, content: str, tool_calls: list | None = None, metrics: dict | None = None) -> int:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             cur = conn.execute(
                 "INSERT INTO messages (session_id, role, content, tool_calls, metrics) VALUES (?, ?, ?, ?, ?)",
                 (session_id, role, content, json.dumps(tool_calls or []), json.dumps(metrics or {})),
@@ -325,7 +325,7 @@ class Database:
             return cur.lastrowid
 
     def get_session_messages(self, session_id: str) -> list[dict]:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             rows = conn.execute(
                 "SELECT * FROM messages WHERE session_id = ? ORDER BY created_at ASC",
                 (session_id,),
@@ -333,7 +333,7 @@ class Database:
             return [dict(r) for r in rows]
 
     def create_article(self, tenant_id: str, title: str, content: str, tags: str = "", category: str = "general") -> dict:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             now = time.time()
             cur = conn.execute(
                 "INSERT INTO knowledge_articles (tenant_id, title, content, tags, category, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -354,7 +354,7 @@ class Database:
         updates["updated_at"] = time.time()
         set_clause = ", ".join(f"{k} = ?" for k in updates)
         vals = list(updates.values()) + [article_id, tenant_id]
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             conn.execute(
                 f"UPDATE knowledge_articles SET {set_clause} WHERE id = ? AND tenant_id = ?",
                 vals,
@@ -375,7 +375,7 @@ class Database:
             return {"id": article_id, **updates}
 
     def delete_article(self, article_id: int, tenant_id: str) -> bool:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             cur = conn.execute(
                 "DELETE FROM knowledge_articles WHERE id = ? AND tenant_id = ?",
                 (article_id, tenant_id),
@@ -383,7 +383,7 @@ class Database:
             return cur.rowcount > 0
 
     def list_articles(self, tenant_id: str, category: str | None = None) -> list[dict]:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             if category:
                 rows = conn.execute(
                     "SELECT * FROM knowledge_articles WHERE tenant_id = ? AND category = ? ORDER BY updated_at DESC",
@@ -397,7 +397,7 @@ class Database:
             return [dict(r) for r in rows]
 
     def get_article(self, article_id: int, tenant_id: str) -> dict | None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             row = conn.execute(
                 "SELECT * FROM knowledge_articles WHERE id = ? AND tenant_id = ?",
                 (article_id, tenant_id),
@@ -407,7 +407,7 @@ class Database:
             return None
 
     def save_csat(self, session_id: str, tenant_id: str, score: int, feedback: str = "") -> dict:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             cur = conn.execute(
                 "INSERT INTO csat_surveys (session_id, tenant_id, score, feedback) VALUES (?, ?, ?, ?)",
                 (session_id, tenant_id, score, feedback),
@@ -415,7 +415,7 @@ class Database:
             return {"id": cur.lastrowid, "session_id": session_id, "score": score}
 
     def get_csat_stats(self, tenant_id: str) -> dict:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             row = conn.execute(
                 "SELECT AVG(score) as avg_score, COUNT(*) as total, SUM(CASE WHEN score >= 4 THEN 1 ELSE 0 END) as positive FROM csat_surveys WHERE tenant_id = ?",
                 (tenant_id,),
@@ -425,14 +425,14 @@ class Database:
             return {"avg_score": 0, "total": 0, "positive": 0}
 
     def log_audit(self, tenant_id: str, user_id: str | None, action: str, resource: str, details: dict | None = None) -> None:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             conn.execute(
                 "INSERT INTO audit_log (tenant_id, user_id, action, resource, details) VALUES (?, ?, ?, ?, ?)",
                 (tenant_id, user_id, action, resource, json.dumps(details or {})),
             )
 
     def get_audit_logs(self, tenant_id: str, limit: int = 100) -> list[dict]:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             rows = conn.execute(
                 "SELECT * FROM audit_log WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ?",
                 (tenant_id, limit),
@@ -441,7 +441,7 @@ class Database:
 
     def get_conversation_analytics(self, tenant_id: str, hours: int = 24) -> dict:
         cutoff = time.time() - (hours * 3600)
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             total = conn.execute(
                 "SELECT COUNT(*) as c FROM sessions WHERE tenant_id = ? AND created_at >= ?",
                 (tenant_id, cutoff),
@@ -476,7 +476,7 @@ class Database:
             }
 
     def get_migration_history(self) -> list[dict]:
-        with get_connection_no_mgr() as conn:
+        with get_connection() as conn:
             try:
                 rows = conn.execute(
                     "SELECT * FROM migrations_log ORDER BY version ASC"

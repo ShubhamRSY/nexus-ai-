@@ -85,9 +85,9 @@ jobs:
             sleep 1
           done
           curl -sf http://127.0.0.1:8001/api/v1/health || { echo "Server failed to start"; kill $SERVER_PID 2>/dev/null; exit 1; }
-          # Run e2e tests + live comprehensive tests
-          pytest tests/e2e/ -v --timeout=120
-          pytest tests/test_comprehensive_e2e.py -v --timeout=120 || echo "Live E2E tests had failures (non-fatal)"
+          # Run e2e tests + live comprehensive tests (retry flaky once)
+          pytest tests/e2e/ -v --timeout=120 --reruns 2
+          pytest tests/test_comprehensive_e2e.py -v --timeout=120 --reruns 2
           # Cleanup
           kill $SERVER_PID 2>/dev/null || true
 

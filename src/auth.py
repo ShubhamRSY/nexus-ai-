@@ -1,16 +1,15 @@
 """JWT authentication, multi-tenant support, and role-based access control."""
 
-import hashlib
-import hmac
 import secrets
 import time
 from dataclasses import dataclass
 
+import jwt
 import structlog
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from src.config import DATA_DIR
+from src.config import DATA_DIR, get_settings
 from src.database import db
 
 logger = structlog.get_logger()
@@ -23,51 +22,37 @@ security = HTTPBearer(auto_error=False)
 
 
 def _get_jwt_secret() -> str:
+    """Priority: config.jwt_secret > file > random (dev fallback)."""
+    settings = get_settings()
+    if settings.jwt_secret:
+        return settings.jwt_secret
     if JWT_SECRET_FILE.exists():
         return JWT_SECRET_FILE.read_text().strip()
     secret = secrets.token_hex(32)
     JWT_SECRET_FILE.write_text(secret)
     JWT_SECRET_FILE.chmod(0o600)
+    logger.warning("jwt_secret_generated_dev", path=str(JWT_SECRET_FILE))
     return secret
-
-
-def _base64url_encode(data: bytes) -> str:
-    return data.hex()
-
-
-def _base64url_decode(s: str) -> bytes:
-    return bytes.fromhex(s)
-
-
-def _hmac_sha256(secret: str, payload: str) -> str:
-    return hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
 
 def create_jwt(payload: dict) -> str:
     secret = _get_jwt_secret()
-    header = _base64url_encode(b'{"alg":"HS256","typ":"JWT"}')
-    body = _base64url_encode(
-        __import__("json").dumps({**payload, "exp": int(time.time()) + JWT_EXPIRY_SECONDS}).encode()
+    token = jwt.encode(
+        {**payload, "exp": int(time.time()) + JWT_EXPIRY_SECONDS},
+        secret,
+        algorithm=JWT_ALGORITHM,
     )
-    sig = _hmac_sha256(secret, f"{header}.{body}")
-    return f"{header}.{body}.{sig}"
+    return token
 
 
 def decode_jwt(token: str) -> dict | None:
     try:
-        parts = token.split(".")
-        if len(parts) != 3:
-            return None
-        header_b64, body_b64, sig = parts
         secret = _get_jwt_secret()
-        expected = _hmac_sha256(secret, f"{header_b64}.{body_b64}")
-        if not hmac.compare_digest(sig, expected):
-            return None
-        payload = __import__("json").loads(_base64url_decode(body_b64))
-        if payload.get("exp", 0) < time.time():
-            return None
+        payload = jwt.decode(token, secret, algorithms=[JWT_ALGORITHM])
         return payload
-    except Exception:
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
         return None
 
 
@@ -116,15 +101,28 @@ async def require_admin(ctx: AuthContext = Depends(require_auth)) -> AuthContext
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    if len(hashed) < 16:
+    # Backwards compatibility for old hash format
+    if not hashed.startswith("$argon2id"):
+        if len(hashed) < 16:
+            return False
+        import hashlib
+        import hmac
+        salt = hashed[:16]
+        expected = hmac.new(salt.encode(), plain.encode(), hashlib.sha256).hexdigest()
+        return hmac.compare_digest(expected, hashed[16:])
+
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+    try:
+        return pwd_context.verify(plain, hashed)
+    except Exception:
         return False
-    salt = hashed[:16]
-    return _hmac_sha256(salt, plain) == hashed[16:]
 
 
 def hash_password(plain: str) -> str:
-    salt = secrets.token_hex(8)
-    return salt + _hmac_sha256(salt, plain)
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+    return pwd_context.hash(plain)
 
 
 # --- Demo users/seeds ---

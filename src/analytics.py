@@ -58,10 +58,23 @@ class AnalyticsEngine:
     def get_conversation_timeline(self, tenant_id: str, hours: int = 24) -> list[dict]:
         """Hourly conversation volume for charting."""
         cutoff = time.time() - (hours * 3600)
+        from src.config import get_settings
         from src.database import get_connection
 
-        with get_connection() as conn:
-            rows = conn.execute("""
+        settings = get_settings()
+        is_pg = bool(settings.database_url and "postgresql" in settings.database_url)
+        if is_pg:
+            sql = """
+                SELECT
+                    TO_CHAR(TO_TIMESTAMP(created_at), 'YYYY-MM-DD"T"HH24:00:00') as hour,
+                    COUNT(*) as count
+                FROM sessions
+                WHERE tenant_id = %s AND created_at >= %s
+                GROUP BY hour
+                ORDER BY hour ASC
+            """
+        else:
+            sql = """
                 SELECT
                     strftime('%Y-%m-%dT%H:00:00', created_at, 'unixepoch') as hour,
                     COUNT(*) as count
@@ -69,7 +82,9 @@ class AnalyticsEngine:
                 WHERE tenant_id = ? AND created_at >= ?
                 GROUP BY hour
                 ORDER BY hour ASC
-            """, (tenant_id, cutoff)).fetchall()
+            """
+        with get_connection() as conn:
+            rows = conn.execute(sql, (tenant_id, cutoff)).fetchall()
             return [dict(r) for r in rows]
 
     def record_conversation_metric(self, session_id: str, metrics: dict) -> None:

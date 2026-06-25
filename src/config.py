@@ -44,8 +44,10 @@ class Settings(BaseSettings):
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
     twilio_webhook_base_url: str = "http://localhost:8000"
+    database_url: str = ""  # e.g., "postgresql://user:pass@host/db"
 
     chroma_persist_dir: str = "./data/chroma"
+    chroma_server_url: str = ""  # e.g. "http://chroma-svc:8000" for HA client/server
     embedding_model: str = "text-embedding-3-small"
 
     crm_provider: str = "hubspot"

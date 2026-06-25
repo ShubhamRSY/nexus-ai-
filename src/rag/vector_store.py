@@ -111,7 +111,6 @@ class VectorStore:
     def __init__(self, collection_name: str = "knowledge_base"):
         settings = get_settings()
         persist_dir = Path(settings.chroma_persist_dir)
-        persist_dir.mkdir(parents=True, exist_ok=True)
 
         if settings.openai_api_key:
             self.embeddings = OpenAIEmbeddings(
@@ -120,7 +119,18 @@ class VectorStore:
             )
         else:
             self.embeddings = LocalHashEmbeddings()
-        self.client = chromadb.PersistentClient(path=str(persist_dir))
+
+        if settings.chroma_server_url:
+            self.client = chromadb.HttpClient(
+                host=settings.chroma_server_url,
+                settings=chromadb.config.Settings(allow_reset=True),
+            )
+            logger.info("chroma_client_server", url=settings.chroma_server_url)
+        else:
+            persist_dir.mkdir(parents=True, exist_ok=True)
+            self.client = chromadb.PersistentClient(path=str(persist_dir))
+            logger.info("chroma_persistent_client", path=str(persist_dir))
+
         self.collection_name = collection_name
         self._store: Chroma | None = None
 

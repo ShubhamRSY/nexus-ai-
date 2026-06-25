@@ -933,15 +933,14 @@ async def observability_metrics() -> dict:
 async def observability_health() -> dict:
     snap = collector.snapshot()
     uptime = snap["uptime_seconds"]
-    qsize = task_queue._queue.qsize() if task_queue._queue else 0
     return {
         "status": "healthy",
         "uptime_seconds": uptime,
         "requests_processed": snap["counters"].get("requests_total", 0),
         "errors": snap["counters"].get("errors_total", 0),
-        "active_tasks": len(task_queue._active),
-    "queued_tasks": qsize,
-        }
+        "active_tasks": task_queue._backend.active if task_queue._backend else 0,
+        "queued_tasks": task_queue._backend.queue_size if task_queue._backend else 0,
+    }
 
 
 # ---------------------------------------------------------------------------

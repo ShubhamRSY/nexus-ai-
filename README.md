@@ -206,22 +206,72 @@ curl -s -X POST http://127.0.0.1:8001/api/v1/chat \
 
 ## Web Console
 
-The **Nexus AI Ops** console at [http://127.0.0.1:8001](http://127.0.0.1:8001):
+The **Nexus AI Ops** console at [http://127.0.0.1:8001](http://127.0.0.1:8001) is the primary interface for all channels.
 
-| Tab | Try These Prompts |
-|-----|-------------------|
-| **Chat** | `How do I reset my password?` · `Look up jane@example.com` · `My API returns 403` |
-| **Copilot** | Paste a conversation summary → get a draft response for the human agent |
-| **Voice** | Answer call → type caller speech → request escalation to test transfer routing |
+### Chat Tab
+
+Live AI conversation with streaming, RAG retrieval, tool execution (CRM lookup, ticketing), and full session history.
+
+**Session management:**
+
+| Feature | Description |
+|---------|-------------|
+| **Default Session** | Each conversation runs in a session identified by a unique Session ID. The default session (`web-session`) is auto-created on first message. Session context persists across messages — the agent remembers prior conversation. |
+| **New Session** | Click **+ New session** in the sidebar to start a fresh conversation. A new Session ID is generated and the chat resets. Previous sessions are saved in the sidebar list and can be revisited. |
+| **Clear Session** | Click **Clear** (top-right of chat area) or **Clear Session** (sidebar footer) to wipe the current conversation and start over. The session is ended on the server and removed from the active session list. |
+| **Session ID** | Each session has a unique ID (e.g., `web-session`, `session-a1b2c3d4`) shown in the sidebar field. You can rename it or share it to reference a specific conversation. Sessions are stored locally in your browser and on the server. Use the sidebar history to switch between sessions. |
+| **Rename Session** | Hover over any session in the sidebar list and click the ✎ (pencil) icon to rename it inline. Session names are saved locally and persist across page loads. |
+
+**Suggested prompts:**
+```
+How do I reset my password?
+Look up jane@example.com
+My API returns 403
+```
+
+### Copilot Tab
+
+Agent-assist mode — **you** (the human agent) paste a customer transcript and the AI drafts replies, summarizes threads, and flags escalations. The copilot does not talk to customers directly.
+
+| Feature | Description |
+|---------|-------------|
+| **Customer Transcript** | Paste the full customer conversation in the textarea provided in the sidebar. The copilot uses this as context to generate accurate, relevant responses. The transcript preview pane (visible on large screens) shows a formatted read-only view of what you've pasted. |
+| **Draft Reply** | Ask "Draft a reply for this frustrated customer" and the copilot writes a suggested response based on the transcript and knowledge base. |
+| **Summarize Thread** | Ask "Summarize this conversation for handoff" to get a condensed summary with key points and action items. |
+| **Flag Escalation** | Ask "Should I escalate this to a supervisor?" for risk assessment and escalation guidance. |
+
+### Voice Tab
+
+Live PSTN simulation — inbound call routing, speech processing, TTS voice responses, and human transfer in real time.
+
+| Feature | Description |
+|---------|-------------|
+| **Answer Call** | Click **Answer Incoming Call** to start a simulated PSTN call. The voice agent greets the caller and listens for speech. |
+| **Caller Speech** | Type what the caller says into the input field and tap **Speak**. The voice agent processes it through the same pipeline as a real Twilio call (STT → AI → TTS). |
+| **TTS Response** | The agent speaks back via browser TTS or AI voice (when `OPENAI_API_KEY` is set). A call timer and waveform indicator show call status. |
+| **Transfer** | Ask "I need to speak to a manager" to test skill-based routing and human transfer. |
+| **Mic Input** | Tap the microphone button to record real speech (requires browser mic access and `OPENAI_API_KEY` for server-side transcription). |
 
 ### Console Features
 
-- **Streaming chat** with RAG citation chips and grounding metrics
-- **Session management** — history, clear session, per-session delete
-- **Voice HUD** — call timer, live transcription, call controls
+- **Streaming chat** — AI responses stream token-by-token in real time with animated cursor
+- **Session management** — history sidebar, new session, clear session, per-session delete
+- **Session ID** — unique per conversation, editable, persisted between page loads
+- **Rename sessions** — hover and click ✎ to rename any session (no auto-rename from message text)
+- **Per-mode sync toggle** — 🔗/⊘ button separates conversations by channel (chat/copilot/voice). When off, each mode only shows its own messages. Toggle back to combine all conversations.
+- **Message entrance animations** — smooth scale + fade + slide on every new message and avatar
+- **Composer focus glow** — mode-colored border and shadow on input focus
+- **Streaming cursor** — gradient cursor with pulse animation while AI responds
+- **Typing indicator** — mode-colored bouncing dots during agent processing
+- **Button/tab micro-interactions** — subtle press-scale effects on all interactive elements
+- **Scrollbar refinement** — thinner (4px), transparent track, hover-brightens thumb
+- **Welcome card glow** — edge gradient overlay on suggestion cards hover
+- **Copilot transcript pane** — live preview of customer conversation for context
+- **Voice HUD** — call timer, live transcription, TTS, call controls, waveform
 - **Collapsible sidebar** — dismiss for full chat focus, reopen from left edge
 - **Adaptive theme** — dark, light, or system mode. Auto-saved preference.
-- **Integrations manager** — configure all providers from the UI without editing files
+- **Integrations manager** — configure API keys for OpenAI, Anthropic, Twilio, HubSpot, and n8n/Zapier webhooks from the UI. All credentials are encrypted (AES-256-GCM) at rest in the server vault — never in config files or plain text.
+- **Admin token** — required for integration credential changes when `SETTINGS_ADMIN_TOKEN` is set in the server config. Enter it in the **Admin token** field at the bottom of the integrations panel. Without it, PUT/DELETE operations on credentials and webhooks return 401.
 - **Health status pill** — live server + STT/TTS status at a glance
 
 ---
@@ -235,7 +285,6 @@ Full reference at [`src/api/routes.py`](src/api/routes.py). Interactive docs at 
 | `GET` | `/api/v1/health` | Server + STT/TTS health check |
 | `POST` | `/api/v1/chat` | Send chat message, stream response |
 | `POST` | `/api/v1/copilot` | Analyse transcript, suggest reply |
-| `DELETE` | `/api/v1/chat/{session_id}` | End / clear a session |
 | `GET` | `/api/v1/agents` | List configured agents |
 | `GET` | `/api/v1/llm/config` | View LLM parameters |
 | `POST` | `/api/v1/rag/ingest` | Ingest documents into vector store |
@@ -257,6 +306,9 @@ Full reference at [`src/api/routes.py`](src/api/routes.py). Interactive docs at 
 | `DELETE` | `/api/v1/integrations/webhooks/{event_type}` | Remove webhook URL |
 | `GET` | `/api/v1/sessions` | List conversation sessions |
 | `GET` | `/api/v1/sessions/{id}/messages` | Get session messages |
+| `DELETE` | `/api/v1/chat/{session_id}` | End / clear a session |
+| `GET` | `/api/v1/sessions/stats` | Active session count |
+| `GET` | `/api/v1/sessions/{session_id}/history` | Session messages + info |
 
 ---
 
@@ -454,11 +506,15 @@ voice-agents/
 │   ├── agents.yaml                 # Agents, RAG, guardrails, eval settings
 │   └── evaluation/                 # Test cases & benchmark fixtures
 │
-├── deploy/docker/
-│   ├── Dockerfile                  # Production container image
-│   └── .dockerignore
+├── deploy/
+│   └── docker/
+│       ├── docker-compose.yml      # Production container orchestration
+│       ├── Dockerfile              # Production container image
+│       └── .dockerignore
 │
 ├── docs/
+│   ├── assets/                     # Demo videos & media
+│   │   └── nexus-demo.webm
 │   ├── technical/                  # Architecture docs (markdown + HTML)
 │   │   ├── ARCHITECTURE.md
 │   │   └── index.html

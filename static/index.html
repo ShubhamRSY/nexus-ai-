@@ -396,6 +396,28 @@ body[data-theme="light"] .session-item:hover {
     body[data-theme="light"] .theme-toggle .light-icon { display: block; }
     body[data-theme="light"] .theme-toggle .dark-icon { display: none; }
 
+    .sync-toggle {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
+      font-size: 1.05rem;
+      line-height: 1;
+      position: relative;
+    }
+    .sync-toggle:hover { background: var(--surface-hover); border-color: var(--border-strong); color: var(--text); }
+    body[data-sync-mode="all"] .sync-toggle .sync-off { display: none; }
+    body:not([data-sync-mode="all"]) .sync-toggle .sync-on { display: none; }
+    body:not([data-sync-mode="all"]) .sync-toggle { color: var(--mode-accent); border-color: color-mix(in srgb, var(--mode-accent) 40%, transparent); box-shadow: 0 0 12px color-mix(in srgb, var(--mode-glow) 30%, transparent); }
+
     .header-actions {
       display: flex;
       align-items: center;
@@ -501,13 +523,24 @@ body[data-theme="light"] .session-item:hover {
     .sidebar-scroll::-webkit-scrollbar,
     .messages::-webkit-scrollbar,
     .copilot-transcript-body::-webkit-scrollbar {
-      width: 6px;
+      width: 4px;
+    }
+    .sidebar-scroll::-webkit-scrollbar-track,
+    .messages::-webkit-scrollbar-track,
+    .copilot-transcript-body::-webkit-scrollbar-track {
+      background: transparent;
     }
     .sidebar-scroll::-webkit-scrollbar-thumb,
     .messages::-webkit-scrollbar-thumb,
     .copilot-transcript-body::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
       border-radius: 999px;
+      transition: background var(--transition);
+    }
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover,
+    .messages::-webkit-scrollbar-thumb:hover,
+    .copilot-transcript-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.15);
     }
 
     @media (max-width: 899px) {
@@ -675,6 +708,7 @@ body[data-theme="light"] .session-item:hover {
       letter-spacing: 0.01em;
     }
     .tab:hover { color: var(--text); background: var(--surface-hover); }
+    .tab:active:not(.active) { transform: scale(0.96); }
     .tab.active {
       background: linear-gradient(135deg, var(--mode-accent), color-mix(in srgb, var(--mode-accent) 60%, var(--accent-2)));
       color: #050508;
@@ -914,7 +948,9 @@ body[data-theme="light"] .session-item:hover {
       font-family: inherit;
       cursor: pointer;
       transition: all var(--transition);
+      -webkit-tap-highlight-color: transparent;
     }
+    .btn:active:not(:disabled) { transform: scale(0.96); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-primary {
       background: linear-gradient(135deg, var(--mode-accent), color-mix(in srgb, var(--mode-accent) 70%, var(--accent-2)));
@@ -1004,6 +1040,10 @@ body[data-theme="light"] .session-item:hover {
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes messageIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .welcome-hero-ring {
@@ -1097,7 +1137,7 @@ body[data-theme="light"] .session-item:hover {
 
     .suggestion {
       position: relative;
-      padding: 1.1rem 1.15rem;
+      padding: 1.25rem 1.25rem;
       background: var(--glass);
       backdrop-filter: blur(12px);
       border: 1px solid var(--border);
@@ -1127,12 +1167,24 @@ body[data-theme="light"] .session-item:hover {
       opacity: 0;
       transition: opacity var(--transition);
     }
+    .suggestion::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, transparent 40%, color-mix(in srgb, var(--mode-accent) 30%, transparent) 100%);
+      opacity: 0;
+      transition: opacity var(--transition);
+      pointer-events: none;
+    }
     .suggestion:hover {
       border-color: color-mix(in srgb, var(--mode-accent) 50%, transparent);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px color-mix(in srgb, var(--mode-accent) 30%, transparent);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4), 0 0 0 1px color-mix(in srgb, var(--mode-accent) 30%, transparent);
     }
-    .suggestion:hover::before { opacity: 0.15; }
+    .suggestion:hover::before { opacity: 0.2; }
+    .suggestion:hover::after { opacity: 1; }
+    .suggestion:active { transform: translateY(-1px) scale(0.99); }
     .suggestion-num {
       font-size: 0.65rem;
       font-weight: 700;
@@ -1161,7 +1213,8 @@ body[data-theme="light"] .session-item:hover {
       display: flex;
       gap: 0.65rem;
       max-width: 100%;
-      animation: fadeUp 0.25s ease;
+      animation: messageIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
     }
     .msg-row.user { flex-direction: row-reverse; align-self: flex-end; }
     .msg-row.agent, .msg-row.voice { align-self: flex-start; }
@@ -1180,6 +1233,12 @@ body[data-theme="light"] .session-item:hover {
       margin-top: 2px;
       letter-spacing: -0.02em;
       box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      animation: avatarIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+    @keyframes avatarIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
     }
     .msg-row.user .avatar {
       background: linear-gradient(135deg, var(--mode-accent), var(--accent-2));
@@ -1232,7 +1291,6 @@ body[data-theme="light"] .session-item:hover {
     }
 
     .bubble {
-      max-width: min(85%, 640px);
       padding: 1rem 1.15rem;
       border-radius: var(--radius-lg);
       font-size: clamp(0.875rem, 2vw, 0.9375rem);
@@ -1322,14 +1380,14 @@ body[data-theme="light"] .session-item:hover {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--text-muted);
+      background: var(--mode-accent);
       animation: bounce 1.2s infinite;
     }
     .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
     .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
     @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-4px); opacity: 1; }
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+      30% { transform: translateY(-6px); opacity: 1; }
     }
 
     /* ── Input area ── */
@@ -1358,6 +1416,11 @@ body[data-theme="light"] .session-item:hover {
       border: 1px solid var(--border-strong);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.04) inset, var(--shadow-glow);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .composer-inner:focus-within {
+      border-color: var(--mode-accent);
+      box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.04) inset, 0 0 0 1.5px var(--mode-glow), 0 0 40px var(--mode-glow);
     }
 
     textarea {
@@ -1382,6 +1445,15 @@ body[data-theme="light"] .session-item:hover {
       min-width: 80px;
       height: 48px;
       border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .composer .btn-primary::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08) 100%);
+      pointer-events: none;
     }
     @media (max-width: 479px) {
       .composer .btn span { display: none; }
@@ -1693,8 +1765,8 @@ body[data-theme="light"] .session-item:hover {
     }
 
     /* ── Bubble actions & markdown ── */
-    .bubble-wrap { position: relative; max-width: min(85%, 640px); }
-    .msg-row.user .bubble-wrap { max-width: min(85%, 640px); }
+    .bubble-wrap { position: relative; max-width: 640px; }
+    .msg-row.user .bubble-wrap { max-width: 640px; }
     .bubble-actions {
       display: flex;
       gap: 0.35rem;
@@ -1718,6 +1790,8 @@ body[data-theme="light"] .session-item:hover {
     }
     .bubble-action:hover { color: var(--text); background: var(--surface-hover); }
     .bubble-action.copied { color: var(--success); border-color: rgba(34, 197, 94, 0.4); }
+    .md-content { white-space: pre-wrap; min-width: 2ch; }
+    .copilot-line { white-space: normal; min-width: auto; }
     .md-content code {
       background: rgba(0, 0, 0, 0.25);
       padding: 0.1rem 0.35rem;
@@ -1818,7 +1892,8 @@ body[data-theme="light"] .session-item:hover {
     }
     .session-row.active .session-item {
       background: color-mix(in srgb, var(--mode-accent) 12%, transparent);
-      border-color: color-mix(in srgb, var(--mode-accent) 35%, transparent);
+      border-color: color-mix(in srgb, var(--mode-accent) 30%, transparent);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--mode-accent) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--mode-accent) 15%, transparent);
       color: var(--text);
     }
     .session-item {
@@ -1830,15 +1905,17 @@ body[data-theme="light"] .session-item:hover {
       padding: 0.55rem 0.65rem;
       background: transparent;
       border: 1px solid transparent;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius);
       color: var(--text-secondary);
       font-size: 0.8rem;
       font-family: inherit;
       cursor: pointer;
       text-align: left;
       transition: all var(--transition);
+      position: relative;
     }
     .session-item:hover { background: var(--surface-hover); color: var(--text); }
+    .session-item:active { transform: scale(0.98); }
     .session-item-text {
       flex: 1;
       min-width: 0;
@@ -1889,6 +1966,39 @@ body[data-theme="light"] .session-item:hover {
       background: var(--mode-accent);
       box-shadow: 0 0 8px var(--mode-glow);
     }
+    .session-rename-btn {
+      flex-shrink: 0;
+      width: 28px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      line-height: 1;
+      cursor: pointer;
+      font-family: inherit;
+      opacity: 0;
+      transition: all var(--transition);
+    }
+    .session-row:hover .session-rename-btn,
+    .session-row:focus-within .session-rename-btn { opacity: 1; }
+    .session-rename-btn:hover {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--mode-accent) 10%, transparent);
+      border-color: color-mix(in srgb, var(--mode-accent) 30%, transparent);
+    }
+    .session-label-input {
+      width: 100%;
+      padding: 0.1rem 0.25rem;
+      background: var(--surface-2);
+      border: 1px solid var(--mode-accent);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-family: inherit;
+      font-weight: 500;
+      outline: none;
+    }
     .session-new-btn {
       width: 100%;
       margin-top: 0.15rem;
@@ -1933,12 +2043,16 @@ body[data-theme="light"] .session-item:hover {
       display: inline-block;
       width: 2px;
       height: 1em;
-      background: var(--accent);
+      background: linear-gradient(180deg, var(--mode-accent), var(--accent-2));
+      border-radius: 1px;
       margin-left: 2px;
       vertical-align: text-bottom;
-      animation: blink 0.8s step-end infinite;
+      animation: cursorPulse 0.9s ease-in-out infinite;
     }
-    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes cursorPulse {
+      0%, 100% { opacity: 1; transform: scaleY(1); }
+      50% { opacity: 0.25; transform: scaleY(0.6); }
+    }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -1979,6 +2093,11 @@ body[data-theme="light"] .session-item:hover {
       <button class="tab" data-mode="copilot" type="button"><span class="tab-icon">✦</span>Copilot</button>
       <button class="tab" data-mode="voice" type="button"><span class="tab-icon">◎</span>Voice</button>
     </div>
+
+    <button class="sync-toggle" id="syncToggle" type="button" aria-label="Toggle mode sync" title="Toggle mode sync — when off, each mode shows its own messages">
+      <span class="sync-on" title="Synced: all modes share conversation">🔗</span>
+      <span class="sync-off" title="Separate: each mode has its own view">⊘</span>
+    </button>
 
     <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
       <span class="dark-icon">☾</span>
@@ -2446,12 +2565,16 @@ body[data-theme="light"] .session-item:hover {
 
     function formatMarkdown(text) {
       let html = escapeHtml(text);
-      html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+      const codes = [];
+      html = html.replace(/```([\s\S]*?)```/g, (_, c) => {
+        codes.push(c);
+        return `%%CODE${codes.length - 1}%%`;
+      });
       html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
       html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
       html = html.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
-      html = html.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
-      html = html.replace(/\n/g, '<br>');
+      html = html.replace(/(<li>.*?<\/li>\s*)+/g, m => `<ul>${m}</ul>`);
+      html = html.replace(/%%CODE(\d+)%%/g, (_, i) => `<pre><code>${codes[Number(i)]}</code></pre>`);
       return html;
     }
 
@@ -2473,6 +2596,14 @@ body[data-theme="light"] .session-item:hover {
       cursor.className = 'stream-cursor';
       let i = 0;
       const plain = text;
+      if (plain.length < 60) {
+        el.textContent = text;
+        el.appendChild(cursor);
+        cursor.remove();
+        el.innerHTML = formatMarkdown(text);
+        scrollMessagesToBottom(false);
+        return;
+      }
       return new Promise(resolve => {
         const tick = () => {
           if (epoch !== sessionEpoch) { resolve(); return; }
@@ -2482,7 +2613,7 @@ body[data-theme="light"] .session-item:hover {
             resolve();
             return;
           }
-          i += Math.max(1, Math.floor(plain.length / 80));
+          i += Math.max(4, Math.floor(plain.length / 60));
           const chunk = plain.slice(0, i);
           el.textContent = chunk;
           el.appendChild(cursor);
@@ -2613,7 +2744,7 @@ body[data-theme="light"] .session-item:hover {
       await clearServerSession(sessionId);
       showWelcomeForMode();
       scrollMessagesToBottom(true);
-      closeSidebar();
+      if (isMobile()) closeSidebar();
       if (!silent) showToast('Session cleared', 'success');
 
       if (clearBtn) clearBtn.disabled = false;
@@ -2679,18 +2810,20 @@ body[data-theme="light"] .session-item:hover {
       empty.classList.remove('visible');
       clearAllBtn.disabled = false;
 
-      list.innerHTML = sessions.map(s => `
-        <div class="session-row${s.id === current ? ' active' : ''}">
+      list.innerHTML = sessions.map(s => {
+        const labelId = `sl-${CSS.escape(s.id)}`;
+        return `<div class="session-row${s.id === current ? ' active' : ''}">
           <button class="session-item" type="button" data-session-id="${escapeHtml(s.id)}">
             <span class="dot"></span>
             <span class="session-item-text">
-              <span class="session-label">${escapeHtml(s.label)}</span>
+              <span class="session-label" id="${labelId}">${escapeHtml(s.label)}</span>
               <span class="session-meta">${formatSessionTime(s.ts)}</span>
             </span>
           </button>
+          <button class="session-rename-btn" type="button" data-rename-session="${escapeHtml(s.id)}" aria-label="Rename ${escapeHtml(s.label)}" title="Rename">✎</button>
           <button class="session-delete" type="button" data-delete-session="${escapeHtml(s.id)}" aria-label="Remove ${escapeHtml(s.label)}" title="Remove">×</button>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
     function rememberSession(id, label) {
@@ -2740,7 +2873,7 @@ body[data-theme="light"] .session-item:hover {
     async function startFreshSession(showWelcome = true) {
       const id = `session-${Date.now().toString(36)}`;
       document.getElementById('sessionId').value = id;
-      rememberSession(id, 'Session 1');
+      rememberSession(id, nextSessionLabel());
       if (showWelcome) {
         abortInFlight();
         resetComposerFields();
@@ -2757,12 +2890,12 @@ body[data-theme="light"] .session-item:hover {
       rememberSession(id, label);
       await clearChat({ silent: true });
       showToast(`Created "${label}"`, 'success');
-      closeSidebar();
+      if (isMobile()) closeSidebar();
     }
 
     async function switchSession(id) {
       if (id === document.getElementById('sessionId').value) {
-        closeSidebar();
+        if (isMobile()) closeSidebar();
         return;
       }
       const session = loadSessions().find(s => s.id === id);
@@ -2770,11 +2903,51 @@ body[data-theme="light"] .session-item:hover {
       renderSessionList();
       await clearChat({ silent: true });
       showToast(`Switched to "${session?.label || id}"`, 'info');
-      closeSidebar();
+      if (isMobile()) closeSidebar();
+    }
+
+    function renameSession(id) {
+      const sessions = loadSessions();
+      const session = sessions.find(s => s.id === id);
+      if (!session) return;
+      const labelEl = document.getElementById(`sl-${CSS.escape(id)}`);
+      if (!labelEl) return;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'session-label-input';
+      input.value = session.label;
+      input.maxLength = 50;
+      labelEl.replaceWith(input);
+      input.focus();
+      input.select();
+      const commit = () => {
+        const val = input.value.trim() || session.label;
+        const sessions2 = loadSessions();
+        const found = sessions2.find(s => s.id === id);
+        if (found) found.label = val;
+        saveSessions(sessions2);
+        if (id === document.getElementById('sessionId').value) {
+          document.getElementById('sessionId').value = id;
+        }
+        renderSessionList();
+        showToast(`Session renamed to "${val}"`, 'success');
+      };
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') { e.preventDefault(); input.value = session.label; input.blur(); }
+      });
     }
 
     function bindSessionListEvents() {
       document.getElementById('sessionList')?.addEventListener('click', (e) => {
+        const renameBtn = e.target.closest('[data-rename-session]');
+        if (renameBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          renameSession(renameBtn.dataset.renameSession);
+          return;
+        }
         const delBtn = e.target.closest('[data-delete-session]');
         if (delBtn) {
           e.preventDefault();
@@ -2793,10 +2966,14 @@ body[data-theme="light"] .session-item:hover {
     const overlay = document.getElementById('sidebarOverlay');
     const appShell = document.getElementById('appShell');
     const menuBtn = document.getElementById('menuBtn');
+    const isMobile = () => window.innerWidth < 900;
 
     function syncSidebarUi() {
       const isOpen = appShell?.classList.contains('sidebar-open');
+      sidebar.classList.toggle('open', isOpen);
+      overlay.classList.toggle('open', isOpen);
       document.body.classList.toggle('sidebar-closed', !isOpen);
+      document.body.style.overflow = (isOpen && isMobile()) ? 'hidden' : '';
       if (menuBtn) {
         menuBtn.setAttribute('aria-label', isOpen ? 'Close side panel' : 'Open side panel');
         menuBtn.setAttribute('title', isOpen ? 'Close panel' : 'Open panel');
@@ -2805,43 +2982,37 @@ body[data-theme="light"] .session-item:hover {
 
     function openSidebar() {
       appShell?.classList.add('sidebar-open');
-      sidebar.classList.add('open');
-      overlay.classList.add('open');
       syncSidebarUi();
-      if (window.matchMedia('(max-width: 899px)').matches) {
-        document.body.style.overflow = 'hidden';
-      }
     }
     function closeSidebar() {
       appShell?.classList.remove('sidebar-open');
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-      document.body.style.overflow = '';
       syncSidebarUi();
+    }
+    function toggleSidebar() {
+      appShell?.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
     }
 
     document.getElementById('menuBtn').addEventListener('click', (e) => {
       e.stopPropagation();
-      appShell?.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+      toggleSidebar();
     });
     document.getElementById('sidebarReopenBtn')?.addEventListener('click', (e) => {
       e.stopPropagation();
       openSidebar();
     });
     overlay.addEventListener('click', closeSidebar);
-
-    /* sidebar is managed only by explicit toggle — no auto-close on main click */
+    document.getElementById('sidebarCloseBtn')?.addEventListener('click', closeSidebar);
 
     window.addEventListener('resize', () => {
-      if (window.innerWidth >= 900) {
-        overlay.classList.remove('open');
+      if (!isMobile() && appShell?.classList.contains('sidebar-open')) {
         document.body.style.overflow = '';
+      }
+      if (isMobile() && appShell?.classList.contains('sidebar-open')) {
+        document.body.style.overflow = 'hidden';
       }
     });
 
-    if (window.innerWidth < 900) {
-      appShell?.classList.remove('sidebar-open');
-    }
+    if (isMobile()) closeSidebar();
     syncSidebarUi();
 
     /* ── Theme toggle ── */
@@ -2869,9 +3040,6 @@ body[data-theme="light"] .session-item:hover {
     });
     applyTheme(getStoredTheme());
 
-    /* ── Sidebar close ── */
-    document.getElementById('sidebarCloseBtn')?.addEventListener('click', closeSidebar);
-
     function toggleSidebar() {
       appShell?.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
     }
@@ -2885,6 +3053,33 @@ body[data-theme="light"] .session-item:hover {
     function hasConversation() {
       return Boolean(messagesEl().querySelector('.msg-row'));
     }
+
+    function filterMessagesByMode() {
+      const syncAll = document.body.dataset.syncMode === 'all';
+      document.querySelectorAll('.msg-row').forEach(row => {
+        row.style.display = syncAll || row.dataset.msgMode === mode ? '' : 'none';
+      });
+    }
+
+    document.getElementById('syncToggle')?.addEventListener('click', () => {
+      const cur = document.body.dataset.syncMode;
+      const next = cur === 'all' ? 'mode' : 'all';
+      const placeholder = document.querySelector('.mode-empty');
+      document.body.dataset.syncMode = next;
+      filterMessagesByMode();
+      if (next === 'all') {
+        if (placeholder) placeholder.remove();
+        if (!hasConversation() && !document.getElementById('welcome')) showWelcomeForMode();
+      } else {
+        document.getElementById('welcome')?.remove();
+        const hasVisible = Boolean(messagesEl().querySelector('.msg-row:not([style*="display: none"])'));
+        if (!hasVisible) {
+          document.querySelectorAll('.mode-empty').forEach(el => el.remove());
+          document.getElementById('messages').insertAdjacentHTML('beforeend', `<div class="mode-empty" style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;font-size:0.85rem;color:var(--text-muted)">No ${mode} messages yet</div>`);
+        }
+      }
+      showToast(next === 'all' ? 'Sync: all conversations combined' : 'Sync: each mode shows its own messages', 'info');
+    });
 
     function setMode(newMode) {
       if (!newMode || newMode === mode) return;
@@ -2920,17 +3115,26 @@ body[data-theme="light"] .session-item:hover {
         : 'Message as the customer...';
 
       document.body.dataset.mode = mode;
+      filterMessagesByMode();
 
-      if (!hasConversation()) {
-        if (isVoice && !callActive) showVoiceWelcome();
-        else if (isCopilot) showCopilotWelcome();
-        else if (mode === 'chat') showChatWelcome();
+      const hasVisible = document.body.dataset.syncMode !== 'all'
+        ? Boolean(messagesEl().querySelector('.msg-row:not([style*="display: none"])'))
+        : hasConversation();
+      if (!hasVisible) {
+        if (document.body.dataset.syncMode !== 'all') {
+          document.querySelectorAll('.mode-empty').forEach(el => el.remove());
+          document.getElementById('messages').insertAdjacentHTML('beforeend', `<div class="mode-empty" style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;font-size:0.85rem;color:var(--text-muted)">No ${mode} messages yet — switch modes or toggle sync to view other conversations</div>`);
+        } else {
+          if (isVoice && !callActive) showVoiceWelcome();
+          else if (isCopilot) showCopilotWelcome();
+          else if (mode === 'chat') showChatWelcome();
+        }
       }
 
       if (isVoice) document.getElementById('voiceInputText').focus();
       else document.getElementById('input').focus();
 
-      closeSidebar();
+      if (isMobile()) closeSidebar();
       updateScrollButton();
       updateVoiceHud();
       updateCopilotTranscriptPreview();
@@ -3228,20 +3432,18 @@ body[data-theme="light"] .session-item:hover {
 
     function formatCopilotText(text) {
       return escapeHtml(text)
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>')
-        .replace(/<br><br>/g, '<br><br>');
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     }
 
     function getRoleLabels(role) {
       if (mode === 'voice') {
         return role === 'user' ? { row: 'user', avatar: 'Caller', label: null }
-          : role === 'voice-agent' ? { row: 'voice', avatar: 'VA', label: 'Agent Response (TTS)' }
-          : { row: role, avatar: 'AI', label: null };
+          : role === 'voice-agent' ? { row: 'voice', avatar: '🖥️ VA', label: 'Agent Response (TTS)' }
+          : { row: role, avatar: '🖥️ AI', label: null };
       }
       if (mode === 'copilot') {
         return role === 'user' ? { row: 'user', avatar: 'You', label: 'Your request' }
-          : { row: 'copilot', avatar: 'CP', label: 'Copilot suggestion' };
+          : { row: 'copilot', avatar: '🖥️ CP', label: 'Copilot suggestion' };
       }
       return role === 'user' ? { row: 'user', avatar: 'You', label: null }
         : { row: 'agent', avatar: 'AI', label: null };
@@ -3250,6 +3452,8 @@ body[data-theme="light"] .session-item:hover {
     function addMessage(text, role, metrics = null, tools = [], options = {}) {
       const welcome = document.getElementById('welcome');
       if (welcome) welcome.remove();
+      const placeholder = document.querySelector('.mode-empty');
+      if (placeholder) placeholder.remove();
 
       const labels = getRoleLabels(role);
       const row = document.createElement('div');
@@ -3282,7 +3486,7 @@ body[data-theme="light"] .session-item:hover {
       row.innerHTML = `
         <div class="avatar">${labels.avatar}</div>
         <div class="bubble-wrap">
-          <div class="bubble">${bubbleInner}${buildMetaChips(metrics, tools)}${buildSourceChips(metrics)}</div>
+          <div class="bubble">${bubbleInner}</div>
           ${showCopy ? `<div class="bubble-actions">${copyBtn}${useBtn}</div>` : ''}
         </div>`;
 
@@ -3293,7 +3497,11 @@ body[data-theme="light"] .session-item:hover {
         navigator.clipboard.writeText(text).then(() => showToast('Reply ready — paste to customer', 'success'));
       });
 
+      row.dataset.msgMode = mode;
       document.getElementById('messages').appendChild(row);
+      if (document.body.dataset.syncMode !== 'all' && row.dataset.msgMode !== mode) {
+        row.style.display = 'none';
+      }
       scrollMessagesToBottom(role === 'user');
 
       if (stream) {
@@ -3331,10 +3539,16 @@ body[data-theme="light"] .session-item:hover {
     function addSystemMessage(text) {
       const welcome = document.getElementById('welcome');
       if (welcome) welcome.remove();
+      const placeholder = document.querySelector('.mode-empty');
+      if (placeholder) placeholder.remove();
       const row = document.createElement('div');
       row.className = 'msg-row system';
+      row.dataset.msgMode = mode;
       row.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
       document.getElementById('messages').appendChild(row);
+      if (document.body.dataset.syncMode !== 'all' && row.dataset.msgMode !== mode) {
+        row.style.display = 'none';
+      }
       scrollMessagesToBottom(false);
     }
 
@@ -3345,6 +3559,8 @@ body[data-theme="light"] .session-item:hover {
     }
 
     function showTyping(msg) {
+      const placeholder = document.querySelector('.mode-empty');
+      if (placeholder) placeholder.remove();
       const el = document.createElement('div');
       el.className = 'typing';
       el.id = 'typing';
@@ -3398,7 +3614,6 @@ body[data-theme="light"] .session-item:hover {
 
         const tools = (data.tool_calls || []).map(t => t.name);
         const replyRole = mode === 'copilot' ? 'copilot' : 'agent';
-        rememberSession(sessionId, text.slice(0, 40) + (text.length > 40 ? '…' : ''));
         addMessage(data.response || JSON.stringify(data), replyRole, data.metrics, tools, { stream: true });
       } catch (err) {
         hideTyping();
@@ -3809,6 +4024,7 @@ body[data-theme="light"] .session-item:hover {
     checkHealth();
     loadIntegrationsStatus();
     setInterval(checkHealth, 30000);
+    document.body.dataset.syncMode = 'all';
     document.body.dataset.mode = 'chat';
     bindSessionListEvents();
     const existingSessions = loadSessions();

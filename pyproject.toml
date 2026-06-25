@@ -62,6 +62,19 @@ Repository = "https://github.com/ShubhamRSY/voice-agents"
 where = ["."]
 include = ["src*"]
 
+[tool.coverage.run]
+data_file = "reports/coverage/.coverage"
+branch = true
+
+[tool.coverage.html]
+directory = "reports/coverage/html"
+
+[tool.coverage.xml]
+output = "reports/coverage/coverage.xml"
+
+[tool.coverage.report]
+show_missing = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

@@ -436,7 +436,7 @@ Agents are defined in `config/agents.yaml`:
 
 | Method | Details |
 |---|---|
-| **Docker** | `docker compose up` — single container, all dependencies included |
+| **Docker** | `docker compose -f deploy/docker/docker-compose.yml up` — single container, all dependencies included |
 | **Bare metal** | `uvicorn src.main:app --host 0.0.0.0 --port 8001` behind nginx or Caddy |
 | **CI/CD** | GitHub Actions — lint, 158+ unit tests, 33 E2E tests |
 

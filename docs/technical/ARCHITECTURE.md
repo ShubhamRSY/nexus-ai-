@@ -218,7 +218,7 @@ Selected REST API endpoints (full reference in [`src/api/routes.py`](https://git
 
 | Method | Command / Details |
 |---|---|
-| **Docker** | `docker compose up` — single-container, includes all dependencies |
+| **Docker** | `docker compose -f deploy/docker/docker-compose.yml up` — single container, all dependencies included |
 | **Bare metal** | `uvicorn src.main:app --host 0.0.0.0 --port 8001` behind nginx/Caddy |
 | **CI/CD** | GitHub Actions — lint, 158+ unit tests, 33 E2E tests |
 
@@ -248,7 +248,7 @@ Selected REST API endpoints (full reference in [`src/api/routes.py`](https://git
 git clone https://github.com/ShubhamRSY/voice-agents.git
 cd voice-agents
 pip install -e ".[dev]"
-cp .env.example .env    # add your API keys
+cp config/environment/.env.example config/environment/.env   # add your API keys
 uvicorn src.main:app --reload --port 8001
 ```
 
@@ -275,28 +275,43 @@ mypy src/ --ignore-missing-imports
 ## Project Structure
 
 ```
-├── src/
-│   ├── main.py              # FastAPI app entry point
-│   ├── api/routes.py        # All REST API endpoints
-│   ├── agents/              # Agent orchestrator + prompt builders
-│   ├── telephony/           # Voice handlers (Twilio, Connect, CCaaS)
-│   ├── feedback/            # Feedback loop engine
-│   ├── integrations/        # Vault, webhooks, CRMs
-│   ├── llm/                 # LLM client (OpenAI, Claude, Gemini)
-│   ├── rag/                 # RAG pipeline + vector search
-│   ├── database.py          # SQLite + migrations
-│   ├── auth.py              # JWT authentication
-│   └── config.py            # Settings (pydantic-settings)
+├── config/
+│   ├── agents.yaml           # Agent definitions & LLM config
+│   └── environment/
+│       └── .env.example      # Environment variable template
+├── deploy/
+│   └── docker/
+│       ├── docker-compose.yml # Container orchestration
+│       ├── Dockerfile         # Production image
+│       └── .dockerignore
 ├── docs/
-│   ├── technical/           # Architecture docs (this file)
-│   └── integrations/        # Integration guides + templates
-├── tests/
-│   ├── test_*.py            # 158+ unit tests
-│   └── test_comprehensive_e2e.py   # 33 E2E tests
+│   ├── assets/               # Demo videos & media
+│   │   └── nexus-demo.webm
+│   ├── technical/            # Architecture docs (this file)
+│   ├── integrations/         # Setup guides + templates
+│   └── configuration.md
 ├── scripts/
-│   ├── demo.py              # Narrated product demo
-│   └── ci.sh                # Local CI script
-└── .github/workflows/ci.yml # GitHub Actions CI
+│   ├── demo.py               # Narrated product demo
+│   └── ci.sh                 # Local CI script
+├── src/                      # Application source
+│   ├── main.py               # FastAPI app entry point
+│   ├── api/routes.py         # All REST API endpoints
+│   ├── agents/               # Agent orchestrator + prompt builders
+│   ├── telephony/            # Voice handlers (Twilio, Connect, CCaaS)
+│   ├── feedback/             # Feedback loop engine
+│   ├── integrations/         # Vault, webhooks, CRMs
+│   ├── llm/                  # LLM client (OpenAI, Claude, Gemini)
+│   ├── rag/                  # RAG pipeline + vector search
+│   ├── database.py           # SQLite + migrations
+│   ├── auth.py               # JWT authentication
+│   └── config.py             # Settings (pydantic-settings)
+├── static/
+│   └── index.html            # Web console UI
+├── tests/
+│   ├── test_*.py             # 158+ unit tests
+│   ├── e2e/                  # E2E journey tests
+│   └── test_comprehensive_e2e.py  # 33 E2E tests
+└── .github/workflows/ci.yml  # GitHub Actions CI
 ```
 
 ---

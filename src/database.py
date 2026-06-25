@@ -227,7 +227,7 @@ def _run_migrations(conn: sqlite3.Connection, current: int) -> None:
 
 
 def init_db() -> None:
-    with get_connection_no_mgr() as conn:
+    with get_connection() as conn:
         current = _get_user_version(conn)
         if current < _SCHEMA_VERSION:
             _run_migrations(conn, current)

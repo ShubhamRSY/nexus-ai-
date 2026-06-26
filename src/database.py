@@ -35,23 +35,13 @@ def get_connection() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
+    conn.isolation_level = None  # explicit autocommit
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     yield conn
     conn.close()
 
-def get_connection_no_mgr():
-    """Get a connection without context manager (caller must close)."""
-    settings = get_settings()
-    if settings.database_url:
-        import psycopg2
-        return psycopg2.connect(settings.database_url)
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(DB_PATH))
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+
 
 def _get_user_version(conn: sqlite3.Connection) -> int:
     row = conn.execute("PRAGMA user_version").fetchone()

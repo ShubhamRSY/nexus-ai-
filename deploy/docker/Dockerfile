@@ -1,33 +1,73 @@
-FROM python:3.11-slim
+# ==============================================================
+# Stage 1 — build environment
+# ==============================================================
+FROM python:3.12-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /build
+
+# Minimal build deps (avoid pulling in entire build-essential)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install runtime deps first (layer caching)
+COPY pyproject.toml README.md ./
+COPY config/deps/requirements.txt config/deps/
+RUN pip install --upgrade pip && \
+    pip install --no-build-isolation -r config/deps/requirements.txt && \
+    pip install --no-build-isolation -e .
+
+# ==============================================================
+# Stage 2 — runtime image (minimal)
+# ==============================================================
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
     APP_HOST=0.0.0.0 \
-    APP_PORT=8000
+    APP_PORT=8000 \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
+# Install only wget for healthcheck; ca-certificates already present
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml README.md ./
-COPY config/deps/requirements.txt requirements.txt
-COPY config ./config
-COPY src ./src
+# Copy installed packages from builder (match Python 3.12 path)
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /build/src /app/src
+COPY --from=builder /build/config /app/config
+COPY --from=builder /build/pyproject.toml /app/
+
+# Application code only (no tests, docs, scripts)
 COPY static ./static
 COPY data ./data
-COPY scripts ./scripts
-COPY docs ./docs
 
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt && \
-    pip install -e .
+RUN groupadd -r appgroup && \
+    useradd -r -g appgroup -u 1000 appuser && \
+    chown -R appuser:appgroup /app
+USER appuser
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')" || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8000/api/v1/health || exit 1
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["gunicorn", \
+     "-w", "4", \
+     "-k", "uvicorn.workers.UvicornWorker", \
+     "src.main:app", \
+     "--bind", "0.0.0.0:8000", \
+     "--max-requests", "10000", \
+     "--max-requests-jitter", "1000", \
+     "--timeout", "120", \
+     "--graceful-timeout", "30"]

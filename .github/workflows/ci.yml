@@ -25,7 +25,11 @@ jobs:
       - name: Lint with ruff
         run: ruff check src/ tests/ scripts/
       - name: Type check with mypy
-        run: mypy src/ --ignore-missing-imports --allow-untyped-decorators || true
+        run: mypy src/ --ignore-missing-imports --allow-untyped-decorators
+      - name: Dependency vulnerability scan
+        run: |
+          pip install pip-audit
+          pip-audit --strict
 
   test:
     runs-on: ubuntu-latest

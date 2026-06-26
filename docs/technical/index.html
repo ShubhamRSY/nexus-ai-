@@ -339,14 +339,14 @@
         <tr><th>Method</th><th>Details</th></tr>
         <tr><td><strong>Docker</strong></td><td><code>docker compose -f deploy/docker/docker-compose.yml up</code> — single container, all dependencies included</td></tr>
         <tr><td><strong>Bare metal</strong></td><td><code>uvicorn src.main:app --host 0.0.0.0 --port 8001</code> behind nginx or Caddy</td></tr>
-        <tr><td><strong>CI/CD</strong></td><td>GitHub Actions — lint, 158+ unit tests, 33 E2E tests</td></tr>
+        <tr><td><strong>CI/CD</strong></td><td>GitHub Actions — lint, 95+ unit tests, 33 E2E tests</td></tr>
       </table>
 
       <h3>CI Pipeline (<code>.github/workflows/ci.yml</code>)</h3>
       <table>
         <tr><th>Job</th><th>What It Does</th></tr>
         <tr><td><code>lint</code></td><td>Ruff linting + mypy type checking</td></tr>
-        <tr><td><code>test</code> (3.11, 3.12)</td><td>Pytest with --timeout=60, 158+ unit tests</td></tr>
+        <tr><td><code>test</code> (3.11, 3.12)</td><td>Pytest with --timeout=60, 95+ unit tests</td></tr>
         <tr><td><code>e2e</code></td><td>Live server start → 33 Playwright E2E tests</td></tr>
         <tr><td><code>docker</code></td><td>Builds Docker image, smoke-test</td></tr>
       </table>
@@ -393,7 +393,12 @@ mypy src/ --ignore-missing-imports</code></pre>
       <h2>Project Structure</h2>
       <div class="diagram">├── src/
 │   ├── main.py              FastAPI app entry point
-│   ├── api/routes.py        All REST API endpoints
+│   ├── api/auth_routes.py   Auth endpoints
+│   ├── api/chat_routes.py   Chat, copilot, CSAT, SSE streaming
+│   ├── api/kb_routes.py     Knowledge base CRUD
+│   ├── api/telephony_routes.py  Voice/Twilio endpoints
+│   ├── api/integration_routes.py  Vault, webhooks
+│   ├── api/ops_routes.py    Health, metrics, feedback, events
 │   ├── agents/              Agent orchestrator + prompt builders
 │   ├── telephony/           Voice handlers (Twilio, Connect, CCaaS)
 │   ├── feedback/            Feedback loop engine
@@ -407,7 +412,7 @@ mypy src/ --ignore-missing-imports</code></pre>
 │   ├── technical/           Architecture docs (this file)
 │   └── integrations/        Integration guides + templates
 ├── tests/
-│   ├── test_*.py            158+ unit tests
+│   ├── test_*.py            95+ unit tests
 │   └── test_comprehensive_e2e.py   33 E2E tests
 ├── scripts/
 │   ├── demo.py              Narrated product demo

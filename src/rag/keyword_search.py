@@ -2,13 +2,13 @@
 
 import re
 from functools import lru_cache
-from src.config import ROOT_DIR
+from src.config import DATA_DIR
 
 
 @lru_cache
 def load_faq_entries() -> tuple[dict[str, str], ...]:
     entries: list[dict[str, str]] = []
-    kb_dir = ROOT_DIR / "data" / "knowledge_base"
+    kb_dir = DATA_DIR / "knowledge_base"
     if not kb_dir.exists():
         return tuple()
 

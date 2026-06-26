@@ -13,7 +13,7 @@ This platform can push events into Zapier using a standard webhook.
 Register for a specific event type:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/integrations/webhooks \
+curl -X POST http://localhost:8001/api/v1/integrations/webhooks \
   -H "Content-Type: application/json" \
   -d '{"event_type":"conversation.started","url":"https://hooks.zapier.com/hooks/catch/XXXX/YYYY"}'
 ```
@@ -35,7 +35,7 @@ curl -X POST http://localhost:8000/api/v1/integrations/webhooks \
 If using the Amazon Connect telephony adapter, you can also register for connect-specific webhooks:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/integrations/webhooks \
+curl -X POST http://localhost:8001/api/v1/integrations/webhooks \
   -H "Content-Type: application/json" \
   -d '{"event_type":"connect.contact_ended","url":"https://hooks.zapier.com/hooks/catch/XXXX/YYYY"}'
 ```
@@ -45,7 +45,7 @@ curl -X POST http://localhost:8000/api/v1/integrations/webhooks \
 Trigger a chat request:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/chat \
+curl -X POST http://localhost:8001/api/v1/chat \
   -H "Content-Type: application/json" \
   -d '{"message":"I need help resetting my password","session_id":"zapier-demo"}'
 ```

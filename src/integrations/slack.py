@@ -56,7 +56,7 @@ class SlackNotifier:
                     {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "View Conversation"},
-                        "url": f"http://localhost:8000/?session={session_id}",
+                        "url": f"http://localhost:8001/?session={session_id}",
                     }
                 ],
             },
@@ -68,7 +68,7 @@ class SlackNotifier:
             {
                 "type": "section",
                 "fields": [
-                    {"type": "mrkdwn", "text": f"*Ticket Created:*\n<http://localhost:8000|{ticket_id}>"},
+                    {"type": "mrkdwn", "text": f"*Ticket Created:*\n<http://localhost:8001|{ticket_id}>"},
                     {"type": "mrkdwn", "text": f"*Subject:*\n{subject}"},
                     {"type": "mrkdwn", "text": f"*Customer:*\n{customer}"},
                     {"type": "mrkdwn", "text": f"*Provider:*\n{provider}"},

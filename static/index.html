@@ -450,6 +450,27 @@ body[data-theme="light"] .session-item:hover {
       box-shadow: 0 0 12px var(--success), 0 0 4px var(--success);
       animation: statusPulse 2s ease infinite;
     }
+    .task-badge {
+      display: none;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      background: var(--accent-soft);
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+      cursor: default;
+    }
+    .task-badge.visible { display: inline-flex; }
+    .task-badge-icon {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: statusPulse 1.2s ease infinite;
+    }
     @keyframes statusPulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
@@ -1095,6 +1116,29 @@ body[data-theme="light"] .session-item:hover {
       max-width: 500px;
       line-height: 1.65;
       font-weight: 400;
+    }
+    .welcome-tips {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+    .welcome-tips kbd {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.45em;
+      font-family: inherit;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
     }
 
     .channel-badge {
@@ -1878,12 +1922,24 @@ body[data-theme="light"] .session-item:hover {
     .session-empty {
       display: none;
       text-align: center;
-      padding: 1rem 0.5rem;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      font-style: italic;
+      padding: 2rem 0.5rem;
     }
     .session-empty.visible { display: block; }
+    .session-empty-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.5;
+    }
+    .session-empty-text {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .session-empty-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
     .session-row {
       display: flex;
       align-items: stretch;
@@ -2109,6 +2165,7 @@ body[data-theme="light"] .session-item:hover {
         <div class="status-dot" id="statusDot"></div>
         <span id="statusText">Checking</span>
       </div>
+      <div class="task-badge" id="taskBadge"><span class="task-badge-icon"></span><span id="taskBadgeText">0 tasks</span></div>
     </div>
   </header>
 
@@ -2140,7 +2197,11 @@ body[data-theme="light"] .session-item:hover {
         </div>
         <div class="session-list-wrap" id="sessionListWrap">
           <div id="sessionList"></div>
-          <div class="session-empty" id="sessionEmpty">No saved sessions — start a new one below.</div>
+          <div class="session-empty" id="sessionEmpty">
+            <div class="session-empty-icon">💬</div>
+            <div class="session-empty-text">No saved sessions yet</div>
+            <div class="session-empty-hint">Send a message to start a new conversation</div>
+          </div>
         </div>
         <button class="session-item session-new-btn" id="newSessionBtn" type="button">
           <span>+ New session</span>
@@ -2437,6 +2498,33 @@ body[data-theme="light"] .session-item:hover {
 
   <script>
     const API = '/api/v1';
+    let taskPollInterval = null;
+
+    async function apiFetch(url, options = {}) {
+      const res = await fetch(url, options);
+      if (res.ok) return res;
+      const text = await res.text().catch(() => '');
+      let detail = text;
+      try { const j = JSON.parse(text); detail = j.detail || j.message || text; } catch {}
+      if (res.status === 429) {
+        showToast('Rate limit hit — wait a moment then retry', 'error');
+        throw new Error('Rate limit exceeded');
+      }
+      if (res.status === 401 || res.status === 403) {
+        showToast('Auth failed — check your API token', 'error');
+        throw new Error(detail || 'Authentication failed');
+      }
+      if (res.status >= 500) {
+        showToast(`Server error (${res.status}) — try again later`, 'error');
+        throw new Error(detail || `Server error (${res.status})`);
+      }
+      if (!res.ok) {
+        showToast(detail || `Request failed (${res.status})`, 'error');
+        throw new Error(detail || `Request failed (${res.status})`);
+      }
+      return res;
+    }
+
     let mode = 'chat';
     let callActive = false;
     let sttAvailable = false;
@@ -3183,7 +3271,7 @@ body[data-theme="light"] .session-item:hover {
           { label: 'Lookup my account', text: 'Can you look up jane@example.com?' },
           { label: 'API 403 error', text: 'My API calls return 403 errors' },
         ]
-      );
+      ) + '<div class="welcome-tips">Type a message or <kbd>1</kbd> Chat · <kbd>2</kbd> Copilot · <kbd>3</kbd> Voice · <kbd>⌘⏎</kbd> send</div>';
     }
 
     function showCopilotWelcome() {
@@ -3197,7 +3285,7 @@ body[data-theme="light"] .session-item:hover {
           { label: 'Flag escalation', text: 'Should I escalate this to a supervisor?' },
         ],
         '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'
-      );
+      ) + '<div class="welcome-tips">Paste transcript in the sidebar, then ask copilot to draft, summarize, or escalate</div>';
     }
 
     function showVoiceWelcome() {
@@ -3211,7 +3299,7 @@ body[data-theme="light"] .session-item:hover {
           { label: 'Request transfer', text: 'I need to speak to a manager' },
         ],
         '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>'
-      );
+      ) + '<div class="welcome-tips">Tap "Answer incoming call" or type caller speech and hit send</div>';
     }
 
     const SETTINGS_TOKEN_KEY = 'nexus_settings_token';
@@ -3289,7 +3377,7 @@ body[data-theme="light"] .session-item:hover {
 
     async function loadIntegrationsStatus() {
       try {
-        const res = await fetch(`${API}/integrations/status`);
+        const res = await apiFetch(`${API}/integrations/status`);
         if (!res.ok) return;
         const data = await res.json();
         const p = data.providers || {};
@@ -3394,7 +3482,7 @@ body[data-theme="light"] .session-item:hover {
 
     async function checkHealth() {
       try {
-        const res = await fetch(`${API}/health`);
+        const res = await apiFetch(`${API}/health`);
         const data = await res.json();
         sttAvailable = data.stt_available === true || data.stt_available === 'true';
         ttsAvailable = data.tts_available === true || data.tts_available === 'true';
@@ -3418,6 +3506,24 @@ body[data-theme="light"] .session-item:hover {
         document.getElementById('statusDot').classList.remove('online');
         document.getElementById('statusText').textContent = 'Offline';
         setConnectionBanner(true, 'Cannot reach server — check that ./scripts/run.sh is running on port 8001');
+      }
+    }
+
+    async function pollTasks() {
+      try {
+        const res = await apiFetch(`${API}/observability/health`);
+        const data = await res.json();
+        const badge = document.getElementById('taskBadge');
+        const text = document.getElementById('taskBadgeText');
+        const total = (data.active_tasks || 0) + (data.queued_tasks || 0) + (data.active_requests || 0);
+        if (total > 0) {
+          badge.classList.add('visible');
+          text.textContent = `${total} active`;
+        } else {
+          badge.classList.remove('visible');
+        }
+      } catch {
+        document.getElementById('taskBadge')?.classList.remove('visible');
       }
     }
 
@@ -4022,8 +4128,10 @@ body[data-theme="light"] .session-item:hover {
     });
 
     checkHealth();
+    pollTasks();
     loadIntegrationsStatus();
     setInterval(checkHealth, 30000);
+    setInterval(pollTasks, 15000);
     document.body.dataset.syncMode = 'all';
     document.body.dataset.mode = 'chat';
     bindSessionListEvents();

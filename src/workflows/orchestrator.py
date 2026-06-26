@@ -1,9 +1,10 @@
 """LangGraph-based agent workflow orchestration."""
 
+import asyncio
 import json
 import re
 import time
-from typing import Any
+from typing import Any, AsyncGenerator
 
 import structlog
 from langchain_core.messages import AIMessage, HumanMessage
@@ -364,6 +365,133 @@ class AgentOrchestrator:
         if any(k in lower for k in ["escalat", "compliance", "risk", "flag", "supervisor"]):
             return "escalation_advisory"
         return "draft"
+
+    async def invoke_stream(
+        self,
+        user_input: str,
+        customer_info: str = "No customer identified",
+        extra_context: str = "",
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        """Stream agent response token-by-token via async generator.
+
+        Yields ``{"type": "token", "content": str}`` for each chunk, then
+        ``{"type": "done", "response": str, "metrics": dict, ...}``.
+        """
+        if self.guardrails_enabled:
+            input_check = check_input(user_input)
+            if not input_check.allowed:
+                yield {
+                    "type": "done",
+                    "response": "I can't help with that request. Please ask a support-related question.",
+                    "agent_id": self.agent_id,
+                    "channel": self._get_channel(),
+                    "tool_calls": [],
+                    "metrics": {
+                        "guardrail_blocked": True,
+                        "guardrail_reason": input_check.reason,
+                    },
+                }
+                return
+
+        if self._is_mock_mode():
+            result = await self._invoke_mock(user_input, customer_info, extra_context)
+            for token in result["response"].split():
+                yield {"type": "token", "content": token + " "}
+                await asyncio.sleep(0.02)
+            yield {"type": "done", **result}
+            return
+
+        channel = self._get_channel()
+        rag_context = self.retriever.format_context(user_input)
+        if extra_context:
+            rag_context = f"{rag_context}\n\n{extra_context}"
+
+        system_vars = build_system_vars(
+            agent_name=self.config["name"],
+            context=rag_context,
+            customer_info=customer_info,
+            conversation_summary=extra_context or "N/A",
+            few_shot_enabled=self.llm_params.get("few_shot_enabled", True),
+            chain_of_thought=self.llm_params.get("chain_of_thought", False),
+        )
+        system_vars["input"] = user_input
+        system_vars["chat_history"] = self.chat_history
+
+        prompt_template = PROMPT_REGISTRY[channel]
+        formatted = prompt_template.invoke(system_vars)
+        prompt_messages = messages_from_prompt_value(formatted)
+
+        if self._agent is None:
+            raise RuntimeError("Agent is not initialized (missing LLM).")
+
+        start = time.perf_counter()
+        collected_tokens: list[str] = []
+        tool_calls: list[dict] = []
+
+        try:
+            async for event in self._agent.astream_events(
+                {"messages": prompt_messages},
+                version="v2",
+            ):
+                kind = event.get("event", "")
+                if kind == "on_chat_model_stream":
+                    chunk = event.get("data", {}).get("chunk", {})
+                    if hasattr(chunk, "content") and chunk.content:
+                        collected_tokens.append(str(chunk.content))
+                        yield {"type": "token", "content": str(chunk.content)}
+                elif kind == "on_tool_start":
+                    tool_calls.append({
+                        "name": event.get("name", "unknown"),
+                        "args": event.get("data", {}).get("input", {}),
+                    })
+        except Exception as exc:
+            logger.warning("llm_stream_failed_using_mock", agent=self.agent_id, error=str(exc))
+            fallback = await self._invoke_mock(user_input, customer_info, extra_context)
+            yield {"type": "done", **fallback}
+            return
+
+        response_text = "".join(collected_tokens)
+
+        if self.guardrails_enabled:
+            output_check = check_output(response_text)
+            if output_check.sanitized_output:
+                response_text = output_check.sanitized_output
+
+        grounding = score_grounding(response_text, rag_context)
+        retrieved = self.retriever.retrieve(user_input)
+
+        self.chat_history.append(HumanMessage(content=user_input))
+        self.chat_history.append(AIMessage(content=response_text))
+
+        elapsed_ms = (time.perf_counter() - start) * 1000
+
+        metrics: dict[str, Any] = {
+            "response_time_ms": round(elapsed_ms),
+            "rag_chunks_used": len(retrieved),
+            "sources": [
+                {"source": r["metadata"].get("source", "unknown"), "score": round(r.get("score", 0), 2)}
+                for r in retrieved[:3]
+            ],
+            "grounding_score": grounding.score,
+            "hallucination_risk": grounding.hallucination_risk,
+            "mode": "stream",
+        }
+        if channel == "copilot":
+            metrics["for_human_agent"] = True
+            metrics["assist_type"] = self._detect_copilot_assist_type(user_input)
+            metrics["llm_params"] = {
+                "temperature": self.llm_params.get("temperature"),
+                "max_tokens": self.llm_params.get("max_tokens"),
+            }
+
+        yield {
+            "type": "done",
+            "response": response_text,
+            "agent_id": self.agent_id,
+            "channel": channel,
+            "tool_calls": tool_calls,
+            "metrics": metrics,
+        }
 
     def reset(self) -> None:
         self.chat_history = []

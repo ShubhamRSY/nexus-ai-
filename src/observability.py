@@ -102,4 +102,60 @@ class MetricsCollector:
         return "\n".join(lines) + "\n"
 
 
+class ActiveGauge:
+    """Single consolidated gauge tracking active requests, tasks, and sessions."""
+
+    def __init__(self):
+        self._active_requests = 0
+        self._active_tasks = 0
+        self._active_sessions = 0
+        self._peak_requests = 0
+        self._peak_tasks = 0
+
+    def incr_requests(self) -> None:
+        self._active_requests += 1
+        if self._active_requests > self._peak_requests:
+            self._peak_requests = self._active_requests
+
+    def decr_requests(self) -> None:
+        if self._active_requests > 0:
+            self._active_requests -= 1
+
+    def incr_tasks(self) -> None:
+        self._active_tasks += 1
+        if self._active_tasks > self._peak_tasks:
+            self._peak_tasks = self._active_tasks
+
+    def decr_tasks(self) -> None:
+        if self._active_tasks > 0:
+            self._active_tasks -= 1
+
+    def set_sessions(self, count: int) -> None:
+        self._active_sessions = count
+
+    def snapshot(self) -> dict[str, int]:
+        return {
+            "active_requests": self._active_requests,
+            "active_tasks": self._active_tasks,
+            "active_sessions": self._active_sessions,
+            "peak_requests": self._peak_requests,
+            "peak_tasks": self._peak_tasks,
+        }
+
+    def prometheus_text(self) -> str:
+        snap = self.snapshot()
+        return (
+            "# HELP nexus_active_requests Currently active HTTP requests\n"
+            "# TYPE nexus_active_requests gauge\n"
+            f'nexus_active_requests{{service="nexus"}} {snap["active_requests"]}\n'
+            "# HELP nexus_active_tasks Currently active background tasks\n"
+            "# TYPE nexus_active_tasks gauge\n"
+            f'nexus_active_tasks{{service="nexus"}} {snap["active_tasks"]}\n'
+            "# HELP nexus_active_sessions Currently active voice/sessions\n"
+            "# TYPE nexus_active_sessions gauge\n"
+            f'nexus_active_sessions{{service="nexus"}} {snap["active_sessions"]}\n'
+        )
+
+
 collector = MetricsCollector()
+active_gauge = ActiveGauge()

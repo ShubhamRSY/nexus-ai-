@@ -11,16 +11,15 @@ Nexus follows a **layered architecture** with clear separation of concerns:
 ```
 ┌─────────────────────────────────────────────────┐
 │                  Console (Web UI)                │
-│    HTML/CSS/JS  ←  SSE Streaming  ←  REST API  │
+│    HTML/CSS/JS  ←  SSE/WS Streaming  ←  REST   │
 └─────────────────────┬───────────────────────────┘
                       │
 ┌─────────────────────▼───────────────────────────┐
 │              FastAPI Application                 │
 │    ┌────────┐ ┌──────────┐ ┌───────────────┐    │
-│    │ Chat   │ │ Copilot  │ │ Voice         │    │
+│    │ Auth   │ │ Chat     │ │ Voice         │    │
 │    │ Router │ │ Router   │ │ Router        │    │
 │    └───┬────┘ └────┬─────┘ └──────┬────────┘    │
-│        │           │              │              │
 │    ┌───▼───────────▼──────────────▼──────────┐  │
 │    │           Orchestrator Layer            │  │
 │    │   Session Mgr · Prompt Builder · Router │  │
@@ -46,15 +45,19 @@ User Message → REST → Orchestrator
   ├→ Session (create/load)
   ├→ RAG (retrieve context + citations)
   ├→ Prompt Builder (system prompt + history + context)
-  ├→ LLM (streaming SSE response)
+  ├→ LLM (streaming SSE/WebSocket response)
   └→ Response → Console
 ```
 
 ### Core Components
 
-- **Chat Router** — `/api/v1/chat` — conversational AI with full session management
-- **Copilot Router** — `/api/v1/copilot` — agent-assist for live agents (transcript → suggested reply)
-- **Voice Router** — `/api/v1/voice` — PSTN telephony integration with Twilio/AWS Connect
+- **Auth Router** — `/api/v1/auth/*` — register, login, JWT-based authentication
+- **Chat Router** — `/api/v1/chat*` — conversational AI with SSE and WebSocket streaming
+- **Copilot Router** — `/api/v1/copilot` — agent-assist for live agents
+- **Voice Router** — `/api/v1/voice/*` — PSTN telephony integration with Twilio/AWS Connect
+- **KB Router** — `/api/v1/kb/*` — knowledge base management
+- **Integration Router** — `/api/v1/integrations/*` — vault, webhooks, CRM
+- **Ops Router** — `/api/v1/*` — health, metrics, feedback, analytics, demo, events
 - **Orchestrator** — session manager + prompt builder + agent router
 - **RAG Engine** — vector-based retrieval augmented generation with source citations
 - **Feedback Engine** — CSAT-driven auto-tuning of agent parameters
@@ -65,30 +68,35 @@ User Message → REST → Orchestrator
 
 ## API Reference
 
+### Auth
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/register` | Register tenant + admin user |
+| POST | `/api/v1/auth/login` | Login, receive JWT |
+| GET | `/api/v1/auth/me` | Current user info |
+
 ### Chat
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/v1/chat` | Send message, get AI response |
-| GET | `/api/v1/chat/stream/{session_id}` | SSE stream of chat messages |
-| GET | `/api/v1/chat/status/{session_id}` | Get session health status |
+| GET | `/api/v1/chat/sse` | SSE streaming (token-by-token) |
+| WS | `/api/v1/chat/stream` | WebSocket streaming |
+| DELETE | `/api/v1/chat/{session_id}` | End session |
 
 ### Sessions
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/sessions` | List all sessions |
-| POST | `/api/v1/sessions` | Create new session |
-| PUT | `/api/v1/sessions/{session_id}` | Update session metadata |
-| DELETE | `/api/v1/sessions/{session_id}` | Delete session |
-| GET | `/api/v1/sessions/{session_id}/history` | Get full session message history |
+| GET | `/api/v1/sessions/stats` | Active session count |
+| GET | `/api/v1/sessions/{session_id}/history` | Session message history |
 
 ### Copilot
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/v1/copilot` | Send transcript, get AI-suggested reply |
-| GET | `/api/v1/copilot/stream/{session_id}` | SSE stream of copilot responses |
 
 ### Voice
 
@@ -100,15 +108,28 @@ User Message → REST → Orchestrator
 | POST | `/api/v1/voice/simulate` | Simulate voice call (dev mode) |
 | GET | `/api/v1/voice/logs` | Get recent voice call logs |
 
+### CSAT / Feedback
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/csat` | Submit CSAT rating |
+| GET | `/api/v1/csat/stats` | CSAT statistics |
+| GET | `/api/v1/feedback/{agent_id}/report` | Agent feedback report |
+| GET | `/api/v1/feedback/{agent_id}/config` | Feedback config |
+| GET | `/api/v1/feedback/{agent_id}/suggestions` | Improvement suggestions |
+
 ### Admin / Config
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/admin/status` | System status with fallback warnings |
-| GET | `/api/v1/admin/llm/models` | List configured LLM models |
-| GET | `/api/v1/admin/agents` | List configured agents + models |
-| GET | `/api/v1/admin/logs` | Get recent server logs |
 | GET | `/api/v1/health` | Health check (no auth required) |
+| GET | `/api/v1/metrics` | Prometheus metrics |
+| GET | `/api/v1/observability/health` | Observability dashboard |
+| GET | `/api/v1/agents` | List configured agents |
+| GET | `/api/v1/llm/config` | LLM configuration |
+| POST | `/api/v1/demo/reset` | Reset demo data |
+| POST | `/api/v1/events` | Receive external events |
+| GET | `/api/v1/tasks/{task_id}` | Task status |
 
 ### Integrations Vault
 
@@ -159,14 +180,14 @@ Inbound Call → Twilio Webhook
 | `OPENAI_API_KEY` | No* | — | OpenAI API key |
 | `ANTHROPIC_API_KEY` | No | — | Anthropic API key |
 | `GEMINI_API_KEY` | No | — | Google Gemini API key |
+| `DEFAULT_LLM_PROVIDER` | No | `openai` | Default LLM provider |
 | `DEFAULT_LLM_MODEL` | No | `gpt-4o-mini` | Default model |
+| `APP_HOST` | No | `0.0.0.0` | Bind address |
+| `APP_PORT` | No | `8001` | HTTP port |
+| `LOG_LEVEL` | No | `INFO` | Logging level |
 | `TWILIO_ACCOUNT_SID` | No | — | Twilio SID |
 | `TWILIO_AUTH_TOKEN` | No | — | Twilio auth token |
 | `TWILIO_PHONE_NUMBER` | No | — | Twilio phone number |
-| `DEEPGRAM_API_KEY` | No | — | Deepgram STT |
-| `ASSEMBLYAI_API_KEY` | No | — | AssemblyAI STT |
-| `ELEVENLABS_API_KEY` | No | — | ElevenLabs TTS |
-| `PLAYHT_API_KEY` | No | — | PlayHT TTS |
 | `JWT_SECRET` | No | — | JWT signing secret |
 | `SETTINGS_ADMIN_TOKEN` | No | — | Admin API token |
 | `VAULT_ENCRYPTION_KEY` | No | — | AES-256-GCM vault key |
@@ -192,24 +213,35 @@ User rates response (👍/👎/CSAT)
 
 ## Agents Configuration
 
-Agents are defined in `config/agents/`. Example (`config/agents/support.yaml`):
+Agents are defined in `config/agents.yaml`. Example:
 
 ```yaml
-name: acme_support
-display_name: ACME Support Agent
-model: gpt-4o-mini
-temperature: 0.7
-system_prompt: |
-  You are a helpful support agent for ACME Corp.
-  Answer questions based on the knowledge base.
-  Always cite sources when providing information.
-knowledge_base:
-  type: markdown
-  source: docs/knowledge_base/acme_support.md
-rag:
+agents:
+  chat_support:
+    name: "Chat Support Agent"
+    channel: chat
+    llm_provider: openai
+    llm_model: gpt-4o-mini
+    temperature: 0.4
+    max_tokens: 1024
+    tools:
+      - lookup_customer
+      - search_knowledge_base
+      - create_ticket
+
+llm_defaults:
+  top_p: 1.0
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+
+guardrails:
   enabled: true
+  block_prompt_injection: true
+
+rag:
   chunk_size: 512
-  top_k: 3
+  top_k: 5
+  score_threshold: 0.7
 ```
 
 ---
@@ -221,46 +253,57 @@ nexus/
 ├── src/
 │   ├── main.py                    # FastAPI app entry point
 │   ├── config.py                  # Settings (pydantic-settings)
-│   ├── routers/
-│   │   ├── chat.py                # Chat endpoints
-│   │   ├── copilot.py             # Copilot endpoints
-│   │   ├── voice.py               # Voice endpoints
-│   │   ├── sessions.py            # Session management
-│   │   ├── admin.py               # Admin utilities
-│   │   ├── vault.py               # Encrypted credentials API
-│   │   └── webhooks.py            # iPaaS webhook receiver
-│   ├── orchestrator/
-│   │   ├── session_manager.py     # Session lifecycle
-│   │   ├── prompt_builder.py      # System prompt construction
-│   │   ├── agent_router.py        # Model/agent selection
-│   │   └── models.py              # Data models, mode enums
-│   ├── services/
-│   │   ├── llm_service.py         # LLM abstraction layer
-│   │   ├── rag_engine.py          # Vector-based RAG
-│   │   ├── feedback_engine.py     # CSAT-driven tuning
-│   │   ├── vault.py               # AES-256-GCM encryption
-│   │   └── ipaa_service.py        # iPaaS webhook dispatch
-│   └── llm/
-│       ├── providers/
-│       │   ├── openai_provider.py # GPT-4o / GPT-4o-mini
-│       │   ├── anthropic_provider.py  # Claude 3.5
-│       │   └── gemini_provider.py     # Gemini 2.0 Flash
-│       └── mock_provider.py       # Mock LLM (dev/tests)
+│   ├── api/
+│   │   ├── auth_routes.py         # Authentication endpoints
+│   │   ├── chat_routes.py         # Chat, copilot, CSAT, SSE streaming
+│   │   ├── kb_routes.py           # Knowledge base CRUD
+│   │   ├── telephony_routes.py    # Voice/Twilio endpoints
+│   │   ├── integration_routes.py  # Vault, webhooks
+│   │   ├── ops_routes.py          # Health, metrics, feedback, demo, events
+│   │   ├── deps.py                # Shared models, singletons, auth deps
+│   │   └── session_manager.py     # TTL-backed session store
+│   ├── workflows/
+│   │   └── orchestrator.py        # Agent orchestrator (session, prompt, LLM)
+│   ├── llm/
+│   │   ├── factory.py             # LLM provider factory
+│   │   ├── params.py              # LLM parameter resolution
+│   │   ├── guardrails.py          # Input/output guardrails
+│   │   └── hallucination.py       # Hallucination detection
+│   ├── rag/
+│   │   ├── vector_store.py        # ChromaDB vector store
+│   │   ├── retriever.py           # RAG context formatter
+│   │   ├── ingestion.py           # Document ingestion
+│   │   └── keyword_search.py      # FAQ keyword fallback
+│   ├── feedback/
+│   │   └── engine.py              # Feedback loop + tuning
+│   ├── integrations/
+│   │   ├── secrets_vault.py       # AES-256-GCM encrypted vault
+│   │   ├── webhooks.py            # iPaaS webhook dispatch
+│   │   ├── slack.py, crm.py, ...  # Third-party integrations
+│   ├── telephony/                  # Voice handlers
+│   ├── auth.py                    # JWT auth, password hashing
+│   ├── database.py                # SQLite + migrations
+│   ├── observability.py           # Metrics, Sentry, OpenTelemetry
+│   ├── logging_config.py          # Structured logging
+│   ├── middleware.py              # CORS, tenant, rate limit
+│   ├── tasks.py                   # Background task queue
+│   └── analytics.py               # Analytics dashboard
 ├── static/
 │   └── index.html                 # Console UI
 ├── config/
-│   ├── agents/                    # Agent YAML definitions
+│   ├── agents.yaml                # Agent definitions
 │   └── environment/
+│       ├── .env                   # Local overrides (gitignored)
 │       └── .env.example           # Environment template
-├── docs/
-│   ├── overview.md                # This file
-│   ├── technical/                 # Architecture, timing
-│   ├── assets/                    # Screenshots, demos
-│   └── integrations/              # Twilio, CRM, Slack
 ├── deploy/
 │   └── docker/
-│       └── docker-compose.yml     # Container deployment
-├── tests/                         # 158+ unit + 33 E2E
+│       ├── docker-compose.yml     # Container deployment
+│       └── Dockerfile             # Production multi-stage build
+├── docs/
+│   ├── overview.md                # This file
+│   ├── technical/                 # Architecture docs
+│   └── integrations/              # Setup guides
+├── tests/                         # 95+ unit tests
 ├── scripts/                       # Dev/CI utilities
 └── pyproject.toml                 # Project metadata, deps
 ```
@@ -271,14 +314,15 @@ nexus/
 
 - **Python** 3.11+
 - **FastAPI** — async web framework
-- **Pydantic** — data validation
-- **SSE-Starlette** — server-sent events for streaming
+- **Pydantic** — data validation (descriptions + examples on all models)
+- **Uvicorn / Gunicorn** — ASGI / production WSGI server
+- **LangChain / LangGraph** — LLM abstraction, agent workflows
+- **ChromaDB** — vector store for RAG
 - **OpenAI / Anthropic / Gemini SDKs** — LLM providers
 - **Twilio SDK** — voice telephony
 - **Cryptography** — AES-256-GCM vault encryption
-- **Pytest / Ruff / Mypy** — testing, linting, types
-- **Jinja2** — template rendering (A2F email)
-- **httpx** — async HTTP (iPaaS webhooks)
+- **Structlog** — structured logging
+- **Pytest / Ruff / Mypy / pip-audit** — testing, linting, types, security
 
 ---
 
@@ -295,7 +339,7 @@ cp config/environment/.env.example config/environment/.env
 
 ```bash
 curl http://127.0.0.1:8001/api/v1/health
-# {"status":"healthy","timestamp":"2025-01-01T00:00:00Z","version":"1.0.0"}
+# {"status":"healthy","service":"enterprise-voice-agents","stt_available":true,...}
 ```
 
 ---

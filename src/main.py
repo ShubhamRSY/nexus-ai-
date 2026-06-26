@@ -1,9 +1,8 @@
-"""Enterprise Voice & Chat AI Agent Platform — entry point with WebSocket, metrics, middleware."""
+"""Enterprise Voice & Chat AI Agent Platform — entry point with WebSocket, middleware."""
 
 import asyncio
 import time
 from contextlib import asynccontextmanager
-from typing import Any
 
 import structlog
 import uvicorn
@@ -12,7 +11,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.api.routes import _sessions, integration_router, router
+from src.api.auth_routes import router as auth_router
+from src.api.chat_routes import router as chat_router
+from src.api.kb_routes import router as kb_router
+from src.api.telephony_routes import router as telephony_router
+from src.api.integration_routes import router as integration_router_mod
+from src.api.ops_routes import router as ops_router
+from src.api.deps import _sessions, integration_router
 from src.auth import seed_demo_data
 from src.config import ROOT_DIR, get_settings, reload_settings
 from src.database import init_db
@@ -20,24 +25,12 @@ from src.integrations.secrets_vault import get_secrets_vault
 from src.logging_config import setup_logging
 from src.middleware import RateLimitMiddleware, TenantMiddleware
 from src.tasks import task_queue
-from src.observability import setup_sentry, setup_opentelemetry
+from src.observability import active_gauge, setup_sentry, setup_opentelemetry
 from src.workflows.orchestrator import AgentOrchestrator
 
 STATIC_DIR = ROOT_DIR / "static"
 
 logger = structlog.get_logger()
-
-# In-memory metrics
-METRICS: dict[str, Any] = {
-    "requests_total": 0,
-    "chat_requests": 0,
-    "voice_requests": 0,
-    "copilot_requests": 0,
-    "errors_total": 0,
-    "avg_response_time_ms": 0,
-    "response_times": [],
-    "started_at": time.time(),
-}
 
 
 @asynccontextmanager
@@ -63,7 +56,7 @@ async def lifespan(app: FastAPI):
     )
     yield
     await task_queue.stop()
-    logger.info("shutting_down", uptime_seconds=round(time.time() - METRICS["started_at"]))
+    logger.info("shutting_down")
 
 
 app = FastAPI(
@@ -73,18 +66,37 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+settings = get_settings()
+
 # Middleware stack
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_origins.split(",") if settings.cors_origins != "*" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.add_middleware(TenantMiddleware)
-app.add_middleware(RateLimitMiddleware, rpm=60)
+app.add_middleware(RateLimitMiddleware, rpm=settings.rate_limit_rpm)
 
-app.include_router(router, prefix="/api/v1")
+
+@app.middleware("http")
+async def track_active_requests(request, call_next):
+    active_gauge.incr_requests()
+    try:
+        response = await call_next(request)
+    finally:
+        active_gauge.decr_requests()
+    return response
+
+
+# Domain routers — all under /api/v1
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(chat_router, prefix="/api/v1")
+app.include_router(kb_router, prefix="/api/v1")
+app.include_router(telephony_router, prefix="/api/v1")
+app.include_router(integration_router_mod, prefix="/api/v1")
+app.include_router(ops_router, prefix="/api/v1")
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -108,31 +120,28 @@ async def chat_stream(websocket: WebSocket):
 
         if message:
             orchestrator = AgentOrchestrator(agent_id)
-            result = await orchestrator.invoke(
+            final_result = None
+
+            async for event in orchestrator.invoke_stream(
                 user_input=message,
                 customer_info=data.get("customer_info", "No customer identified"),
-            )
+            ):
+                if event["type"] == "token":
+                    await websocket.send_json({
+                        "type": "token",
+                        "content": event["content"],
+                    })
+                elif event["type"] == "done":
+                    final_result = event
 
-            response_text = result.get("response", "")
-            tokens = response_text.split()
-
-            for i, token in enumerate(tokens):
-                chunk = token + (" " if i < len(tokens) - 1 else "")
+            if final_result:
                 await websocket.send_json({
-                    "type": "token",
-                    "content": chunk,
-                    "index": i,
-                    "total": len(tokens),
+                    "type": "done",
+                    "content": final_result.get("response", ""),
+                    "agent_id": final_result.get("agent_id"),
+                    "tool_calls": final_result.get("tool_calls", []),
+                    "metrics": final_result.get("metrics", {}),
                 })
-                await asyncio.sleep(0.02)
-
-            await websocket.send_json({
-                "type": "done",
-                "content": response_text,
-                "agent_id": result.get("agent_id"),
-                "tool_calls": result.get("tool_calls", []),
-                "metrics": result.get("metrics", {}),
-            })
         else:
             await websocket.send_json({"type": "error", "content": "Empty message"})
 
@@ -151,36 +160,6 @@ async def chat_stream(websocket: WebSocket):
             await websocket.close()
         except Exception as close_err:
             logger.debug("websocket_close_failed", error=str(close_err))
-
-
-# ---------------------------------------------------------------------------
-# Prometheus metrics endpoint
-# ---------------------------------------------------------------------------
-
-@app.get("/metrics")
-async def prometheus_metrics():
-    uptime = time.time() - METRICS["started_at"]
-    avg_rt = METRICS["avg_response_time_ms"]
-
-    lines = [
-        "# HELP nexus_requests_total Total requests processed",
-        "# TYPE nexus_requests_total counter",
-        f'nexus_requests_total{{service="nexus"}} {METRICS["requests_total"]}',
-        f'nexus_chat_requests{{service="nexus"}} {METRICS["chat_requests"]}',
-        f'nexus_voice_requests{{service="nexus"}} {METRICS["voice_requests"]}',
-        f'nexus_copilot_requests{{service="nexus"}} {METRICS["copilot_requests"]}',
-        f'nexus_errors_total{{service="nexus"}} {METRICS["errors_total"]}',
-        "# HELP nexus_avg_response_time_ms Average response time in ms",
-        "# TYPE nexus_avg_response_time_ms gauge",
-        f'nexus_avg_response_time_ms{{service="nexus"}} {avg_rt}',
-        "# HELP nexus_uptime_seconds Service uptime",
-        "# TYPE nexus_uptime_seconds gauge",
-        f'nexus_uptime_seconds{{service="nexus"}} {uptime:.0f}',
-        "# HELP nexus_active_sessions Current active sessions",
-        "# TYPE nexus_active_sessions gauge",
-        f'nexus_active_sessions{{service="nexus"}} {_sessions.active_count}',
-    ]
-    return "\n".join(lines) + "\n", 200, {"Content-Type": "text/plain; charset=utf-8"}
 
 
 # ---------------------------------------------------------------------------
@@ -211,5 +190,4 @@ if __name__ == "__main__":
         "src.main:app",
         host=settings.app_host,
         port=settings.app_port,
-        reload=True,
     )

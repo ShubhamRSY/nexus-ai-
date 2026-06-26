@@ -329,7 +329,7 @@ s = prs.slides.add_slide(prs.slide_layouts[6])
 slide_header(s, 13, "Quality", "Testing & CI/CD")
 
 test = [
-    "158+ unit tests covering all routers, services, and LLM providers",
+    "95+ unit tests covering all routers, services, and LLM providers",
     "33 comprehensive end-to-end tests simulating real user flows",
     "Mock LLM enables full test coverage without external API keys",
     "Ruff linter and mypy type checking enforced in CI",

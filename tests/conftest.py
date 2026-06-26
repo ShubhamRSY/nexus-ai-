@@ -1,9 +1,14 @@
+import os
 import sys
 from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+# Override HF cache before any model imports
+os.environ["HF_HOME"] = "/tmp/hf_cache_test"
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = "/tmp/hf_cache_test"
 
 
 @pytest.fixture(autouse=True)

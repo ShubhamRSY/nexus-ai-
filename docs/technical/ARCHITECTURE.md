@@ -10,7 +10,7 @@ Open source. Chat, copilot, and voice — unified.
 
 ## What Is Nexus?
 
-Nexus is an open-source, omnichannel AI agent platform built for customer support and contact centres. It replaces three separate tools — live chat, AI copilot, and phone systems — with one AI-powered console. A single orchestrator routes conversations across channels, remembers context, retrieves knowledge, and streams responses in real time.
+Nexus is an open-source, omnichannel AI agent platform built for customer support and contact centres. It replaces three separate tools — live chat, AI copilot, and phone systems — with one AI-powered console. A single orchestrator routes conversations across channels, remembers context, retrieves knowledge, and streams responses in real time via SSE and WebSocket.
 
 ---
 
@@ -31,9 +31,9 @@ Nexus is an open-source, omnichannel AI agent platform built for customer suppor
 │  ┌──────────────────────────────────────────────────────┐    │
 │  │  Middleware: CORS → Tenant Isolation → Rate Limit    │    │
 │  ├──────────────────────────────────────────────────────┤    │
-│  │  Routes: Chat · Voice · Copilot · RAG · Knowledge    │    │
-│  │          Base · Analytics · Evaluation · Feedback     │    │
-│  │          Integrations · Auth · Health                 │    │
+│  │  Domain Routers (under /api/v1):                     │    │
+│  │  Auth · Chat (+ SSE/WS stream) · KB · Telephony     │    │
+│  │  Integrations · Ops (health/metrics/feedback/events) │    │
 │  └──────────────────────┬───────────────────────────────┘    │
 └─────────────────────────┼────────────────────────────────────┘
                           │
@@ -73,19 +73,25 @@ Nexus is an open-source, omnichannel AI agent platform built for customer suppor
 Single Python application serving the web console, REST API, and WebSocket connections. Middleware stack handles CORS, tenant isolation, rate limiting, and authentication.
 
 - **Source:** [`src/main.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/main.py)
-- **Routes:** [`src/api/routes.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/api/routes.py)
+- **Domain routers:**
+  - `auth_routes` — `/api/v1/auth/*` — register, login, JWT
+  - `chat_routes` — `/api/v1/chat*` — chat, copilot, CSAT, SSE streaming
+  - `kb_routes` — `/api/v1/kb/*` — knowledge base CRUD
+  - `telephony_routes` — `/api/v1/voice/*` — Twilio, voice simulation
+  - `integration_routes` — `/api/v1/integrations/*` — vault, webhooks
+  - `ops_routes` — `/api/v1/*` — health, metrics, feedback, agents, events
 
 ### Agent Orchestrator
-Routes inbound requests to the correct channel handler, builds channel-specific prompts, manages conversation state, and executes tool calls (RAG retrieval, CRM lookups, etc.) before returning the LLM response.
+Routes inbound requests to the correct channel handler, builds channel-specific prompts, manages conversation state, and executes tool calls (RAG retrieval, CRM lookups, etc.) before returning the LLM response. Supports both `invoke()` (full response) and `invoke_stream()` (token-by-token async generator).
 
-- **Source:** [`src/agents/orchestrator.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/agents/orchestrator.py)
+- **Source:** [`src/workflows/orchestrator.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/workflows/orchestrator.py)
 
 ### Channel Handlers
 Each channel has a dedicated handler that normalises input/output for the orchestrator:
 
 | Channel | Handler | Protocol |
-|---|---|---|
-| Chat (Web UI) | `ChatHandler` | HTTP + SSE |
+|---------|---------|----------|
+| Chat (Web UI) | `ChatHandler` | HTTP + SSE + WebSocket |
 | Copilot | `CopilotHandler` | HTTP (transcript in → reply out) |
 | Voice (Twilio) | `TwilioHandler` | TwiML + Media Streams |
 | Voice (Amazon Connect) | `AmazonConnectHandler` | Lambda-style JSON webhooks |
@@ -98,10 +104,10 @@ Each channel has a dedicated handler that normalises input/output for the orches
 ### LLM Client
 Abstract client layer supporting OpenAI GPT-4o, Anthropic Claude 3.5, and Google Gemini 2.0. Configurable per conversation — operators can switch models without restarting.
 
-- **Source:** [`src/llm/client.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/llm/client.py)
+- **Source:** [`src/llm/factory.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/llm/factory.py)
 
 ### RAG Pipeline
-Retrieval-augmented generation pipeline that searches a vector database (FAISS/chroma) for relevant knowledge chunks before every LLM call. Responses include source citations and grounding metrics.
+Retrieval-augmented generation pipeline that searches a vector database (ChromaDB/FAISS) for relevant knowledge chunks before every LLM call. Responses include source citations and grounding metrics.
 
 - **Source:** [`src/rag/`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/rag/)
 
@@ -109,15 +115,15 @@ Retrieval-augmented generation pipeline that searches a vector database (FAISS/c
 Post-interaction CSAT surveys feed into an auto-adjustment engine. Scores trigger automatic tuning of agent personality, response length, escalation thresholds, and tone — no manual intervention needed.
 
 - **Source:** [`src/feedback/engine.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/feedback/engine.py)
-- **API Endpoints:** `/api/v1/feedback/` (report, analyze, snapshot, config CRUD, suggestions, auto-adjust)
+- **API Endpoints:** `/api/v1/feedback/` (report, config, suggestions, auto-adjust)
 
 ### Integrations Vault
 Encrypted store for all third-party API keys (AES-256-GCM). Keys are never logged, never exposed in responses, and never hardcoded. Supports OpenAI, Anthropic, Gemini, Twilio, Salesforce, Zendesk, ServiceNow, Slack.
 
-- **Source:** [`src/integrations/vault.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/integrations/vault.py)
+- **Source:** [`src/integrations/secrets_vault.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/integrations/secrets_vault.py)
 
 ### Database
-SQLite database with schema migrations managed via Alembic-style versioning. Tables cover sessions, messages, tool calls, feedback loop config, performance trends, and encrypted credentials.
+SQLite database with schema managed via `init_db()`. Tables cover tenants, users, sessions, messages, tool calls, CSAT feedback, and audit logs.
 
 - **Source:** [`src/database.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/database.py)
 
@@ -135,7 +141,7 @@ User Message (any channel)
         ├──► Rate Limiting
         │
         ▼
-  Channel Handler (normalises input)
+  Channel Router (normalises input)
         │
         ▼
   Agent Orchestrator
@@ -146,7 +152,7 @@ User Message (any channel)
         │
         ▼
   Response Streams Back
-        ├──► Chat: SSE to web console (token by token)
+        ├──► Chat: SSE/WebSocket to console (token by token)
         ├──► Copilot: Full suggested reply
         └──► Voice: TTS audio via Twilio Media Streams
         │
@@ -161,7 +167,7 @@ User Message (any channel)
 ## Channels Detail
 
 ### Chat
-Full-featured web chat interface with real-time streaming via Server-Sent Events. Supports multi-line input, conversation history, and tool call visibility.
+Full-featured web chat interface with real-time streaming via Server-Sent Events (`GET /api/v1/chat/sse`) and WebSocket (`ws://.../chat/stream`). Both use the `orchestrator.invoke_stream()` async generator which yields tokens directly from the LLM's `astream_events()`. Supports multi-line input, conversation history, and tool call visibility.
 
 ### Copilot
 Agent-assist mode. Support agents paste a ticket transcript, Nexus analyses the conversation and generates a suggested reply. The agent reviews and edits before sending — human-in-the-loop.
@@ -182,8 +188,8 @@ Abstract `CcaasVoiceHandler` base class in [`src/telephony/ccaas_base.py`](https
 ## Integrations
 
 | Category | Providers | Documentation |
-|---|---|---|
-| **LLMs** | OpenAI GPT-4o, Anthropic Claude 3.5, Google Gemini 2.0 | [LLM Config](https://github.com/ShubhamRSY/voice-agents/blob/main/docs/configuration.md) |
+|----------|-----------|---------------|
+| **LLMs** | OpenAI GPT-4o, Anthropic Claude 3.5, Google Gemini 2.0 | [LLM Config](https://github.com/ShubhamRSY/voice-agents/blob/main/src/llm/factory.py) |
 | **Telephony** | Twilio (PSTN + WhatsApp), Amazon Connect, generic SIP/CCaaS | [Twilio Setup](https://github.com/ShubhamRSY/voice-agents/blob/main/docs/integrations/twilio-setup.md) |
 | **CRMs** | Salesforce, Zendesk, ServiceNow | [CRM Setup](https://github.com/ShubhamRSY/voice-agents/blob/main/docs/integrations/crm-setup.md) |
 | **Notifications** | Slack | [Slack Setup](https://github.com/ShubhamRSY/voice-agents/blob/main/docs/integrations/slack-setup.md) |
@@ -195,39 +201,52 @@ All credentials stored in the encrypted Integrations Vault — never in config f
 
 ## API Overview
 
-Selected REST API endpoints (full reference in [`src/api/routes.py`](https://github.com/ShubhamRSY/voice-agents/blob/main/src/api/routes.py)):
+Selected REST API endpoints (full reference at `/docs` when running):
 
 | Method | Path | Purpose |
-|---|---|---|
+|--------|------|---------|
 | `GET` | `/api/v1/health` | Server + STT/TTS health check |
-| `POST` | `/api/v1/chat` | Send chat message, stream response |
+| `POST` | `/api/v1/auth/register` | Register tenant + admin user |
+| `POST` | `/api/v1/auth/login` | Login, receive JWT |
+| `POST` | `/api/v1/chat` | Send chat message, get response |
+| `GET` | `/api/v1/chat/sse` | SSE streaming chat (token-by-token) |
+| `WS` | `/api/v1/chat/stream` | WebSocket streaming chat |
 | `POST` | `/api/v1/copilot` | Analyse transcript, suggest reply |
 | `POST` | `/api/v1/voice/twilio` | Twilio webhook handler |
 | `POST` | `/api/v1/voice/connect` | Amazon Connect webhook handler |
-| `GET` | `/api/v1/sessions` | List conversation sessions |
-| `GET` | `/api/v1/sessions/{id}/messages` | Get session messages |
-| `POST` | `/api/v1/feedback/report` | Submit CSAT score |
-| `GET` | `/api/v1/feedback/trends` | Get performance trends |
-| `POST` | `/api/v1/feedback/auto-adjust` | Trigger automatic tuning |
-| `GET` | `/api/v1/integrations` | List integrations / credentials |
-| `POST` | `/api/v1/integrations/vault` | Store encrypted credential |
+| `GET` | `/api/v1/sessions/stats` | Active session count |
+| `GET` | `/api/v1/sessions/{id}/history` | Get session messages |
+| `POST` | `/api/v1/csat` | Submit CSAT score |
+| `GET` | `/api/v1/feedback/{agent_id}/report` | Agent feedback report |
+| `GET` | `/api/v1/metrics` | Prometheus metrics |
+| `GET` | `/api/v1/agents` | List configured agents |
+| `GET` | `/api/v1/llm/config` | LLM configuration |
 
 ---
 
 ## Deployment
 
 | Method | Command / Details |
-|---|---|
+|--------|------------------|
 | **Docker** | `docker compose -f deploy/docker/docker-compose.yml up` — single container, all dependencies included |
 | **Bare metal** | `uvicorn src.main:app --host 0.0.0.0 --port 8001` behind nginx/Caddy |
-| **CI/CD** | GitHub Actions — lint, 158+ unit tests, 33 E2E tests |
+| **Production (multi-worker)** | `gunicorn -w 4 -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:8001 --timeout 120 --graceful-timeout 30` |
+| **CI/CD** | GitHub Actions — lint, test, e2e, docker build |
+
+### Dockerfile Optimizations
+
+The production Dockerfile (`deploy/docker/Dockerfile`) uses a multi-stage build:
+
+- **Builder stage:** Python 3.12-slim, minimal build deps (`gcc` + `libffi-dev`), `--no-build-isolation` pip installs
+- **Runtime stage:** Python 3.12-slim, only `site-packages` + `src` + `config` + `static` + `data` copied (no tests/docs/scripts)
+- Non-root user (`appuser`), `wget`-based healthcheck, gunicorn with 4 uvicorn workers
 
 ### CI Pipeline (`.github/workflows/ci.yml`)
 
 | Job | What It Does |
-|---|---|
-| `lint` | Ruff linting + mypy type checking |
-| `test` (3.11, 3.12) | Pytest with `--timeout=60`, 158+ unit tests |
+|-----|-------------|
+| `lint` | Ruff linting + mypy type checking (strict, no `|| true`) + pip-audit vulnerability scan |
+| `test` (3.11, 3.12) | Pytest with `--timeout=60`, 95+ unit tests |
 | `e2e` | Live server start → 33 Playwright E2E tests |
 | `docker` | Builds Docker image, smoke-test |
 
@@ -237,8 +256,9 @@ Selected REST API endpoints (full reference in [`src/api/routes.py`](https://git
 
 - **Credentials:** AES-256-GCM encrypted at rest in the Integrations Vault. Never logged, never exposed in API responses.
 - **Authentication:** JWT-based auth with configurable expiry. Tenant isolation at middleware level.
-- **Input validation:** Pydantic models on all API endpoints. SQL injection prevented via parameterised queries.
+- **Input validation:** Pydantic models on all API endpoints with descriptions and examples. SQL injection prevented via parameterised queries.
 - **CORS:** Strict origin whitelist. No wildcard in production.
+- **Dependencies:** `pip-audit --strict` runs in CI to scan for known vulnerabilities.
 
 ---
 
@@ -262,12 +282,10 @@ Open [http://localhost:8001](http://localhost:8001) in a browser.
 # Unit tests
 pytest tests/ --timeout=60 -v
 
-# E2E tests (requires running server on port 8001)
-pytest tests/test_comprehensive_e2e.py --timeout=120 -v
-
-# Lint + type check
+# Lint + type check + security audit
 ruff check src/ scripts/
 mypy src/ --ignore-missing-imports
+pip install pip-audit && pip-audit --strict
 ```
 
 ---
@@ -278,26 +296,25 @@ mypy src/ --ignore-missing-imports
 ├── config/
 │   ├── agents.yaml           # Agent definitions & LLM config
 │   └── environment/
+│       ├── .env              # Local overrides (gitignored)
 │       └── .env.example      # Environment variable template
 ├── deploy/
 │   └── docker/
 │       ├── docker-compose.yml # Container orchestration
-│       ├── Dockerfile         # Production image
-│       └── .dockerignore
+│       └── Dockerfile         # Production multi-stage build
 ├── docs/
 │   ├── assets/               # Demo videos & media
-│   │   └── nexus-demo.webm
 │   ├── technical/            # Architecture docs (this file)
-│   ├── integrations/         # Setup guides + templates
-│   └── configuration.md
+│   └── integrations/         # Setup guides + templates
 ├── scripts/
 │   ├── demo.py               # Narrated product demo
-│   └── ci.sh                 # Local CI script
+│   ├── ingest_kb.py          # Knowledge base ingestion
+│   └── generate_ppt.py       # Presentation generator
 ├── src/                      # Application source
 │   ├── main.py               # FastAPI app entry point
-│   ├── api/routes.py         # All REST API endpoints
-│   ├── agents/               # Agent orchestrator + prompt builders
-│   ├── telephony/            # Voice handlers (Twilio, Connect, CCaaS)
+│   ├── api/                  # Domain routers (6 modules)
+│   ├── workflows/            # Agent orchestrator
+│   ├── telephony/            # Voice handlers
 │   ├── feedback/             # Feedback loop engine
 │   ├── integrations/         # Vault, webhooks, CRMs
 │   ├── llm/                  # LLM client (OpenAI, Claude, Gemini)
@@ -308,11 +325,26 @@ mypy src/ --ignore-missing-imports
 ├── static/
 │   └── index.html            # Web console UI
 ├── tests/
-│   ├── test_*.py             # 158+ unit tests
+│   ├── test_*.py             # 95+ unit tests
 │   ├── e2e/                  # E2E journey tests
 │   └── test_comprehensive_e2e.py  # 33 E2E tests
 └── .github/workflows/ci.yml  # GitHub Actions CI
 ```
+
+---
+
+## Changelog (Recent)
+
+| Date | Change |
+|------|--------|
+| Jun 2025 | **Routes refactored** — monolithic `routes.py` split into 6 domain modules |
+| Jun 2025 | **SSE streaming** — `GET /api/v1/chat/sse` for token-by-token streaming |
+| Jun 2025 | **Dockerfile optimized** — multi-stage, Python 3.12, gunicorn, wget healthcheck |
+| Jun 2025 | **CI hardened** — pip-audit vulnerability scan, strict mypy |
+| Jun 2025 | **API docs enhanced** — descriptions + examples on all Pydantic models |
+| Jun 2025 | **Config cleanup** — unused path constants removed |
+| Jun 2025 | **Database fix** — `isolation_level=None` for proper autocommit |
+| Jun 2025 | **Test expansion** — 6 new streaming tests, 95+ unit tests passing |
 
 ---
 

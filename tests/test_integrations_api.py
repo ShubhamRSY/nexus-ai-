@@ -19,7 +19,7 @@ def vault_client(monkeypatch, tmp_path: Path):
     monkeypatch.setattr("src.integrations.secrets_vault.VAULT_FILE", vault_path)
     monkeypatch.setattr("src.integrations.secrets_vault.get_secrets_vault", lambda: vault)
     monkeypatch.setattr("src.integrations.secrets_vault.reload_secrets_vault", lambda: vault)
-    monkeypatch.setattr("src.api.routes.get_secrets_vault", lambda: vault)
+    monkeypatch.setattr("src.api.integration_routes.get_secrets_vault", lambda: vault)
     from src.config import reload_settings
     from src.main import app
 

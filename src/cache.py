@@ -13,40 +13,44 @@ logger = structlog.get_logger()
 
 
 class CacheBackend:
-    def get(self, key: str) -> Any | None:
+    async def get(self, key: str) -> Any | None:
         return None
 
-    def set(self, key: str, value: Any, ttl: int = 300) -> None:
+    async def set(self, key: str, value: Any, ttl: int = 300) -> None:
         pass
 
-    def delete(self, key: str) -> None:
+    async def delete(self, key: str) -> None:
         pass
 
-    def clear(self) -> None:
+    async def clear(self) -> None:
         pass
 
 
 class MemoryCache(CacheBackend):
     def __init__(self):
-        self._store: dict[str, tuple[Any, float]] = {}
+        self._store: dict[str, tuple[str, float]] = {}
 
-    def get(self, key: str) -> Any | None:
+    async def get(self, key: str) -> Any | None:
         entry = self._store.get(key)
         if entry is None:
             return None
-        value, expiry = entry
+        raw, expiry = entry
         if time.time() > expiry:
             del self._store[key]
             return None
-        return value
+        try:
+            return json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            return raw
 
-    def set(self, key: str, value: Any, ttl: int = 300) -> None:
-        self._store[key] = (value, time.time() + ttl)
+    async def set(self, key: str, value: Any, ttl: int = 300) -> None:
+        raw = json.dumps(value, default=str)
+        self._store[key] = (raw, time.time() + ttl)
 
-    def delete(self, key: str) -> None:
+    async def delete(self, key: str) -> None:
         self._store.pop(key, None)
 
-    def clear(self) -> None:
+    async def clear(self) -> None:
         self._store.clear()
 
 
@@ -81,7 +85,7 @@ class RedisCache(CacheBackend):
         if not client:
             return
         try:
-            await client.setex(key, ttl, json.dumps(value))
+            await client.setex(key, ttl, json.dumps(value, default=str))
         except Exception as exc:
             logger.warning("cache_set_failed", key=key, error=str(exc))
 
@@ -137,11 +141,11 @@ def cached(ttl: int = 300):
         async def wrapper(*args, **kwargs):
             cache = get_cache()
             key = _cache_key(func.__name__, *(str(a) for a in args), *(f"{k}={v}" for k, v in kwargs.items()))
-            result = cache.get(key)
+            result = await cache.get(key)
             if result is not None:
                 return result
             result = await func(*args, **kwargs)
-            cache.set(key, result, ttl)
+            await cache.set(key, result, ttl)
             return result
         return wrapper
     return decorator
@@ -150,9 +154,21 @@ def cached(ttl: int = 300):
 def invalidate_cache(prefix: str, *parts: str) -> None:
     """Remove a specific cache entry by prefix and parts."""
     key = _cache_key(prefix, *parts)
-    get_cache().delete(key)
+    cache = get_cache()
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(cache.delete(key))
+    except RuntimeError:
+        pass
 
 
 def clear_all_caches() -> None:
-    get_cache().clear()
-    logger.info("all_caches_cleared")
+    cache = get_cache()
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(cache.clear())
+        logger.info("all_caches_cleared")
+    except RuntimeError:
+        pass

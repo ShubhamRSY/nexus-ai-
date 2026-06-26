@@ -12,14 +12,9 @@ logger = structlog.get_logger()
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT_DIR / "config"
-EVALUATION_DIR = CONFIG_DIR / "evaluation"
 ENV_DIR = CONFIG_DIR / "environment"
-DOCS_DIR = ROOT_DIR / "docs"
 DATA_DIR = ROOT_DIR / "data"
 ENV_FILE = ENV_DIR / ".env"
-ENV_EXAMPLE_FILE = ENV_DIR / ".env.example"
-DEPS_DIR = CONFIG_DIR / "deps"
-DEPLOY_DIR = ROOT_DIR / "deploy"
 
 
 def project_path(relative: str | Path) -> Path:
@@ -43,7 +38,7 @@ class Settings(BaseSettings):
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
-    twilio_webhook_base_url: str = "http://localhost:8000"
+    twilio_webhook_base_url: str = "http://localhost:8001"
     database_url: str = ""  # e.g., "postgresql://user:pass@host/db"
 
     chroma_persist_dir: str = "./data/chroma"
@@ -73,8 +68,9 @@ class Settings(BaseSettings):
     otel_endpoint: str = ""
 
     app_host: str = "0.0.0.0"
-    app_port: int = 8000
+    app_port: int = 8001
     log_level: str = "INFO"
+    cors_origins: str = "*"
 
 
 @lru_cache

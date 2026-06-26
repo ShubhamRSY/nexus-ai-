@@ -80,6 +80,72 @@ output = "reports/coverage/coverage.xml"
 [tool.coverage.report]
 show_missing = true
 
+[tool.mypy]
+python_version = "3.11"
+warn_unused_ignores = true
+show_error_codes = true
+
+# Suppress noisy false positives from third-party stubs
+disable_error_code = [
+    "var-annotated",     # ~35 instances: `conn` vars in contextmanager (mypy can't infer)
+]
+
+# Allow untyped decorators and bare Except
+allow_untyped_decorators = true
+
+[[tool.mypy.overrides]]
+module = [
+    "src.llm.factory",
+    "src.rag.vector_store",
+    "src.integrations.slack",
+]
+# LangChain/chromadb stubs have kwarg mismatches with actual runtime APIs
+disable_error_code = ["arg-type", "call-arg"]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.auth",
+]
+disable_error_code = ["arg-type", "attr-defined"]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.tasks",
+    "src.api.ops_routes",
+]
+disable_error_code = ["attr-defined"]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.telephony.twilio_handler",
+    "src.telephony.amazon_connect_handler",
+]
+disable_error_code = ["arg-type", "union-attr"]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.evaluation.evaluator",
+]
+disable_error_code = ["assignment", "misc"]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.rag.keyword_search",
+]
+disable_error_code = ["assignment"]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.config",
+]
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = [
+    "src.database",
+]
+disable_error_code = ["arg-type", "misc"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]

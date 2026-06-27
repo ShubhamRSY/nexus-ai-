@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install runtime deps first (layer caching)
 COPY pyproject.toml README.md ./
+COPY config ./config/
 COPY src/ ./src/
 RUN pip install --upgrade pip setuptools wheel && \
     pip install .

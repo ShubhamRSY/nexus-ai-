@@ -73,11 +73,14 @@ jobs:
           --ignore=tests/test_comprehensive_e2e.py
           -v --timeout=60
       - name: Run LLM E2E (if API keys set)
-        if: ${{ secrets.OPENAI_API_KEY != '' || secrets.ANTHROPIC_API_KEY != '' }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          if [ -z "$OPENAI_API_KEY" ] && [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "No API keys set, skipping LLM E2E"
+            exit 0
+          fi
           python -m uvicorn src.main:app --host 127.0.0.1 --port 8002 &
           SERVER_PID=$!
           for i in $(seq 1 30); do

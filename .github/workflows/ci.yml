@@ -71,7 +71,8 @@ jobs:
           from src.config import get_settings
           s = get_settings()
           assert 'postgresql' in s.database_url, f'Expected postgresql URL, got {s.database_url}'
-          from src.database import _get_pg_pool
+          from src.database import init_db, _get_pg_pool
+          init_db()
           pool = _get_pg_pool()
           conn = pool.getconn()
           with conn.cursor() as cur:

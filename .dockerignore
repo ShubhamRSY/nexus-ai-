@@ -12,6 +12,7 @@ config/environment/.env
 data/chroma
 data/integrations.vault
 data/.vault_key
+data/nexus.db
 .DS_Store
 .coverage
 htmlcov/

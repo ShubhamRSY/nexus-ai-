@@ -155,9 +155,23 @@ jobs:
         run: docker build -f deploy/docker/Dockerfile -t nexus-voice-agents .
       - name: Smoke test Docker image
         run: |
-          docker run -d -p 8000:8000 --name nexus-test nexus-voice-agents
+          # Start container
+          CID=$(docker run -d -p 8000:8000 --name nexus-test nexus-voice-agents)
+          echo "Container ID: $CID"
           sleep 5
-          curl -s http://localhost:8000/api/v1/health | grep -q "healthy"
-          echo "Docker smoke test passed"
-          docker stop nexus-test
-          docker rm nexus-test
+          # Show container status & logs for diagnostics
+          echo "--- Container status ---"
+          docker ps -a --filter name=nexus-test
+          echo "--- Container logs ---"
+          docker logs nexus-test 2>&1 || true
+          # Health check
+          if curl -sf http://localhost:8000/api/v1/health > /dev/null 2>&1; then
+            echo "Docker smoke test passed"
+            docker stop nexus-test
+            docker rm nexus-test
+          else
+            echo "ERROR: Health check failed"
+            docker stop nexus-test 2>/dev/null || true
+            docker rm nexus-test 2>/dev/null || true
+            exit 1
+          fi

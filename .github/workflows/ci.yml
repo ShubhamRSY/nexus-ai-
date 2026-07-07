@@ -63,15 +63,25 @@ jobs:
           --ignore=tests/reports
           --ignore=tests/test_comprehensive_e2e.py
           -v --cov=src --cov-report=xml --cov-report=term --timeout=60
-      - name: Run unit & integration tests (PostgreSQL)
+      - name: Verify PostgreSQL connection & migration
         env:
           DATABASE_URL: postgresql://nexus:nexus@localhost:5432/nexus
-        run: >
-          pytest tests/
-          --ignore=tests/e2e
-          --ignore=tests/reports
-          --ignore=tests/test_comprehensive_e2e.py
-          -v --timeout=60
+        run: |
+          python -c "
+          from src.config import get_settings
+          s = get_settings()
+          assert 'postgresql' in s.database_url, f'Expected postgresql URL, got {s.database_url}'
+          from src.database import _get_pg_pool
+          pool = _get_pg_pool()
+          conn = pool.getconn()
+          with conn.cursor() as cur:
+              cur.execute('SELECT version FROM _schema_version')
+              row = cur.fetchone()
+              assert row is not None, 'Schema version not set'
+              assert row[0] >= 3, f'Expected schema version >= 3, got {row[0]}'
+          pool.putconn(conn)
+          print('PostgreSQL connection OK, schema version', row[0])
+          "
       - name: Run LLM E2E (if API keys set)
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -76,7 +76,7 @@ class LocalHashEmbeddings:
 
     def _load_model(self):
         try:
-            from sentence_transformers import SentenceTransformer
+            from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
             self._model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
             self.dim = self._model.get_sentence_embedding_dimension()
         except ImportError:

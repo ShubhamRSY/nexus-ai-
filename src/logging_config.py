@@ -25,7 +25,7 @@ def setup_logging() -> None:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         structlog.configure(
             processors=[
-                *shared_processors,
+                *shared_processors,  # type: ignore[list-item]
                 structlog.processors.JSONRenderer(),
             ],
             wrapper_class=structlog.make_filtering_bound_logger(log_level),
@@ -37,7 +37,7 @@ def setup_logging() -> None:
     elif sink == "loki" and settings.loki_url:
         structlog.configure(
             processors=[
-                *shared_processors,
+                *shared_processors,  # type: ignore[list-item]
                 structlog.processors.JSONRenderer(),
             ],
             wrapper_class=structlog.make_filtering_bound_logger(log_level),
@@ -47,10 +47,9 @@ def setup_logging() -> None:
         _setup_loki_push(settings.loki_url)
 
     else:
-        # Default: pretty console output (dev-friendly)
         structlog.configure(
             processors=[
-                *shared_processors,
+                *shared_processors,  # type: ignore[list-item]
                 structlog.dev.ConsoleRenderer(),
             ],
             wrapper_class=structlog.make_filtering_bound_logger(log_level),
@@ -76,7 +75,7 @@ def _setup_file_rotation(log_path: str) -> None:
 def _setup_loki_push(loki_url: str) -> None:
     """Push logs to Loki via a simple background task."""
     try:
-        import logging_loki
+        import logging_loki  # type: ignore[import-not-found]
         handler = logging_loki.LokiHandler(
             url=f"{loki_url}/loki/api/v1/push",
             tags={"service": "nexus"},

@@ -26,7 +26,7 @@ def _get_pg_pool():
     global _pg_pool
     if _pg_pool is None:
         try:
-            import psycopg2.pool
+            import psycopg2.pool  # type: ignore[import-untyped]
             settings = get_settings()
             _pg_pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn=2,
@@ -66,12 +66,39 @@ def get_connection():
 
 
 
-def _get_user_version(conn: sqlite3.Connection) -> int:
-    row = conn.execute("PRAGMA user_version").fetchone()
-    return row[0] if row else 0
+def _is_sqlite(conn) -> bool:
+    return isinstance(conn, sqlite3.Connection)
 
 
-def _run_migrations(conn: sqlite3.Connection, current: int) -> None:
+def _get_user_version(conn) -> int:
+    if _is_sqlite(conn):
+        row = conn.execute("PRAGMA user_version").fetchone()
+        return row[0] if row else 0
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT version FROM _schema_version")
+            row = cur.fetchone()
+            return row[0] if row else 0
+    except Exception:
+        conn.rollback()
+        return 0
+
+
+def _set_pg_user_version(conn, version: int) -> None:
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM _schema_version")
+        cur.execute("INSERT INTO _schema_version (version) VALUES (%s)", (version,))
+    conn.commit()
+
+
+def _run_migrations(conn, current: int) -> None:
+    if _is_sqlite(conn):
+        _run_sqlite_migrations(conn, current)
+    else:
+        _run_pg_migrations(conn, current)
+
+
+def _run_sqlite_migrations(conn, current: int) -> None:
     if current < 1:
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS tenants (
@@ -239,15 +266,199 @@ def _run_migrations(conn: sqlite3.Connection, current: int) -> None:
         logger.info("migration_003_applied")
 
 
+def _run_pg_migrations(conn, current: int) -> None:
+    if current < 1:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS tenants (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    slug TEXT UNIQUE NOT NULL,
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())),
+                    settings TEXT NOT NULL DEFAULT '{}'
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'agent',
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())),
+                    last_login DOUBLE PRECISION
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    agent_id TEXT NOT NULL,
+                    channel TEXT NOT NULL DEFAULT 'chat',
+                    customer_info TEXT DEFAULT '',
+                    status TEXT NOT NULL DEFAULT 'active',
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())),
+                    ended_at DOUBLE PRECISION
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS messages (
+                    id SERIAL PRIMARY KEY,
+                    session_id TEXT NOT NULL REFERENCES sessions(id),
+                    role TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    tool_calls TEXT DEFAULT '[]',
+                    metrics TEXT DEFAULT '{}',
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS knowledge_articles (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    tags TEXT NOT NULL DEFAULT '',
+                    category TEXT NOT NULL DEFAULT 'general',
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())),
+                    updated_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS csat_surveys (
+                    id SERIAL PRIMARY KEY,
+                    session_id TEXT NOT NULL REFERENCES sessions(id),
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    score INTEGER NOT NULL CHECK(score >= 1 AND score <= 5),
+                    feedback TEXT DEFAULT '',
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS audit_log (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    user_id TEXT,
+                    action TEXT NOT NULL,
+                    resource TEXT NOT NULL,
+                    details TEXT DEFAULT '{}',
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_sessions_tenant ON sessions(tenant_id)")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id)")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_articles_tenant ON knowledge_articles(tenant_id)")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_csat_session ON csat_surveys(session_id)")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_audit_tenant ON audit_log(tenant_id)")
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS kb_versions (
+                    id SERIAL PRIMARY KEY,
+                    article_id INTEGER NOT NULL REFERENCES knowledge_articles(id),
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    tags TEXT NOT NULL DEFAULT '',
+                    category TEXT NOT NULL DEFAULT 'general',
+                    version INTEGER NOT NULL DEFAULT 1,
+                    changed_by TEXT DEFAULT '',
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_kb_versions_article ON kb_versions(article_id)")
+        _set_pg_user_version(conn, 1)
+        logger.info("migration_001_applied")
+
+    if current < 2:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS migrations_log (
+                    id SERIAL PRIMARY KEY,
+                    version INTEGER NOT NULL,
+                    description TEXT DEFAULT '',
+                    applied_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute(
+                "INSERT INTO migrations_log (version, description) VALUES (%s, %s)",
+                (2, "Add migrations_log table for tracking schema history"),
+            )
+        _set_pg_user_version(conn, 2)
+        logger.info("migration_002_applied")
+
+    if current < 3:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS feedback_loop_config (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    agent_id TEXT NOT NULL,
+                    enabled INTEGER NOT NULL DEFAULT 1,
+                    csat_target DOUBLE PRECISION NOT NULL DEFAULT 4.0,
+                    containment_target DOUBLE PRECISION NOT NULL DEFAULT 0.75,
+                    adjustment_temperature DOUBLE PRECISION,
+                    adjustment_max_tokens INTEGER,
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW())),
+                    updated_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS agent_performance_trends (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    agent_id TEXT NOT NULL,
+                    period_hours INTEGER NOT NULL DEFAULT 24,
+                    containment_rate DOUBLE PRECISION DEFAULT 0.0,
+                    avg_csat DOUBLE PRECISION DEFAULT 0.0,
+                    avg_response_time_ms DOUBLE PRECISION DEFAULT 0.0,
+                    hallucination_rate DOUBLE PRECISION DEFAULT 0.0,
+                    csat_count INTEGER DEFAULT 0,
+                    sample_count INTEGER DEFAULT 0,
+                    recorded_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS improvement_suggestions (
+                    id SERIAL PRIMARY KEY,
+                    tenant_id TEXT NOT NULL REFERENCES tenants(id),
+                    agent_id TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    suggested_action TEXT NOT NULL DEFAULT '',
+                    metric_before DOUBLE PRECISION DEFAULT 0.0,
+                    metric_after DOUBLE PRECISION DEFAULT 0.0,
+                    applied INTEGER NOT NULL DEFAULT 0,
+                    created_at DOUBLE PRECISION NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()))
+                )
+            """)
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_agent ON feedback_loop_config(tenant_id, agent_id)")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_trends_agent ON agent_performance_trends(tenant_id, agent_id)")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_suggestions_agent ON improvement_suggestions(tenant_id, agent_id)")
+            cur.execute(
+                "INSERT INTO migrations_log (version, description) VALUES (%s, %s)",
+                (3, "Add feedback loop tables for continuous improvement"),
+            )
+        _set_pg_user_version(conn, 3)
+        logger.info("migration_003_applied")
+
+
 def init_db() -> None:
     with get_connection() as conn:
         current = _get_user_version(conn)
         if current < _SCHEMA_VERSION:
             _run_migrations(conn, current)
-        conn.execute(
-            "INSERT OR IGNORE INTO tenants (id, name, slug, settings) VALUES (?, ?, ?, ?)",
-            ("default", "Default Tenant", "default", "{}"),
-        )
+        if _is_sqlite(conn):
+            conn.execute(
+                "INSERT OR IGNORE INTO tenants (id, name, slug, settings) VALUES (?, ?, ?, ?)",
+                ("default", "Default Tenant", "default", "{}"),
+            )
+        else:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO tenants (id, name, slug, settings) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                    ("default", "Default Tenant", "default", "{}"),
+                )
+            conn.commit()
 
 
 class Database:
@@ -517,7 +728,7 @@ def backup_chromadb(s3_bucket: str | None = None, s3_prefix: str = "chroma-backu
 
     if s3_bucket:
         try:
-            import boto3
+            import boto3  # type: ignore[import-not-found]
             s3 = boto3.client("s3")
             s3_key = f"{s3_prefix}/{backup_name}"
             s3.upload_file(str(backup_path), s3_bucket, s3_key)

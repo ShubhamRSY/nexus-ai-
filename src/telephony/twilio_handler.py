@@ -5,7 +5,7 @@ from typing import Any
 
 import structlog
 from fastapi import Request, Response
-from twilio.twiml.voice_response import Gather, VoiceResponse
+from twilio.twiml.voice_response import Gather, VoiceResponse  # type: ignore[import-untyped]
 
 from src.config import get_settings, load_agent_config
 from src.telephony.ccaas_base import CallFormData, CcaasSessionEntry, CcaasVoiceHandler

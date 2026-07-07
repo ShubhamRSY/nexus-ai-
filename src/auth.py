@@ -111,7 +111,7 @@ def verify_password(plain: str, hashed: str) -> bool:
         expected = hmac.new(salt.encode(), plain.encode(), hashlib.sha256).hexdigest()
         return hmac.compare_digest(expected, hashed[16:])
 
-    from passlib.context import CryptContext
+    from passlib.context import CryptContext  # type: ignore[import-untyped]
     pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
     try:
         return pwd_context.verify(plain, hashed)

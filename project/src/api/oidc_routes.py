@@ -142,6 +142,9 @@ async def oidc_callback(request: Request, code: str | None = None, state: str | 
         db.create_user(user_id, tenant_id, email, hash_password(uuid.uuid4().hex), name, role)
         user = db.get_user_by_email(email)
 
+    if not user:
+        return _oidc_fail("oidc_user_create_failed")
+
     db.update_last_login(user["id"])
     db.log_audit(user["tenant_id"], user["id"], "auth.oidc.login", "user", {"email": email})
     jwt_token = create_jwt({

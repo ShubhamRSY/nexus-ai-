@@ -160,6 +160,12 @@ disable_error_code = ["import-untyped"]
 
 [[tool.mypy.overrides]]
 module = [
+    "src.api.oidc_routes",
+]
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = [
     "src.database",
 ]
 disable_error_code = ["arg-type", "misc"]

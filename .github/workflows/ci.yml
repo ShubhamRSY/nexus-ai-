@@ -21,10 +21,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+        working-directory: project
       - name: Lint with ruff
         run: ruff check src/ tests/ scripts/
+        working-directory: project
       - name: Type check with mypy
         run: mypy src/
+        working-directory: project
 
   test:
     runs-on: ubuntu-latest
@@ -54,8 +57,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+        working-directory: project
       - name: Ingest knowledge base
         run: python scripts/ingest_kb.py data/knowledge_base/
+        working-directory: project
       - name: Run unit & integration tests (SQLite)
         run: >
           pytest tests/
@@ -63,6 +68,7 @@ jobs:
           --ignore=tests/reports
           --ignore=tests/test_comprehensive_e2e.py
           -v --cov=src --cov-report=xml --cov-report=term --timeout=60
+        working-directory: project
       - name: Verify PostgreSQL connection & migration
         env:
           DATABASE_URL: postgresql://nexus:nexus@localhost:5432/nexus
@@ -88,6 +94,7 @@ jobs:
               traceback.print_exc()
               sys.exit(1)
           "
+        working-directory: project
       - name: Run LLM E2E (if API keys set)
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -105,10 +112,11 @@ jobs:
           done
           pytest tests/test_comprehensive_e2e.py -v --timeout=120 -k "llm_or_live" || true
           kill $SERVER_PID 2>/dev/null || true
+        working-directory: project
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
+          file: ./project/coverage.xml
           fail_ci_if_error: false
 
   e2e:
@@ -123,8 +131,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+        working-directory: project
       - name: Ingest knowledge base
         run: python scripts/ingest_kb.py data/knowledge_base/
+        working-directory: project
       - name: Run E2E + live server tests
         env:
           DEMO_MODE: "true"
@@ -146,6 +156,7 @@ jobs:
           pytest tests/test_comprehensive_e2e.py -v --timeout=120 --reruns 2
           # Cleanup
           kill $SERVER_PID 2>/dev/null || true
+        working-directory: project
 
   docker:
     runs-on: ubuntu-latest
@@ -155,6 +166,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build -f deploy/docker/Dockerfile -t nexus-voice-agents .
+        working-directory: project
       - name: Smoke test Docker image
         run: |
           # Start container

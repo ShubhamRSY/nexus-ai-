@@ -57,6 +57,9 @@ class Settings(BaseSettings):
 
     jwt_secret: str = ""
     auth_required: bool = False
+    # When false, /auth/register is closed after the first admin exists.
+    # First-user bootstrap is always allowed so production can be set up.
+    allow_registration: bool = False
     demo_mode: bool = False
     app_env: str = "development"
     rate_limit_rpm: int = 60

@@ -3,8 +3,10 @@
 from typing import Any
 
 from fastapi import APIRouter, Request, HTTPException
+from fastapi import Depends
 from structlog import get_logger
 
+from src.auth import AuthContext, require_admin
 from src.config import get_settings, reload_settings
 from src.integrations.secrets_vault import CREDENTIAL_KEYS, WEBHOOK_EVENTS, get_secrets_vault
 from src.integrations.slack import SlackNotifier
@@ -96,11 +98,17 @@ async def integrations_status() -> dict[str, Any]:
 
 
 @router.put("/integrations/credentials")
-async def save_credentials(request: Request, body: CredentialsUpdateRequest) -> dict[str, Any]:
+async def save_credentials(
+    request: Request,
+    body: CredentialsUpdateRequest,
+    ctx: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
     require_settings_token(request)
     vault = get_secrets_vault()
     updates = body.model_dump(exclude_unset=True)
     vault.set_credentials(updates)
+    from src.database import db
+    db.log_audit(ctx.tenant_id, ctx.user_id, "integrations.credentials.updated", "integrations", {"updated": list(updates.keys())})
     reload_settings()
     integration_router.load_from_vault()
     return {
@@ -111,31 +119,49 @@ async def save_credentials(request: Request, body: CredentialsUpdateRequest) -> 
 
 
 @router.delete("/integrations/credentials/{credential_key}")
-async def delete_credential(request: Request, credential_key: str) -> dict[str, str]:
+async def delete_credential(
+    request: Request,
+    credential_key: str,
+    ctx: AuthContext = Depends(require_admin),
+) -> dict[str, str]:
     require_settings_token(request)
     if credential_key not in CREDENTIAL_KEYS:
         raise HTTPException(status_code=400, detail=f"Unsupported credential: {credential_key}")
     get_secrets_vault().clear_credential(credential_key)
+    from src.database import db
+    db.log_audit(ctx.tenant_id, ctx.user_id, "integrations.credential.cleared", "integrations", {"credential": credential_key})
     reload_settings()
     integration_router.load_from_vault()
     return {"status": "cleared", "credential": credential_key}
 
 
 @router.post("/integrations/webhooks")
-async def register_webhook(request: Request, body: WebhookRegisterRequest) -> dict[str, str]:
+async def register_webhook(
+    request: Request,
+    body: WebhookRegisterRequest,
+    ctx: AuthContext = Depends(require_admin),
+) -> dict[str, str]:
     require_settings_token(request)
     if body.event_type not in WEBHOOK_EVENTS:
         raise HTTPException(status_code=400, detail=f"Unsupported event type: {body.event_type}")
     integration_router.register_webhook(body.event_type, body.url)
+    from src.database import db
+    db.log_audit(ctx.tenant_id, ctx.user_id, "integrations.webhook.registered", "integrations", {"event_type": body.event_type, "url": body.url})
     return {"status": "registered", "event_type": body.event_type}
 
 
 @router.delete("/integrations/webhooks/{event_type}")
-async def delete_webhook(request: Request, event_type: str) -> dict[str, str]:
+async def delete_webhook(
+    request: Request,
+    event_type: str,
+    ctx: AuthContext = Depends(require_admin),
+) -> dict[str, str]:
     require_settings_token(request)
     if event_type not in WEBHOOK_EVENTS:
         raise HTTPException(status_code=400, detail=f"Unsupported event type: {event_type}")
     integration_router.unregister_webhook(event_type)
+    from src.database import db
+    db.log_audit(ctx.tenant_id, ctx.user_id, "integrations.webhook.removed", "integrations", {"event_type": event_type})
     return {"status": "removed", "event_type": event_type}
 
 

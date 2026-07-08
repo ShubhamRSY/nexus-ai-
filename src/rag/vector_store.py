@@ -5,6 +5,9 @@ Supports both:
 - Local deterministic embeddings when no external credentials exist (demo/offline mode)
 """
 
+# Must run before chromadb import on hosts with old system sqlite.
+import src.sqlite_compat  # noqa: F401
+
 import hashlib
 import warnings
 from pathlib import Path

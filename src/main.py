@@ -1,5 +1,8 @@
 """Enterprise Voice & Chat AI Agent Platform — entry point with WebSocket, middleware."""
 
+# Must run before chromadb (and any other sqlite3 consumers).
+import src.sqlite_compat  # noqa: F401
+
 import asyncio
 import time
 from contextlib import asynccontextmanager
@@ -16,6 +19,7 @@ from src.api.chat_routes import router as chat_router
 from src.api.kb_routes import router as kb_router
 from src.api.telephony_routes import router as telephony_router
 from src.api.integration_routes import router as integration_router_mod
+from src.api.admin_routes import router as admin_router
 from src.api.ops_routes import router as ops_router
 from src.api.deps import integration_router
 from src.auth import decode_jwt, seed_demo_data
@@ -102,6 +106,7 @@ app.include_router(chat_router, prefix="/api/v1")
 app.include_router(kb_router, prefix="/api/v1")
 app.include_router(telephony_router, prefix="/api/v1")
 app.include_router(integration_router_mod, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
 app.include_router(ops_router, prefix="/api/v1")
 
 if STATIC_DIR.exists():

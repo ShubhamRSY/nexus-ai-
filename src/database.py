@@ -517,6 +517,11 @@ class Database:
             )
             return {"id": user_id, "email": email, "name": name, "role": role}
 
+    def count_users(self) -> int:
+        with get_connection() as conn:
+            row = conn.execute("SELECT COUNT(*) AS c FROM users").fetchone()
+            return int(row["c"] if row else 0)
+
     def get_user_by_email(self, email: str) -> dict | None:
         with get_connection() as conn:
             row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()

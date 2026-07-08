@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nexus — Production Journal</title>
+    <style>
+      :root{
+        --bg:#0b1020;
+        --card:#0f1733;
+        --text:#e5e7eb;
+        --muted:#a5b4fc;
+        --muted2:#94a3b8;
+        --border:rgba(148,163,184,.22);
+        --accent:#60a5fa;
+        --accent2:#a78bfa;
+        --code:#0b122b;
+      }
+      @media (prefers-color-scheme: light){
+        :root{
+          --bg:#f8fafc;
+          --card:#ffffff;
+          --text:#0f172a;
+          --muted:#1d4ed8;
+          --muted2:#475569;
+          --border:rgba(15,23,42,.12);
+          --accent:#2563eb;
+          --accent2:#7c3aed;
+          --code:#f1f5f9;
+        }
+      }
+      body{
+        margin:0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+        background: radial-gradient(1200px 600px at 20% -10%, rgba(96,165,250,.25), transparent 60%),
+                    radial-gradient(1000px 600px at 85% 0%, rgba(167,139,250,.22), transparent 55%),
+                    var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .wrap{ max-width: 980px; margin: 0 auto; padding: 40px 18px 70px; }
+      header{
+        padding: 26px 22px;
+        background: linear-gradient(135deg, rgba(96,165,250,.16), rgba(167,139,250,.12));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.20);
+      }
+      h1{
+        margin:0 0 8px 0;
+        font-size: clamp(26px, 4vw, 40px);
+        letter-spacing: -0.03em;
+      }
+      header p{ margin: 0; color: var(--muted2); }
+      section{
+        margin-top: 18px;
+        padding: 22px;
+        background: color-mix(in srgb, var(--card) 92%, transparent);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+      h2{
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        letter-spacing: 0.01em;
+      }
+      h3{
+        margin: 16px 0 8px;
+        font-size: 16px;
+      }
+      ul{ margin: 8px 0 0 18px; padding: 0; }
+      li{ margin: 6px 0; }
+      .rule{ height:1px; background: var(--border); margin: 14px 0; }
+      code{
+        background: var(--code);
+        border: 1px solid var(--border);
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: .95em;
+      }
+      .pill{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--card) 88%, transparent);
+        color: var(--muted2);
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+      }
+      .grid{
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 10px;
+      }
+      .box{
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        background: color-mix(in srgb, var(--card) 96%, transparent);
+      }
+      .box strong{ color: var(--muted); }
+      a{ color: var(--accent); text-decoration: none; }
+      a:hover{ text-decoration: underline; }
+      footer{ margin-top: 18px; color: var(--muted2); font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="pill">Nexus · Production Journal</div>
+        <h1>Nexus — Production Journal (Oracle Free VM)</h1>
+        <p>
+          A “from zero to production” walkthrough of what we built, why the choices were made, and how to operate it safely.
+        </p>
+      </header>
+
+      <section>
+        <h2>What we built (high level)</h2>
+        <p>Nexus is an omnichannel AI agent console and backend with three experiences:</p>
+        <ul>
+          <li><strong>Chat</strong>: end-user chat with tools + RAG, sessions, and streaming support</li>
+          <li><strong>Copilot</strong>: agent-assist drafting/summarization for a human support agent</li>
+          <li><strong>Voice</strong>: voice simulation and telephony integrations (Twilio, etc.)</li>
+        </ul>
+        <div class="rule"></div>
+        <p>All channels share:</p>
+        <ul>
+          <li><strong>One orchestrator</strong> (routing, tool-calling, and response generation)</li>
+          <li><strong>One knowledge base</strong> (RAG / Chroma persistence)</li>
+          <li><strong>One auth + multi-tenant model</strong> (JWT; tenant-scoped data)</li>
+          <li><strong>One operational surface</strong> (health, observability, audit log, tasks)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Production goals</h2>
+        <ul>
+          <li><strong>TLS/HTTPS</strong> at the edge</li>
+          <li><strong>Authentication</strong> required for API access</li>
+          <li><strong>No demo data</strong> in production</li>
+          <li><strong>Locked registration</strong> (bootstrap once; then closed)</li>
+          <li><strong>Backups + restore</strong> that work on the chosen persistence model</li>
+          <li><strong>Process management</strong> that survives reboot (systemd)</li>
+          <li><strong>Security headers</strong> to harden the UI</li>
+          <li><strong>Rate limiting</strong> to resist abuse</li>
+          <li><strong>Audit logging</strong> for sensitive admin actions</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Deployment context (why we chose this path)</h2>
+        <p>
+          We deployed on Oracle’s Always Free VM, initially on a very small box. Docker was a poor fit for that size, so we used:
+        </p>
+        <div class="grid">
+          <div class="box"><strong>Bare-metal Python</strong><div>Run the API with <code>uvicorn</code></div></div>
+          <div class="box"><strong>SQLite</strong><div>Free + simple persistence (baseline)</div></div>
+          <div class="box"><strong>Chroma</strong><div>Vector store persisted under <code>data/chroma</code></div></div>
+          <div class="box"><strong>Caddy</strong><div>HTTPS + security headers at the edge</div></div>
+        </div>
+        <p style="margin-top:14px;color:var(--muted2)">
+          This is not the “maximum scale” architecture, but it is a pragmatic, zero-cost production baseline.
+        </p>
+      </section>
+
+      <section>
+        <h2>Security baseline (what changed)</h2>
+        <ol>
+          <li>
+            <strong>Require JWT auth in production</strong>
+            <ul>
+              <li><code>AUTH_REQUIRED=true</code> gates endpoints under <code>/api/v1/*</code> via <code>Authorization: Bearer &lt;JWT&gt;</code></li>
+              <li>UI includes an auth gate and stores the token client-side</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Close registration after bootstrap</strong>
+            <ul>
+              <li>First admin can create the workspace</li>
+              <li><code>ALLOW_REGISTRATION=false</code> closes <code>/auth/register</code> for public self-signup</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Disable demo behavior</strong>
+            <ul>
+              <li><code>DEMO_MODE=false</code> prevents demo seeding</li>
+              <li><code>APP_ENV=production</code> hides docs and disables demo reset routes</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Integrations are admin-only</strong>
+            <ul>
+              <li>Integrations write endpoints require <strong>admin JWT</strong></li>
+              <li>Sensitive changes write <strong>audit logs</strong></li>
+              <li>Integrations UI is hidden for non-admin users</li>
+            </ul>
+          </li>
+          <li>
+            <strong>Rate limiting</strong>
+            <ul>
+              <li><code>RateLimitMiddleware</code> enforces per-endpoint-group limits</li>
+              <li>Uses Redis if available; falls back to in-memory counters</li>
+            </ul>
+          </li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Operations baseline</h2>
+        <h3>systemd service (survive reboot)</h3>
+        <ul>
+          <li>Installed using <code>scripts/setup-nexus-systemd-oraclelinux.sh</code></li>
+          <li>Handles Oracle Linux SELinux constraints (venv executable context)</li>
+        </ul>
+
+        <h3>Daily backups (SQLite + Chroma)</h3>
+        <ul>
+          <li><code>scripts/backup.sh</code> creates SQLite snapshot, Chroma archive, and config archive</li>
+          <li><code>scripts/setup-backup-timer.sh</code> installs <code>nexus-backup.timer</code> (daily + retention)</li>
+          <li>Restore steps: <code>docs/ops-backup-restore.md</code></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Edge security (Caddy)</h2>
+        <p>We added security headers and a reasonable CSP to the Caddy site block.</p>
+        <p>Reference: <code>docs/ops-caddy-security-headers.md</code></p>
+      </section>
+
+      <section>
+        <h2>Admin workflow</h2>
+        <p>After bootstrap, admins create additional users via:</p>
+        <ul>
+          <li><code>POST /api/v1/admin/users</code> (admin-only)</li>
+        </ul>
+        <p style="color:var(--muted2)">This avoids re-opening public registration while still enabling team onboarding.</p>
+      </section>
+
+      <section>
+        <h2>How to verify production is healthy</h2>
+        <ul>
+          <li>From the server: <code>curl -fsS http://127.0.0.1:8001/api/v1/health</code></li>
+          <li>From the internet: <code>curl -fsS https://&lt;domain&gt;/api/v1/health</code></li>
+          <li>Auth check: <code>POST /api/v1/chat</code> without JWT should return <strong>401</strong></li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Known limitations (free tier realities)</h2>
+        <ul>
+          <li>A micro VM + SQLite is not ideal for high concurrency.</li>
+          <li>
+            For real production scale while staying free, prefer Oracle <strong>Ampere A1 Flex</strong> (Always Free) and run:
+            <ul>
+              <li>Postgres + Redis (Compose) + Nexus + Caddy</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Next steps (industry-grade hardening)</h2>
+        <ul>
+          <li>External uptime monitoring + alerting (Sentry/OTEL supported)</li>
+          <li>Separate “admin console” from customer-facing UI</li>
+          <li>WAF / bot protection (Cloudflare)</li>
+          <li>Postgres + Redis for consistency and performance</li>
+        </ul>
+      </section>
+
+      <footer>
+        Generated from the Nexus production journal content. Open this file in any browser.
+      </footer>
+    </div>
+  </body>
+</html>
+

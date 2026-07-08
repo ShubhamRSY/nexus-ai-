@@ -61,15 +61,15 @@ body[data-mode="voice"] {
 body[data-theme="light"] {
   --bg: #f4f4f6;
   --bg-elevated: #ffffff;
-  --surface: rgba(0, 0, 0, 0.03);
-  --surface-hover: rgba(0, 0, 0, 0.06);
-  --surface-2: rgba(0, 0, 0, 0.04);
-  --glass: rgba(255, 255, 255, 0.78);
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.14);
+  --surface: rgba(0, 0, 0, 0.04);
+  --surface-hover: rgba(0, 0, 0, 0.07);
+  --surface-2: #ffffff;
+  --glass: rgba(255, 255, 255, 0.88);
+  --border: rgba(0, 0, 0, 0.16);
+  --border-strong: rgba(0, 0, 0, 0.28);
   --text: #18181b;
   --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
+  --text-muted: #71717a;
   --accent: #2563eb;
   --accent-2: #6366f1;
   --accent-soft: rgba(37, 99, 235, 0.1);
@@ -116,16 +116,86 @@ body[data-theme="light"] .sidebar {
   backdrop-filter: blur(24px) saturate(1.3);
 }
 body[data-theme="light"] .composer-inner {
-  background: rgba(255, 255, 255, 0.85);
+  background: #ffffff;
+  border-color: var(--border-strong);
 }
 body[data-theme="light"] select,
 body[data-theme="light"] input[type="text"],
 body[data-theme="light"] input[type="password"],
-body[data-theme="light"] input[type="url"] {
-  background: #fff;
+body[data-theme="light"] input[type="url"],
+body[data-theme="light"] textarea {
+  background: #ffffff;
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 body[data-theme="light"] .session-item:hover {
   background: rgba(0, 0, 0, 0.04);
+}
+body[data-theme="light"] .integration-group {
+  background: #fafafa;
+  border-color: var(--border-strong);
+}
+body[data-theme="light"] .integration-badge {
+  background: #ffffff;
+  border-color: var(--border-strong);
+}
+body[data-theme="light"] .field input[type="password"],
+body[data-theme="light"] .field input.integration-input {
+  background: #ffffff;
+  border: 1px solid var(--border-strong);
+  box-shadow: none;
+  color: var(--text);
+}
+body[data-theme="light"] .field input.integration-input::placeholder {
+  color: var(--text-muted);
+}
+body[data-theme="light"] .field input.integration-input:-webkit-autofill,
+body[data-theme="light"] .field input.integration-input:-webkit-autofill:hover,
+body[data-theme="light"] .field input.integration-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: var(--text);
+  border: 1px solid var(--border-strong);
+}
+body[data-theme="light"] .integration-saved-row {
+  background: rgba(37, 99, 235, 0.06);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+body[data-theme="light"] .integration-action-btn {
+  background: #ffffff;
+  border-color: var(--border-strong);
+}
+body[data-theme="light"] .suggestion {
+  background: #ffffff;
+  border-color: var(--border-strong);
+}
+body[data-theme="light"] .session-item {
+  border-color: var(--border);
+}
+body[data-theme="light"] .bubble-action,
+body[data-theme="light"] .theme-toggle,
+body[data-theme="light"] .sync-toggle,
+body[data-theme="light"] .menu-btn,
+body[data-theme="light"] .clear-session-btn {
+  border-color: var(--border-strong);
+  background: #ffffff;
+}
+body[data-theme="light"] .auth-card {
+  background: #ffffff;
+  border-color: var(--border-strong);
+}
+body[data-theme="light"] .auth-card input {
+  background: #ffffff;
+  border-color: var(--border-strong);
+}
+body[data-theme="light"] .auth-card input:-webkit-autofill,
+body[data-theme="light"] .auth-card input:-webkit-autofill:hover,
+body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text) !important;
+  border: 1px solid var(--border-strong) !important;
+  transition: background-color 9999s ease-out 0s;
 }
 
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Syne:wght@600;700;800&display=swap");
@@ -777,7 +847,7 @@ body[data-theme="light"] .session-item:hover {
       margin-bottom: 0.85rem;
       padding: 0.75rem;
       border-radius: 12px;
-      background: rgba(255,255,255,0.03);
+      background: var(--surface);
       border: 1px solid var(--border);
     }
     .integration-head {
@@ -880,8 +950,8 @@ body[data-theme="light"] .session-item:hover {
     .field input.integration-input {
       font-family: ui-monospace, monospace;
       font-size: 0.78rem;
-      background: rgba(8, 10, 18, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--surface-2);
+      border: 1px solid var(--border-strong);
       color: var(--text);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
@@ -1117,30 +1187,6 @@ body[data-theme="light"] .session-item:hover {
       line-height: 1.65;
       font-weight: 400;
     }
-    .welcome-tips {
-      text-align: center;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 1rem;
-      padding: 0.75rem 1rem;
-      background: var(--surface);
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      line-height: 1.7;
-    }
-    .welcome-tips kbd {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.1em 0.45em;
-      font-family: inherit;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-    }
-
     .channel-badge {
       display: inline-flex;
       align-items: center;
@@ -2069,31 +2115,215 @@ body[data-theme="light"] .session-item:hover {
       color: var(--text);
     }
 
-    /* ── Keyboard hints ── */
-    .kbd-hint {
-      display: none;
-      position: absolute;
-      bottom: 0.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      gap: 1rem;
+    /* ── Auth gate ── */
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(18px) saturate(1.2);
+    }
+    .auth-gate[hidden] { display: none !important; }
+    body:not([data-authenticated="true"]) .app-shell,
+    body:not([data-authenticated="true"]) header,
+    body:not([data-authenticated="true"]) .channel-bar,
+    body:not([data-authenticated="true"]) .connection-banner {
+      visibility: hidden;
       pointer-events: none;
-      z-index: 5;
     }
-    .kbd-hint kbd {
-      display: inline-block;
-      padding: 0.1rem 0.35rem;
-      background: var(--surface-2);
+    .auth-card {
+      width: min(100%, 420px);
+      padding: 2rem 1.75rem 1.5rem;
+      border-radius: var(--radius-lg);
+      background: var(--glass);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.28s ease;
+    }
+    .auth-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.35rem;
+      margin-bottom: 1.5rem;
+    }
+    .auth-brand h2 {
+      font-family: var(--font-display);
+      font-size: 1.45rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    .auth-brand p {
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+      margin-bottom: 1.15rem;
+      padding: 0.3rem;
+      border-radius: 999px;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 0.6rem;
-      font-family: inherit;
     }
-    @media (min-width: 900px) {
-      .kbd-hint { display: flex; }
+    .auth-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.55rem 0.75rem;
+      border-radius: 999px;
+      cursor: pointer;
     }
+    .auth-tab.active {
+      background: var(--bg-elevated);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+    .auth-form { display: none; flex-direction: column; gap: 0.85rem; }
+    .auth-form.active { display: flex; }
+    .auth-form .field { margin: 0; }
+    .auth-field-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .auth-field-row input {
+      padding-right: 2.65rem;
+    }
+    .pw-toggle {
+      position: absolute;
+      right: 0.55rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2.05rem;
+      height: 2.05rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    /* Match common expectation:
+       - slashed eye = password hidden
+       - open eye = password visible */
+    .pw-toggle .pw-icon-show { display: none; }
+    .pw-toggle .pw-icon-hide { display: inline; }
+    .pw-toggle.is-revealed .pw-icon-show { display: inline; }
+    .pw-toggle.is-revealed .pw-icon-hide { display: none; }
+    .pw-toggle .pw-icon { pointer-events: none; }
+    .pw-toggle:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--surface-hover);
+    }
+    .pw-toggle:focus {
+      outline: none;
+      border-color: var(--mode-accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--mode-accent) 20%, transparent);
+    }
+    .auth-card input {
+      width: 100%;
+      padding: 0.7rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--surface-2);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.9rem;
+    }
+    .auth-card input:-webkit-autofill,
+    .auth-card input:-webkit-autofill:hover,
+    .auth-card input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px var(--surface-2) inset !important;
+      box-shadow: 0 0 0 1000px var(--surface-2) inset !important;
+      -webkit-text-fill-color: var(--text) !important;
+      caret-color: var(--text) !important;
+      border: 1px solid var(--border-strong) !important;
+      transition: background-color 9999s ease-out 0s;
+    }
+    .auth-card input:focus {
+      outline: none;
+      border-color: var(--mode-accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--mode-accent) 20%, transparent);
+    }
+    .auth-error {
+      display: none;
+      font-size: 0.8rem;
+      color: var(--danger);
+      background: color-mix(in srgb, var(--danger) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.75rem;
+      line-height: 1.4;
+    }
+    .auth-error.visible { display: block; }
+    .auth-submit {
+      width: 100%;
+      margin-top: 0.25rem;
+      padding: 0.8rem 1rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+    .auth-submit:disabled { opacity: 0.6; cursor: wait; }
+    .auth-note {
+      margin-top: 0.85rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.45;
+    }
+    .user-chip {
+      display: none;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.3rem 0.35rem 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      max-width: 220px;
+    }
+    body[data-authenticated="true"] .user-chip { display: inline-flex; }
+    .user-chip span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .user-chip button {
+      border: none;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      border-radius: 999px;
+      width: 1.65rem;
+      height: 1.65rem;
+      cursor: pointer;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+    .user-chip button:hover { color: var(--danger); }
 
     .stream-cursor {
       display: inline-block;
@@ -2124,6 +2354,86 @@ body[data-theme="light"] .session-item:hover {
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
   </div>
+
+  <div class="auth-gate" id="authGate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="brand-icon" style="width:48px;height:48px;margin-bottom:0.35rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>
+          </svg>
+        </div>
+        <h2 id="authTitle">Nexus AI Ops</h2>
+        <p>Sign in to access the production console</p>
+      </div>
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="auth-tab active" data-auth-tab="login" role="tab" aria-selected="true">Sign in</button>
+        <button type="button" class="auth-tab" data-auth-tab="register" role="tab" aria-selected="false">Create account</button>
+      </div>
+      <div class="auth-error" id="authError" role="alert"></div>
+      <form class="auth-form active" id="loginForm" autocomplete="on">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" name="email" required autocomplete="username" placeholder="you@company.com" />
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <div class="auth-field-row">
+            <input type="password" id="loginPassword" name="password" required minlength="8" autocomplete="current-password" placeholder="••••••••" />
+            <button type="button" class="pw-toggle" data-pw-toggle="loginPassword" aria-label="Show password" title="Show password">
+              <svg class="pw-icon pw-icon-show" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="pw-icon pw-icon-hide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3l18 18"/>
+                <path d="M10.6 10.6A3 3 0 0 0 12 15a3 3 0 0 0 2.4-4.4"/>
+                <path d="M9.9 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a18.2 18.2 0 0 1-3.2 4.3"/>
+                <path d="M6.1 6.1A18.6 18.6 0 0 0 2 12s3.5 7 10 7c1.1 0 2.2-.2 3.2-.5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="auth-submit" id="loginSubmit">Sign in</button>
+      </form>
+      <form class="auth-form" id="registerForm" autocomplete="on">
+        <div class="field">
+          <label for="registerName">Your name</label>
+          <input type="text" id="registerName" name="name" required autocomplete="name" placeholder="Alex Admin" />
+        </div>
+        <div class="field">
+          <label for="registerTenant">Company / workspace</label>
+          <input type="text" id="registerTenant" name="tenant_name" required autocomplete="organization" placeholder="Acme Inc" />
+        </div>
+        <div class="field">
+          <label for="registerEmail">Work email</label>
+          <input type="email" id="registerEmail" name="email" required autocomplete="username" placeholder="you@company.com" />
+        </div>
+        <div class="field">
+          <label for="registerPassword">Password</label>
+          <div class="auth-field-row">
+            <input type="password" id="registerPassword" name="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters" />
+            <button type="button" class="pw-toggle" data-pw-toggle="registerPassword" aria-label="Show password" title="Show password">
+              <svg class="pw-icon pw-icon-show" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="pw-icon pw-icon-hide" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3l18 18"/>
+                <path d="M10.6 10.6A3 3 0 0 0 12 15a3 3 0 0 0 2.4-4.4"/>
+                <path d="M9.9 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a18.2 18.2 0 0 1-3.2 4.3"/>
+                <path d="M6.1 6.1A18.6 18.6 0 0 0 2 12s3.5 7 10 7c1.1 0 2.2-.2 3.2-.5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="auth-submit" id="registerSubmit">Create account</button>
+      </form>
+      <p class="auth-note">Production access is restricted. Create the first admin account, then sign in with your credentials.</p>
+    </div>
+  </div>
+
   <header>
     <button class="menu-btn" id="menuBtn" aria-label="Open settings panel" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -2161,6 +2471,10 @@ body[data-theme="light"] .session-item:hover {
     </button>
 
     <div class="header-actions">
+      <div class="user-chip" id="userChip" title="Signed in">
+        <span id="userChipName">Account</span>
+        <button type="button" id="logoutBtn" title="Sign out" aria-label="Sign out">⎋</button>
+      </div>
       <div class="status-pill">
         <div class="status-dot" id="statusDot"></div>
         <span id="statusText">Checking</span>
@@ -2395,7 +2709,7 @@ body[data-theme="light"] .session-item:hover {
           </div>
         </div>
 
-        <div class="field">
+        <div class="field" id="settingsTokenField" hidden>
           <label for="settingsAdminToken">Admin token (if required)</label>
           <input type="password" id="settingsAdminToken" class="integration-input" placeholder="X-Settings-Token" autocomplete="off" />
         </div>
@@ -2449,11 +2763,6 @@ body[data-theme="light"] .session-item:hover {
           <button type="button" class="clear-session-btn" id="clearSessionBtn" title="Clear session">⟲ Clear</button>
           <button type="button" class="scroll-bottom-btn" id="scrollBottomBtn" onclick="scrollMessagesToBottom(true)">↓ New messages</button>
           <div class="messages" id="messages" role="log" aria-live="polite" aria-relevant="additions"></div>
-          <div class="kbd-hint" aria-hidden="true">
-            <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> channels</span>
-            <span><kbd>⌘</kbd><kbd>↵</kbd> send</span>
-            <span><kbd>Esc</kbd> close panel</span>
-          </div>
 
       <div class="composer composer-active" id="chatInput">
         <div class="composer-inner">
@@ -2498,10 +2807,102 @@ body[data-theme="light"] .session-item:hover {
 
   <script>
     const API = '/api/v1';
+    const AUTH_TOKEN_KEY = 'nexus_auth_token';
+    const AUTH_USER_KEY = 'nexus_auth_user';
     let taskPollInterval = null;
+    let authUser = null;
+
+    function getAuthToken() {
+      return localStorage.getItem(AUTH_TOKEN_KEY) || '';
+    }
+
+    function getAuthHeaders(extra = {}) {
+      const headers = { ...extra };
+      const token = getAuthToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return headers;
+    }
+
+    function setAuthSession(token, user) {
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user || {}));
+      authUser = user || null;
+    }
+
+    function clearAuthSession() {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_USER_KEY);
+      authUser = null;
+    }
+
+    function loadStoredUser() {
+      try {
+        return JSON.parse(localStorage.getItem(AUTH_USER_KEY) || 'null');
+      } catch {
+        return null;
+      }
+    }
+
+    function showAuthError(msg) {
+      const el = document.getElementById('authError');
+      if (!el) return;
+      el.textContent = msg || '';
+      el.classList.toggle('visible', Boolean(msg));
+    }
+
+    function setAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach((btn) => {
+        const active = btn.dataset.authTab === tab;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      document.getElementById('loginForm')?.classList.toggle('active', tab === 'login');
+      document.getElementById('registerForm')?.classList.toggle('active', tab === 'register');
+      showAuthError('');
+    }
+
+    function updateUserChip() {
+      const nameEl = document.getElementById('userChipName');
+      if (!nameEl) return;
+      nameEl.textContent = authUser?.name || authUser?.email || 'Signed in';
+    }
+
+    function initialsFromUser(u) {
+      const raw = (u?.name || u?.email || '').trim();
+      if (!raw) return 'U';
+      const parts = raw
+        .replace(/[^a-zA-Z0-9@.\s_-]/g, ' ')
+        .split(/[\s._-]+/)
+        .filter(Boolean);
+      // Email: use first 2 chars of local part if we don't have a name
+      if (!u?.name && raw.includes('@')) {
+        const local = raw.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+        return (local.slice(0, 2) || 'U').toUpperCase();
+      }
+      const first = (parts[0] || '').slice(0, 1);
+      const last = (parts.length > 1 ? parts[parts.length - 1] : '').slice(0, 1);
+      return (first + last).toUpperCase() || 'U';
+    }
+
+    function showAuthGate() {
+      document.body.dataset.authenticated = 'false';
+      document.getElementById('authGate')?.removeAttribute('hidden');
+      updateUserChip();
+    }
+
+    function hideAuthGate() {
+      document.body.dataset.authenticated = 'true';
+      document.getElementById('authGate')?.setAttribute('hidden', '');
+      updateUserChip();
+    }
 
     async function apiFetch(url, options = {}) {
-      const res = await fetch(url, options);
+      const opts = { ...options };
+      const headers = new Headers(opts.headers || {});
+      const token = getAuthToken();
+      if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`);
+      opts.headers = headers;
+      const res = await fetch(url, opts);
       if (res.ok) return res;
       const text = await res.text().catch(() => '');
       let detail = text;
@@ -2511,7 +2912,11 @@ body[data-theme="light"] .session-item:hover {
         throw new Error('Rate limit exceeded');
       }
       if (res.status === 401 || res.status === 403) {
-        showToast('Auth failed — check your API token', 'error');
+        if (!String(url).includes('/auth/login') && !String(url).includes('/auth/register')) {
+          clearAuthSession();
+          showAuthGate();
+        }
+        showToast(detail || 'Authentication required — please sign in', 'error');
         throw new Error(detail || 'Authentication failed');
       }
       if (res.status >= 500) {
@@ -2523,6 +2928,141 @@ body[data-theme="light"] .session-item:hover {
         throw new Error(detail || `Request failed (${res.status})`);
       }
       return res;
+    }
+
+    async function verifyAuthSession() {
+      const token = getAuthToken();
+      if (!token) {
+        authUser = null;
+        return false;
+      }
+      try {
+        const res = await fetch(`${API}/auth/me`, { headers: getAuthHeaders() });
+        if (!res.ok) {
+          clearAuthSession();
+          return false;
+        }
+        const me = await res.json();
+        authUser = {
+          id: me.user_id,
+          email: me.email,
+          name: me.name,
+          role: me.role,
+          tenant_id: me.tenant_id,
+        };
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(authUser));
+        return true;
+      } catch {
+        clearAuthSession();
+        return false;
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginSubmit');
+      btn.disabled = true;
+      showAuthError('');
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || 'Invalid email or password');
+        setAuthSession(data.token, data.user);
+        hideAuthGate();
+        await bootAuthenticatedApp();
+        showToast(`Welcome back, ${data.user?.name || email}`, 'success');
+      } catch (err) {
+        showAuthError(err.message || 'Sign in failed');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value.trim();
+      const tenant_name = document.getElementById('registerTenant').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value;
+      const btn = document.getElementById('registerSubmit');
+      btn.disabled = true;
+      showAuthError('');
+      try {
+        const res = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, tenant_name, email, password }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || 'Registration failed');
+        // Auto sign-in after account creation
+        const loginRes = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const loginData = await loginRes.json().catch(() => ({}));
+        if (!loginRes.ok) {
+          setAuthTab('login');
+          document.getElementById('loginEmail').value = email;
+          throw new Error('Account created — please sign in');
+        }
+        setAuthSession(loginData.token, loginData.user || {
+          id: data.user_id,
+          email,
+          name,
+          role: 'admin',
+          tenant_id: data.tenant_id,
+        });
+        hideAuthGate();
+        await bootAuthenticatedApp();
+        showToast('Workspace created — you are signed in', 'success');
+      } catch (err) {
+        showAuthError(err.message || 'Registration failed');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function logout() {
+      clearAuthSession();
+      showAuthGate();
+      document.getElementById('messages').innerHTML = '';
+      showToast('Signed out', 'info');
+    }
+
+    let appBooted = false;
+    async function bootAuthenticatedApp() {
+      if (appBooted) {
+        await checkHealth();
+        await loadIntegrationsStatus();
+        return;
+      }
+      appBooted = true;
+      checkHealth();
+      pollTasks();
+      loadIntegrationsStatus();
+      setInterval(checkHealth, 30000);
+      setInterval(pollTasks, 15000);
+      document.body.dataset.syncMode = 'all';
+      document.body.dataset.mode = 'chat';
+      bindSessionListEvents();
+      const existingSessions = loadSessions();
+      if (existingSessions.length) {
+        const match = existingSessions.find(s => s.id === document.getElementById('sessionId').value);
+        if (!match) document.getElementById('sessionId').value = existingSessions[0].id;
+        renderSessionList();
+      } else {
+        startFreshSession(false);
+      }
+      showChatWelcome();
+      document.getElementById('input')?.focus();
     }
 
     let mode = 'chat';
@@ -2797,7 +3337,10 @@ body[data-theme="light"] .session-item:hover {
 
     async function clearServerSession(sessionId) {
       try {
-        await fetch(`${API}/chat/${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+        await fetch(`${API}/chat/${encodeURIComponent(sessionId)}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders(),
+        });
       } catch { /* server may be offline; UI clear still proceeds */ }
     }
 
@@ -3149,23 +3692,46 @@ body[data-theme="light"] .session-item:hover {
       });
     }
 
+    function hasVisibleModeMessages() {
+      return Boolean(messagesEl().querySelector('.msg-row:not([style*="display: none"])'));
+    }
+
+    function setWelcomeContent(html) {
+      document.querySelectorAll('.mode-empty').forEach(el => el.remove());
+      const existing = document.getElementById('welcome');
+      if (existing) {
+        existing.outerHTML = html;
+        return;
+      }
+      // Preserve other modes' messages when sync is private
+      if (document.body.dataset.syncMode !== 'all' && hasConversation()) {
+        messagesEl().insertAdjacentHTML('afterbegin', html);
+      } else {
+        messagesEl().innerHTML = html;
+      }
+    }
+
+    function refreshEmptyModeView() {
+      document.querySelectorAll('.mode-empty').forEach(el => el.remove());
+      const syncAll = document.body.dataset.syncMode === 'all';
+      const hasVisible = syncAll ? hasConversation() : hasVisibleModeMessages();
+      if (hasVisible) {
+        document.getElementById('welcome')?.remove();
+        return;
+      }
+      if (mode === 'voice' && callActive) {
+        document.getElementById('welcome')?.remove();
+        return;
+      }
+      showWelcomeForMode();
+    }
+
     document.getElementById('syncToggle')?.addEventListener('click', () => {
       const cur = document.body.dataset.syncMode;
       const next = cur === 'all' ? 'mode' : 'all';
-      const placeholder = document.querySelector('.mode-empty');
       document.body.dataset.syncMode = next;
       filterMessagesByMode();
-      if (next === 'all') {
-        if (placeholder) placeholder.remove();
-        if (!hasConversation() && !document.getElementById('welcome')) showWelcomeForMode();
-      } else {
-        document.getElementById('welcome')?.remove();
-        const hasVisible = Boolean(messagesEl().querySelector('.msg-row:not([style*="display: none"])'));
-        if (!hasVisible) {
-          document.querySelectorAll('.mode-empty').forEach(el => el.remove());
-          document.getElementById('messages').insertAdjacentHTML('beforeend', `<div class="mode-empty" style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;font-size:0.85rem;color:var(--text-muted)">No ${mode} messages yet</div>`);
-        }
-      }
+      refreshEmptyModeView();
       showToast(next === 'all' ? 'Sync: all conversations combined' : 'Sync: each mode shows its own messages', 'info');
     });
 
@@ -3204,20 +3770,7 @@ body[data-theme="light"] .session-item:hover {
 
       document.body.dataset.mode = mode;
       filterMessagesByMode();
-
-      const hasVisible = document.body.dataset.syncMode !== 'all'
-        ? Boolean(messagesEl().querySelector('.msg-row:not([style*="display: none"])'))
-        : hasConversation();
-      if (!hasVisible) {
-        if (document.body.dataset.syncMode !== 'all') {
-          document.querySelectorAll('.mode-empty').forEach(el => el.remove());
-          document.getElementById('messages').insertAdjacentHTML('beforeend', `<div class="mode-empty" style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;font-size:0.85rem;color:var(--text-muted)">No ${mode} messages yet — switch modes or toggle sync to view other conversations</div>`);
-        } else {
-          if (isVoice && !callActive) showVoiceWelcome();
-          else if (isCopilot) showCopilotWelcome();
-          else if (mode === 'chat') showChatWelcome();
-        }
-      }
+      refreshEmptyModeView();
 
       if (isVoice) document.getElementById('voiceInputText').focus();
       else document.getElementById('input').focus();
@@ -3262,7 +3815,7 @@ body[data-theme="light"] .session-item:hover {
     }
 
     function showChatWelcome() {
-      document.getElementById('messages').innerHTML = welcomeHtml(
+      setWelcomeContent(welcomeHtml(
         'Ask anything.',
         'Autonomous support with CRM lookup, knowledge retrieval, ticketing, and live resolution — all in one session.',
         'chat',
@@ -3271,11 +3824,11 @@ body[data-theme="light"] .session-item:hover {
           { label: 'Lookup my account', text: 'Can you look up jane@example.com?' },
           { label: 'API 403 error', text: 'My API calls return 403 errors' },
         ]
-      ) + '<div class="welcome-tips">Type a message or <kbd>1</kbd> Chat · <kbd>2</kbd> Copilot · <kbd>3</kbd> Voice · <kbd>⌘⏎</kbd> send</div>';
+      ));
     }
 
     function showCopilotWelcome() {
-      document.getElementById('messages').innerHTML = welcomeHtml(
+      setWelcomeContent(welcomeHtml(
         'Assist smarter.',
         'Real-time reply drafting, thread summaries, and escalation guidance. Paste the customer transcript to unlock full context.',
         'copilot',
@@ -3285,11 +3838,11 @@ body[data-theme="light"] .session-item:hover {
           { label: 'Flag escalation', text: 'Should I escalate this to a supervisor?' },
         ],
         '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'
-      ) + '<div class="welcome-tips">Paste transcript in the sidebar, then ask copilot to draft, summarize, or escalate</div>';
+      ));
     }
 
     function showVoiceWelcome() {
-      document.getElementById('messages').innerHTML = welcomeHtml(
+      setWelcomeContent(welcomeHtml(
         'Answer the call.',
         'Live PSTN simulation — inbound routing, speech processing, TTS responses, and human transfer in real time.',
         'voice',
@@ -3299,13 +3852,15 @@ body[data-theme="light"] .session-item:hover {
           { label: 'Request transfer', text: 'I need to speak to a manager' },
         ],
         '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>'
-      ) + '<div class="welcome-tips">Tap "Answer incoming call" or type caller speech and hit send</div>';
+      ));
     }
 
     const SETTINGS_TOKEN_KEY = 'nexus_settings_token';
 
     function settingsHeaders() {
-      const headers = { 'Content-Type': 'application/json' };
+      // Admin-only endpoints also require JWT (Authorization) and may require
+      // an out-of-band settings token if configured server-side.
+      const headers = getAuthHeaders({ 'Content-Type': 'application/json' });
       const token = document.getElementById('settingsAdminToken')?.value.trim()
         || sessionStorage.getItem(SETTINGS_TOKEN_KEY) || '';
       if (token) headers['X-Settings-Token'] = token;
@@ -3377,6 +3932,13 @@ body[data-theme="light"] .session-item:hover {
 
     async function loadIntegrationsStatus() {
       try {
+        const panel = document.getElementById('integrationsPanel');
+        const isAdmin = authUser?.role === 'admin';
+        if (panel) panel.style.display = isAdmin ? '' : 'none';
+        const settingsTokenField = document.getElementById('settingsTokenField');
+        if (settingsTokenField) settingsTokenField.hidden = true;
+        if (!isAdmin) return;
+
         const res = await apiFetch(`${API}/integrations/status`);
         if (!res.ok) return;
         const data = await res.json();
@@ -3414,6 +3976,10 @@ body[data-theme="light"] .session-item:hover {
     }
 
     async function saveIntegrations() {
+      if (authUser?.role !== 'admin') {
+        showToast('Admin access required', 'error');
+        return;
+      }
       const tokenEl = document.getElementById('settingsAdminToken');
       if (tokenEl?.value.trim()) {
         sessionStorage.setItem(SETTINGS_TOKEN_KEY, tokenEl.value.trim());
@@ -3518,7 +4084,7 @@ body[data-theme="light"] .session-item:hover {
         const total = (data.active_tasks || 0) + (data.queued_tasks || 0) + (data.active_requests || 0);
         if (total > 0) {
           badge.classList.add('visible');
-          text.textContent = `${total} active`;
+          text.textContent = total === 1 ? '1 task' : `${total} tasks`;
         } else {
           badge.classList.remove('visible');
         }
@@ -3548,10 +4114,10 @@ body[data-theme="light"] .session-item:hover {
           : { row: role, avatar: '🖥️ AI', label: null };
       }
       if (mode === 'copilot') {
-        return role === 'user' ? { row: 'user', avatar: 'You', label: 'Your request' }
+        return role === 'user' ? { row: 'user', avatar: initialsFromUser(authUser), label: 'Your request' }
           : { row: 'copilot', avatar: '🖥️ CP', label: 'Copilot suggestion' };
       }
-      return role === 'user' ? { row: 'user', avatar: 'You', label: null }
+      return role === 'user' ? { row: 'user', avatar: initialsFromUser(authUser), label: null }
         : { row: 'agent', avatar: 'AI', label: null };
     }
 
@@ -3703,7 +4269,7 @@ body[data-theme="light"] .session-item:hover {
 
         const res = await fetch(`${API}/${endpoint}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(body),
         });
 
@@ -3808,7 +4374,7 @@ body[data-theme="light"] .session-item:hover {
         try {
           const res = await fetch(`${API}/telephony/speak`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ text, voice: ttsVoice }),
           });
           if (!res.ok) throw new Error('TTS unavailable');
@@ -3858,7 +4424,11 @@ body[data-theme="light"] .session-item:hover {
         const form = new FormData();
         const ext = mimeType.includes('mp4') ? 'mp4' : mimeType.includes('ogg') ? 'ogg' : 'webm';
         form.append('audio', blob, `speech.${ext}`);
-        const res = await fetch(`${API}/telephony/transcribe`, { method: 'POST', body: form });
+        const res = await fetch(`${API}/telephony/transcribe`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: form,
+        });
         const raw = await res.text();
         hideTyping();
         if (epoch !== sessionEpoch) return;
@@ -3978,7 +4548,7 @@ body[data-theme="light"] .session-item:hover {
 
         const res = await fetch(`${API}/telephony/simulate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(payload),
         });
 
@@ -4127,24 +4697,40 @@ body[data-theme="light"] .session-item:hover {
       }
     });
 
+    document.querySelectorAll('.auth-tab').forEach((btn) => {
+      btn.addEventListener('click', () => setAuthTab(btn.dataset.authTab));
+    });
+    document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+    document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    document.querySelectorAll('[data-pw-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.pwToggle;
+        const input = document.getElementById(id);
+        if (!input) return;
+        const isPw = input.getAttribute('type') === 'password';
+        input.setAttribute('type', isPw ? 'text' : 'password');
+        btn.classList.toggle('is-revealed', isPw);
+        btn.setAttribute('aria-label', isPw ? 'Hide password' : 'Show password');
+        btn.setAttribute('title', isPw ? 'Hide password' : 'Show password');
+        input.focus();
+      });
+    });
+
     checkHealth();
-    pollTasks();
-    loadIntegrationsStatus();
-    setInterval(checkHealth, 30000);
-    setInterval(pollTasks, 15000);
     document.body.dataset.syncMode = 'all';
     document.body.dataset.mode = 'chat';
-    bindSessionListEvents();
-    const existingSessions = loadSessions();
-    if (existingSessions.length) {
-      const match = existingSessions.find(s => s.id === document.getElementById('sessionId').value);
-      if (!match) document.getElementById('sessionId').value = existingSessions[0].id;
-      renderSessionList();
-    } else {
-      startFreshSession(false);
-    }
-    showChatWelcome();
-    document.getElementById('input').focus();
+    (async () => {
+      authUser = loadStoredUser();
+      const ok = await verifyAuthSession();
+      if (ok) {
+        hideAuthGate();
+        await bootAuthenticatedApp();
+      } else {
+        showAuthGate();
+        setAuthTab('login');
+      }
+    })();
   </script>
 </body>
 </html>

@@ -45,6 +45,18 @@ async def login(request: LoginRequest) -> dict[str, Any]:
 async def register(request: RegisterRequest) -> dict[str, Any]:
     from fastapi import HTTPException
 
+    from src.config import get_settings
+
+    settings = get_settings()
+    user_count = db.count_users()
+    # Always allow the first account (bootstrap). After that, open signup
+    # only when ALLOW_REGISTRATION=true.
+    if user_count > 0 and not settings.allow_registration:
+        raise HTTPException(
+            status_code=403,
+            detail="Registration is closed. Ask an admin to create your account.",
+        )
+
     tenant_id = f"tenant-{uuid.uuid4().hex[:8]}"
     user_id = f"user-{uuid.uuid4().hex[:8]}"
 

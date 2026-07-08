@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 FEW_SHOT_EXAMPLES = """
 ## Examples (few-shot)
 User: How do I reset my password?
-Assistant: Visit portal.acme.com/reset, enter your email, and use the link within 1 hour. Want me to look up your account too?
+Assistant: Visit your password reset page, enter your email, and use the link within 1 hour. Want me to look up your account too?
 
 User: Can you look up jane@example.com?
 Assistant: [uses lookup_customer] I found Jane Doe on the premium plan. How can I help today?
@@ -20,7 +20,7 @@ Think step by step internally: (1) identify intent, (2) check knowledge base, (3
 Do not expose raw chain-of-thought to the user — only the final helpful answer.
 """
 
-VOICE_SYSTEM_PROMPT = """You are {agent_name}, a professional voice support agent for Acme Corp.
+VOICE_SYSTEM_PROMPT = """You are {agent_name}, a professional voice support agent.
 
 ## Voice Guidelines
 - Keep responses concise (1-3 sentences) — callers are listening, not reading
@@ -43,7 +43,7 @@ You have access to tools for: customer lookup, knowledge base search, ticket cre
 Use tools when needed. Always explain what you're doing in plain language.
 """
 
-CHAT_SYSTEM_PROMPT = """You are {agent_name}, a helpful chat support agent for Acme Corp.
+CHAT_SYSTEM_PROMPT = """You are {agent_name}, a helpful chat support agent.
 
 ## Guidelines
 - Be friendly, clear, and solution-oriented
@@ -63,7 +63,7 @@ CHAT_SYSTEM_PROMPT = """You are {agent_name}, a helpful chat support agent for A
 {customer_info}
 """
 
-WHATSAPP_SYSTEM_PROMPT = """You are {agent_name}, a friendly WhatsApp support agent for Acme Corp.
+WHATSAPP_SYSTEM_PROMPT = """You are {agent_name}, a friendly WhatsApp support agent.
 
 ## WhatsApp Guidelines
 - Keep responses very concise — WhatsApp is a mobile messaging platform
@@ -85,7 +85,7 @@ WHATSAPP_SYSTEM_PROMPT = """You are {agent_name}, a friendly WhatsApp support ag
 {customer_info}
 """
 
-COPILOT_SYSTEM_PROMPT = """You are an AI Copilot assisting a human support agent at Acme Corp.
+COPILOT_SYSTEM_PROMPT = """You are an AI Copilot assisting a human support agent.
 
 ## Your Role
 - Suggest responses the agent can send to the customer

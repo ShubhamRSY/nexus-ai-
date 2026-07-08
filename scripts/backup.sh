@@ -47,6 +47,19 @@ backup_postgres() {
   echo "    => $(du -h "$dump_path" | cut -f1)"
 }
 
+backup_sqlite() {
+  local sqlite_path="$ROOT/data/nexus.db"
+  local out_path="$BACKUP_DIR/nexus-sqlite-$TIMESTAMP.db"
+  if [ ! -f "$sqlite_path" ]; then
+    echo "WARNING: SQLite DB not found at $sqlite_path. Skipping."
+    return 1
+  fi
+  echo "==> Backing up SQLite from $sqlite_path to $out_path"
+  cp -f "$sqlite_path" "$out_path"
+  chmod 600 "$out_path" || true
+  echo "    => $(du -h "$out_path" | cut -f1)"
+}
+
 backup_chroma() {
   local chroma_dir="${CHROMA_PERSIST_DIR:-$ROOT/data/chroma}"
   local archive_path="$BACKUP_DIR/nexus-chroma-$TIMESTAMP.tar.gz"
@@ -93,11 +106,20 @@ echo "  Nexus Backup — $TIMESTAMP"
 echo "=========================================="
 
 if [ "$DB_ONLY" = false ] && [ "$CHROMA_ONLY" = false ]; then
-  backup_postgres || true
+  # Backup whichever DB is in use.
+  if [ -n "${DATABASE_URL:-}" ]; then
+    backup_postgres || true
+  else
+    backup_sqlite || true
+  fi
   backup_chroma || true
   backup_config
 elif [ "$DB_ONLY" = true ]; then
-  backup_postgres || true
+  if [ -n "${DATABASE_URL:-}" ]; then
+    backup_postgres || true
+  else
+    backup_sqlite || true
+  fi
 elif [ "$CHROMA_ONLY" = true ]; then
   backup_chroma || true
 fi

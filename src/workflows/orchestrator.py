@@ -160,11 +160,11 @@ class AgentOrchestrator:
         # Greetings
         if lower in {"hi", "hie", "hello", "hey", "good morning", "good afternoon"}:
             response_text = (
-                "Hello! I'm your Acme support assistant. I can help with passwords, billing, "
+                "Hello! I'm your support assistant. I can help with passwords, billing, "
                 "API issues, and account lookups. What can I help you with today?"
             )
             if channel == "voice":
-                response_text = "Hello! Thanks for calling Acme Support. How can I help you today?"
+                response_text = "Hello! Thanks for calling support. How can I help you today?"
 
         # Escalation — voice agent or explicit manager/human request
         elif any(k in lower for k in ["manager", "human", "representative", "transfer", "speak to"]) and "transfer_to_human" in TOOL_REGISTRY:

@@ -2396,6 +2396,9 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           </div>
         </div>
         <button type="submit" class="auth-submit" id="loginSubmit">Sign in</button>
+        <button type="button" class="auth-submit" id="oidcLoginBtn" style="display:none;margin-top:0.6rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.16)">
+          Sign in with SSO
+        </button>
       </form>
       <form class="auth-form" id="registerForm" autocomplete="on">
         <div class="field">
@@ -4722,6 +4725,18 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
     document.body.dataset.mode = 'chat';
     (async () => {
       authUser = loadStoredUser();
+      // OIDC SSO button (shown only when configured on the server)
+      try {
+        const res = await fetch(`${API}/auth/oidc/config`);
+        const cfg = await res.json().catch(() => ({}));
+        const btn = document.getElementById('oidcLoginBtn');
+        if (btn && cfg && cfg.enabled) {
+          btn.style.display = 'block';
+          btn.addEventListener('click', () => {
+            window.location.href = `${API}/auth/oidc/login`;
+          });
+        }
+      } catch {}
       const ok = await verifyAuthSession();
       if (ok) {
         hideAuthGate();

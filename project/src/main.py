@@ -15,6 +15,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.api.auth_routes import router as auth_router
+from src.api.oidc_routes import router as oidc_router
 from src.api.chat_routes import router as chat_router
 from src.api.kb_routes import router as kb_router
 from src.api.telephony_routes import router as telephony_router
@@ -102,6 +103,7 @@ async def track_active_requests(request, call_next):
 
 # Domain routers — all under /api/v1
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(oidc_router, prefix="/api/v1")
 app.include_router(chat_router, prefix="/api/v1")
 app.include_router(kb_router, prefix="/api/v1")
 app.include_router(telephony_router, prefix="/api/v1")

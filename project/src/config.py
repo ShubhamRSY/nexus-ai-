@@ -95,6 +95,22 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     cors_origins: str = "*"
 
+    # --- OIDC SSO (enterprise auth) ---
+    oidc_enabled: bool = False
+    # Issuer base URL, e.g. https://YOUR_DOMAIN/ (Auth0) or https://login.microsoftonline.com/<tenant>/v2.0
+    oidc_issuer_url: str = ""
+    oidc_client_id: str = ""
+    oidc_client_secret: str = ""
+    # Where the IdP redirects back (must match provider config)
+    oidc_redirect_uri: str = ""
+    # Space-separated scopes, must include openid email
+    oidc_scopes: str = "openid profile email"
+    # Provisioning defaults
+    oidc_default_tenant_id: str = "default"
+    oidc_default_role: str = "agent"
+    # Comma-separated admin email domains; matching users get admin role
+    oidc_admin_domains: str = ""
+
     @property
     def is_production(self) -> bool:
         return self.app_env.strip().lower() == "production"

@@ -117,6 +117,34 @@ class TestOrchestratorCopilot:
         orch = AgentOrchestrator("chat_support")
         assert orch._detect_copilot_assist_type("Draft a polite reply") == "draft"
 
+    @pytest.mark.asyncio
+    async def test_copilot_mock_summarize_uses_async_tools(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "")
+        from src.config import reload_settings
+        reload_settings()
+        from src.workflows.orchestrator import AgentOrchestrator
+
+        orch = AgentOrchestrator("copilot")
+        result = await orch.invoke(
+            "Summarize this conversation for handoff",
+            extra_context="Customer asked about billing twice and requested a supervisor.",
+        )
+        assert result["metrics"]["assist_type"] == "summary"
+        assert "Conversation summary" in result["response"]
+        assert any(tc["name"] == "summarize_conversation" for tc in result["tool_calls"])
+
+    @pytest.mark.asyncio
+    async def test_chat_mock_kb_search_uses_async_tools(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "")
+        from src.config import reload_settings
+        reload_settings()
+        from src.workflows.orchestrator import AgentOrchestrator
+
+        orch = AgentOrchestrator("chat_support")
+        result = await orch.invoke("How do I reset my password?")
+        assert result["response"]
+        assert any(tc["name"] == "search_knowledge_base" for tc in result["tool_calls"])
+
 
 class TestOrchestratorReset:
     def test_reset_clears_history(self, mock_settings):

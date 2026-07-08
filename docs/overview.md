@@ -1,6 +1,32 @@
 # Nexus Overview
 
-> **Nexus** is an open-source, enterprise-grade omnichannel AI agent platform that unifies chat, copilot, and voice into a single orchestration runtime.
+> **Nexus** is an open-source, enterprise-grade **Agentic CX** platform — purpose-built AI agents for customer experience, unified across **chat**, **copilot**, and **voice** with one orchestrator, one knowledge layer (RAG), and one operational control plane.
+
+---
+
+## What We Do (and how we transform CX)
+
+Nexus enables organizations to deploy specialized AI agents that autonomously execute work across the CX lifecycle — while keeping humans in the loop where needed.
+
+### AI Agents for Customers
+
+Resolve customer inquiries end-to-end across **voice and chat**, from intake and authentication to execution and follow-up.
+
+### AI Agents for Frontline Teams (Copilot)
+
+Support human agents in real time with the right context, next-best actions, and high-quality drafted responses — reducing handle time and errors.
+
+### AI Agents for Operations
+
+Evaluate interactions, surface quality and safety insights, and create a continuous improvement loop across both human and AI agents.
+
+---
+
+## Outcomes Nexus Is Built To Deliver
+
+- **Faster, better resolutions**: always-on support with grounded answers and fewer escalations.
+- **Speed, accuracy, and consistency**: copilot guidance + guardrails reduce variance and mistakes.
+- **Operate CX with full visibility**: health, analytics, logs, and observability hooks so you can measure and improve outcomes.
 
 ---
 

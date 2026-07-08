@@ -124,20 +124,21 @@ def main() -> None:
     add_bullets(
         "Problem & Outcome",
         [
-            "Support teams lose context across chat/voice/internal tools.",
-            "Nexus provides one orchestrator and one console for all channels.",
+            "CX teams lose speed and accuracy when chat, voice, and internal tools are siloed.",
+            "Nexus provides one orchestrator and one console for customer + agent workflows across channels.",
+            "Outcomes: faster resolutions, consistent quality, and full operational visibility.",
             "Production baseline: HTTPS, JWT auth, rate limiting, audit logging, backups, systemd operation.",
         ],
         note="Frame the problem in contact-center language (AHT, CSAT, escalations, handoffs).",
     )
 
     add_bullets(
-        "What We Built",
+        "What We Do (Agentic CX)",
         [
-            "Chat: customer conversation + sessions + tool-calling",
-            "Copilot: agent-assist drafting / summarization for humans",
-            "Voice: simulation + telephony hooks (Twilio-ready)",
-            "RAG: Chroma persistence for knowledge retrieval",
+            "AI Agents for Customers: resolve chat/voice inquiries end-to-end (intake → execute → follow-up)",
+            "AI Agents for Frontline Teams: copilot assistance with context + next-best actions + drafts",
+            "AI Agents for Operations: evaluation, insights, and continuous improvement loops",
+            "Shared knowledge layer: RAG retrieval with persistence (Chroma), citations, and guardrails",
         ],
     )
 

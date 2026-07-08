@@ -2,8 +2,8 @@
 
 # Nexus
 
-**Open-source omnichannel AI agent platform for contact centers.**  
-One orchestrator routing chat, copilot, and voice conversations — with RAG, multi-LLM support, SSE streaming, and WebSocket streaming.
+**Purpose-built AI agents. One CX platform. (Open-source)**  
+Nexus is an omnichannel AI agent platform for customer experience teams — one orchestrator for **Chat**, **Copilot**, and **Voice**, grounded with **RAG**, protected by **JWT auth + guardrails**, and built for **operations** (streaming, rate limits, logs, backups).
 
 [![CI](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
@@ -34,7 +34,7 @@ One orchestrator routing chat, copilot, and voice conversations — with RAG, mu
 
 ## What Is Nexus?
 
-Customer support teams lose context switching between channels — chat, phone, email, and internal tools each live in separate silos. Nexus solves this with a single AI-powered orchestrator that handles every conversation from one runtime, with one knowledge base, and one feedback loop to improve responses over time.
+Customer experience (CX) teams lose time and accuracy when chat, voice, and internal tooling live in separate silos. Nexus solves this with a single AI-powered runtime that can resolve interactions, assist frontline agents, and improve operations — all from one console and one orchestration engine.
 
 **Three channels, one engine:**
 
@@ -45,6 +45,18 @@ Customer support teams lose context switching between channels — chat, phone, 
 | **Voice** | PSTN calls via Twilio, Amazon Connect, or any SIP/CCaaS. Live STT, AI TTS. |
 
 > **No API key required.** Without `OPENAI_API_KEY`, Nexus falls back to a mock LLM — the console, voice simulator, smoke tests, and all 109+ unit tests work immediately.
+
+**What we do (and how it transforms CX)**
+
+- **AI Agents for Customers**: resolve customer inquiries end-to-end across chat and voice — from intake and authentication to execution and follow-up.
+- **AI Agents for Frontline Teams (Copilot)**: guide interactions in real time with the right context, next-best actions, and draft responses that reduce handle time and errors.
+- **AI Agents for Operations**: evaluate interactions, surface insights, and enable continuous improvement (quality + safety) across both human and AI agents.
+
+**AI-driven outcomes**
+
+- **Faster, better resolutions**: always-on support with consistent answers grounded in your knowledge base.
+- **Speed + accuracy + consistency**: reduce errors and handle time with copilot assistance and guardrails.
+- **Operate CX with full visibility**: health, logs, analytics, and (optional) observability integrations to continuously improve performance.
 
 ---
 

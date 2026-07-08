@@ -93,7 +93,7 @@ add_rect(s, Inches(0.8), Inches(3.0), Inches(1.5), Pt(5), BLUE)
 add_text(s, Inches(0.8), Inches(1.8), Inches(11), Inches(1.2),
          "Nexus", size=64, color=WHITE_TEXT, bold=True)
 add_text(s, Inches(0.8), Inches(3.4), Inches(11), Inches(0.6),
-         "Open-Source Omnichannel AI Agent Platform", size=22, color=RGBColor(0x90, 0xAA, 0xCC))
+         "Purpose-built AI agents. One CX platform. (Open-source)", size=20, color=RGBColor(0x90, 0xAA, 0xCC))
 add_text(s, Inches(0.8), Inches(4.3), Inches(11), Inches(0.4),
          "Chat  ·  Copilot  ·  Voice  —  One Orchestrator", size=16, color=RGBColor(0x70, 0x90, 0xB0))
 add_text(s, Inches(0.8), Inches(5.5), Inches(11), Inches(0.4),
@@ -104,12 +104,13 @@ s = prs.slides.add_slide(prs.slide_layouts[6])
 slide_header(s, 1, "Overview", "What Is Nexus?")
 
 add_text(s, Inches(0.8), Inches(2.0), Inches(11.5), Inches(4.5),
-         "Nexus is an open-source omnichannel AI agent platform for customer support. "
-         "It solves the problem of fragmented support tools by providing a single AI-powered "
-         "orchestrator that handles conversations across chat, copilot, and voice from one runtime.\n\n"
-         "One knowledge base, one feedback loop, one console — no more switching between siloed systems. "
-         "Nexus ships with a built-in mock LLM so the entire platform runs without any API keys, "
-         "making it fully functional for local development and testing out of the box.",
+         "Nexus is an open-source Agentic CX platform for customer experience teams. "
+         "It solves the problem of fragmented support tools by providing a single AI-powered orchestrator "
+         "that runs customer and agent workflows across chat, copilot, and voice.\n\n"
+         "Purpose-built agents can resolve customer inquiries end-to-end, guide frontline teams in real time, "
+         "and support operations with evaluation and insights — all grounded with a shared knowledge layer (RAG).\n\n"
+         "Nexus ships with a built-in mock LLM so the platform runs without any API keys, making it fully functional "
+         "for local development and testing out of the box.",
          size=15, color=DARK_TEXT)
 
 # ════════════════════ SLIDE 3: CHANNELS ════════════════════

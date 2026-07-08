@@ -60,6 +60,23 @@ Customer experience (CX) teams lose time and accuracy when chat, voice, and inte
 
 ---
 
+## Commercial / Hosted Nexus (coming soon)
+
+Nexus is open-source, but a hosted/enterprise offering is planned for teams that want managed operations and advanced CX workflows.
+
+**Planned hosted features**
+
+- **Managed deployments** (updates, backups, monitoring, alerts)
+- **SSO / enterprise auth** (SAML/OIDC) + user provisioning
+- **Advanced analytics & QA** (evaluation dashboards, coaching insights, quality scoring)
+- **Premium integrations** (CRM/ticketing/telephony connectors) and reliability tooling
+
+**Branding**
+
+- The **Nexus** name/logo/branding are trademarks. See [`project/TRADEMARKS.md`](project/TRADEMARKS.md).
+
+---
+
 ## Nexus Concepts
 
 Nexus is organized around a small set of primitives so you can reason about the system (and extend it safely) without needing to learn every file at once.

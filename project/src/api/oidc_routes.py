@@ -14,7 +14,7 @@ from urllib.parse import urlencode
 import httpx
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from src.auth import create_jwt, hash_password
 from src.config import get_settings
@@ -99,7 +99,6 @@ async def oidc_callback(request: Request, code: str | None = None, state: str | 
         return _oidc_fail("oidc_missing_code")
 
     cookie_state = request.cookies.get("oidc_state")
-    cookie_nonce = request.cookies.get("oidc_nonce")
     if not cookie_state or cookie_state != state:
         return _oidc_fail("oidc_bad_state")
 

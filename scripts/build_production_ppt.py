@@ -100,7 +100,7 @@ def main() -> None:
         left = Inches(0.8)
         top = Inches(1.4)
         height = Inches(5.2)
-        pic = slide.shapes.add_picture(str(img.path), left, top, height=height)
+        slide.shapes.add_picture(str(img.path), left, top, height=height)
 
         # Caption
         tx = slide.shapes.add_textbox(Inches(0.8), Inches(6.7), Inches(12.0), Inches(0.5))

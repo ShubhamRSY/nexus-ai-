@@ -1,6 +1,7 @@
 """API tests for integrations credentials vault."""
 
 import json
+import uuid
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,21 @@ from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
 from src.integrations.secrets_vault import SecretsVault
+
+
+def _register_admin(client: TestClient) -> dict[str, str]:
+    """Return Authorization headers for a fresh admin user."""
+    suffix = uuid.uuid4().hex[:8]
+    reg = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"integrations-admin-{suffix}@example.com",
+            "password": "AdminPass123!",
+            "name": "Integrations Admin",
+        },
+    )
+    assert reg.status_code == 200, reg.text
+    return {"Authorization": f"Bearer {reg.json()['token']}"}
 
 
 @pytest.fixture
@@ -24,7 +40,9 @@ def vault_client(monkeypatch, tmp_path: Path):
     from src.main import app
 
     reload_settings()
-    return TestClient(app)
+    client = TestClient(app)
+    client.admin_headers = _register_admin(client)
+    return client
 
 
 class TestIntegrationsAPI:
@@ -39,6 +57,7 @@ class TestIntegrationsAPI:
         res = vault_client.put(
             "/api/v1/integrations/credentials",
             json={"openai_api_key": "sk-ui-saved-key-12345678"},
+            headers=vault_client.admin_headers,
         )
         assert res.status_code == 200
         assert res.json()["providers"]["openai"]["configured"] is True
@@ -55,6 +74,7 @@ class TestIntegrationsAPI:
                 "event_type": "conversation.started",
                 "url": "https://hooks.zapier.com/hooks/catch/test/123",
             },
+            headers=vault_client.admin_headers,
         )
         assert res.status_code == 200
 
@@ -78,5 +98,22 @@ class TestIntegrationsAPI:
             "/api/v1/integrations/credentials",
             json={"hubspot_api_key": "pat-test"},
             headers={"X-Settings-Token": "secret-admin-token"},
+        )
+        assert res.status_code == 401
+
+        res = vault_client.put(
+            "/api/v1/integrations/credentials",
+            json={"hubspot_api_key": "pat-test"},
+            headers=vault_client.admin_headers,
+        )
+        assert res.status_code == 401
+
+        res = vault_client.put(
+            "/api/v1/integrations/credentials",
+            json={"hubspot_api_key": "pat-test"},
+            headers={
+                **vault_client.admin_headers,
+                "X-Settings-Token": "secret-admin-token",
+            },
         )
         assert res.status_code == 200

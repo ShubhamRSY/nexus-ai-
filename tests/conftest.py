@@ -26,6 +26,7 @@ def force_mock_llm(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     monkeypatch.setenv("DEMO_MODE", "true")
     monkeypatch.setenv("AUTH_REQUIRED", "false")
+    monkeypatch.setenv("ALLOW_REGISTRATION", "true")
     monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.setenv("VAULT_ADDR", "")
     monkeypatch.setenv("VAULT_TOKEN", "")

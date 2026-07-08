@@ -147,13 +147,46 @@ docker compose -f deploy/docker/docker-compose.yml up
 docker compose -f deploy/docker/docker-compose.yml --profile backup up
 ```
 
-**Free hosting ($0/month):** See [`project/docs/deploy-oracle-duckdns.md`](project/docs/deploy-oracle-duckdns.md) for Oracle Cloud + DuckDNS step-by-step.
+**Free hosting ($0/month):** Oracle Cloud + DuckDNS guide: [`project/docs/deploy-oracle-duckdns.md`](project/docs/deploy-oracle-duckdns.md)
 
 ---
 
 ## Architecture
 
-Full architecture → [`project/docs/overview.md`](project/docs/overview.md#architecture).
+```text
+                          ┌─────────────┐
+                          │   Caddy     │  ← TLS termination, rate limiting
+                          │  (reverse   │
+                          │   proxy)    │
+                          └──────┬──────┘
+                                 │
+                          ┌──────▼──────┐
+                          │   FastAPI   │  ← Auth, CORS, tenant, rate limit middleware
+                          │   (Nexus)   │
+                          └──┬───┬───┬──┘
+                             │   │   │
+              ┌──────────────┤   │   ├──────────────┐
+              │              │   │   │              │
+       ┌──────▼──────┐ ┌────▼───▼───▼────┐ ┌───────▼──────┐
+       │   Chat      │ │   Orchestrator  │ │   Voice      │
+       │   Copilot   │ │  (LangGraph)    │ │  (Twilio)    │
+       │   SSE/WS    │ │  RAG + Guardrails│ │  STT/TTS     │
+       └──────┬──────┘ └────┬───┬───┬────┘ └──────┬───────┘
+              │             │   │   │              │
+              └─────────────┘   │   └──────────────┘
+                                │
+                    ┌───────────┼───────────┐
+                    │           │           │
+              ┌─────▼────┐ ┌───▼───┐ ┌─────▼────┐
+              │ Postgres │ │ Redis │ │ ChromaDB │
+              │ (SQLite  │ │(cache+│ │ (vector  │
+              │   dev)   │ │queue) │ │  store)  │
+              └──────────┘ └───────┘ └──────────┘
+```
+
+Nexus follows a layered design: channel routers handle chat/copilot/voice inputs, the orchestrator manages session state and prompt construction, and services provide RAG + integrations behind guardrails.
+
+Deeper architecture doc: [`project/docs/overview.md`](project/docs/overview.md#architecture)
 
 ---
 

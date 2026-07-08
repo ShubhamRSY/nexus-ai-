@@ -7,7 +7,7 @@ Nexus is an omnichannel AI agent platform for customer experience teams — one 
 
 [![CI](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: AGPLv3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-109%20unit%20passing-brightgreen.svg)](tests/)
 
 </div>
@@ -63,6 +63,11 @@ Customer experience (CX) teams lose time and accuracy when chat, voice, and inte
 ## Commercial / Hosted Nexus (coming soon)
 
 Nexus is open-source, but a hosted/enterprise offering is planned for teams that want managed operations and advanced CX workflows.
+
+**Licensing**
+
+- **Open-source**: AGPLv3 (`project/LICENSE`)
+- **Commercial license**: available for closed-source/proprietary usage — see [`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md)
 
 **Planned hosted features**
 

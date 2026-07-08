@@ -235,13 +235,14 @@ class TestRAGUserJourney:
 class TestIntegrationsJourney:
     """iPaaS webhook registration."""
 
-    def test_register_webhook(self, client):
+    def test_register_webhook(self, client, admin_headers):
         res = client.post(
             "/api/v1/integrations/webhooks",
             json={
                 "event_type": "conversation.started",
                 "url": "https://hooks.example.com/voice-agents",
             },
+            headers=admin_headers,
         )
         assert res.status_code == 200
         assert res.json()["status"] == "registered"

@@ -477,7 +477,11 @@ class TestWhatsApp:
 # ── 16. AUTH ENDPOINTS ─────────────────────────────────────────────────
 
 class TestAuth:
+    DEMO_ADMIN_EMAIL = "admin@acme.com"
+    DEMO_ADMIN_PASSWORD = "admin123"
+
     def test_auth_register(self, client):
+        """Public signup is closed once bootstrap/demo users exist."""
         fresh = httpx.Client(base_url=BASE, timeout=15)
         email = f"e2e-reg-{uuid.uuid4().hex[:12]}@test.com"
         r = fresh.post("/auth/register", json={
@@ -487,24 +491,31 @@ class TestAuth:
             "tenant_name": "E2E Test",
         })
         fresh.close()
-        assert r.status_code == 200, f"Register: {r.status_code} {r.text[:200]}"
-        d = r.json()
-        assert "token" in d
+        assert r.status_code == 403, f"Register: {r.status_code} {r.text[:200]}"
+        assert "Registration is closed" in r.json()["detail"]
 
     def test_auth_login_after_register(self, client):
+        """Admin creates a user, then the new user can log in."""
         fresh = httpx.Client(base_url=BASE, timeout=15)
-        email = f"e2e-login-{uuid.uuid4().hex[:12]}@test.com"
-        r = fresh.post("/auth/register", json={
-            "email": email,
-            "password": "testpass123",
-            "name": "Login Test",
-            "tenant_name": "Login Test",
+        r = fresh.post("/auth/login", json={
+            "email": self.DEMO_ADMIN_EMAIL,
+            "password": self.DEMO_ADMIN_PASSWORD,
         })
-        assert r.status_code == 200, f"Register: {r.status_code} {r.text[:200]}"
+        assert r.status_code == 200, f"Admin login: {r.status_code} {r.text[:200]}"
+        admin_headers = {"Authorization": f"Bearer {r.json()['token']}"}
+
+        email = f"e2e-login-{uuid.uuid4().hex[:12]}@test.com"
+        password = "testpass123"
+        r = fresh.post(
+            "/admin/users",
+            json={"email": email, "password": password, "name": "Login Test", "role": "agent"},
+            headers=admin_headers,
+        )
+        assert r.status_code == 200, f"Create user: {r.status_code} {r.text[:200]}"
 
         r = fresh.post("/auth/login", json={
             "email": email,
-            "password": "testpass123",
+            "password": password,
         })
         fresh.close()
         assert r.status_code == 200, f"Login: {r.status_code} {r.text[:200]}"

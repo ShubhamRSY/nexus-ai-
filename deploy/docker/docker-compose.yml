@@ -85,7 +85,11 @@ services:
     environment:
       DATABASE_URL: postgresql://nexus:${POSTGRES_PASSWORD:-nexus}@postgres:5432/nexus
       REDIS_URL: redis://redis:6379/0
-      CORS_ORIGINS: ${CORS_ORIGINS:-https://your-domain.com}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://${DOMAIN}}
+      TWILIO_WEBHOOK_BASE_URL: ${TWILIO_WEBHOOK_BASE_URL:-https://${DOMAIN}}
+      APP_ENV: production
+      AUTH_REQUIRED: "true"
+      DEMO_MODE: "false"
     depends_on:
       postgres:
         condition: service_healthy

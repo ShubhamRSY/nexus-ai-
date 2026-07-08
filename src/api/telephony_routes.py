@@ -13,6 +13,7 @@ from src.workflows.orchestrator import AgentOrchestrator
 from src.telephony.call_router import CallMetadata
 from src.telephony.stt import transcribe_audio
 from src.telephony.tts import synthesize_speech
+from src.telephony.security import require_twilio_signature
 from src.telephony.twiml_parser import parse_twiml
 from src.api.deps import (
     VoiceSimulateRequest, SpeakRequest,
@@ -29,17 +30,26 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 @router.post("/telephony/voice/inbound")
-async def voice_inbound(request: Request):
+async def voice_inbound(
+    request: Request,
+    _: None = Depends(require_twilio_signature),
+):
     return await voice_handler.handle_inbound(request)
 
 
 @router.post("/telephony/voice/process")
-async def voice_process(request: Request):
+async def voice_process(
+    request: Request,
+    _: None = Depends(require_twilio_signature),
+):
     return await voice_handler.handle_process(request)
 
 
 @router.post("/telephony/voice/status")
-async def voice_status(request: Request) -> dict[str, Any]:
+async def voice_status(
+    request: Request,
+    _: None = Depends(require_twilio_signature),
+) -> dict[str, Any]:
     return await voice_handler.handle_status_callback(request)
 
 

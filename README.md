@@ -94,6 +94,9 @@ pip install -e ".[dev]"
 # 4. Copy the environment template (no edits needed to start)
 cp config/environment/.env.example config/environment/.env
 
+# Optional: enable demo users and sample KB for local exploration
+# echo "DEMO_MODE=true" >> config/environment/.env
+
 # 5. Start the server
 uvicorn src.main:app --reload --port 8001
 ```
@@ -129,6 +132,8 @@ docker compose -f deploy/docker/docker-compose.yml up
 docker compose -f deploy/docker/docker-compose.yml --profile backup up
 ```
 
+**Free hosting ($0/month):** See [docs/deploy-oracle-duckdns.md](docs/deploy-oracle-duckdns.md) for Oracle Cloud + DuckDNS step-by-step.
+
 This starts:
 - **Caddy** — TLS termination, rate limiting, security headers, JSON access logs
 - **PostgreSQL 16** — persistent volume, health checks, auto-extensions
@@ -148,6 +153,9 @@ This starts:
 | `OTEL_ENDPOINT` | No | — | OpenTelemetry collector |
 | `VAULT_ADDR` | No | — | HashiCorp Vault URL |
 | `CORS_ORIGINS` | No | `*` | Set to your domain in production |
+| `APP_ENV` | No | `development` | Set to `production` to disable docs and demo reset |
+| `AUTH_REQUIRED` | No | `false` | Set to `true` in production |
+| `DEMO_MODE` | No | `false` | Set to `true` for local demo users/KB |
 | `BACKUP_S3_BUCKET` | No | — | S3 bucket for offsite backups |
 
 Full reference: [`config/environment/.env.example`](config/environment/.env.example)

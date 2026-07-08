@@ -136,6 +136,11 @@ DEMO_USERS = [
 
 
 def seed_demo_data() -> None:
+    settings = get_settings()
+    if not settings.demo_mode:
+        logger.debug("demo_seed_skipped", reason="DEMO_MODE is not enabled")
+        return
+
     from src.database import db
 
     tenant = db.get_tenant(DEMO_TENANT_ID)

@@ -57,6 +57,8 @@ class Settings(BaseSettings):
 
     jwt_secret: str = ""
     auth_required: bool = False
+    demo_mode: bool = False
+    app_env: str = "development"
     rate_limit_rpm: int = 60
 
     slack_webhook_url: str = ""
@@ -89,6 +91,10 @@ class Settings(BaseSettings):
     app_port: int = 8001
     log_level: str = "INFO"
     cors_origins: str = "*"
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env.strip().lower() == "production"
 
 
 @lru_cache

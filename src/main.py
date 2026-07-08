@@ -18,7 +18,7 @@ from src.api.telephony_routes import router as telephony_router
 from src.api.integration_routes import router as integration_router_mod
 from src.api.ops_routes import router as ops_router
 from src.api.deps import integration_router
-from src.auth import seed_demo_data
+from src.auth import decode_jwt, seed_demo_data
 from src.config import ROOT_DIR, get_settings, reload_settings
 from src.database import init_db
 from src.integrations.secrets_vault import get_secrets_vault
@@ -49,7 +49,9 @@ async def lifespan(app: FastAPI):
         port=settings.app_port,
         openai_configured=bool(settings.openai_api_key),
         vault_enabled=get_secrets_vault().path.exists(),
-        demo_data_seeded=True,
+        demo_mode=settings.demo_mode,
+        auth_required=settings.auth_required,
+        app_env=settings.app_env,
         background_queue=True,
         sentry=bool(settings.sentry_dsn),
         otel=bool(settings.otel_endpoint),
@@ -59,14 +61,18 @@ async def lifespan(app: FastAPI):
     logger.info("shutting_down")
 
 
+settings = get_settings()
+_docs_enabled = not settings.is_production
+
 app = FastAPI(
     title="Nexus · Enterprise Voice & Chat AI Agents",
     description="Production-grade omnichannel AI agent platform with multi-tenant auth, streaming, analytics, and enterprise integrations.",
     version="2.0.0",
     lifespan=lifespan,
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
 )
-
-settings = get_settings()
 
 # Middleware stack
 app.add_middleware(
@@ -106,8 +112,33 @@ if STATIC_DIR.exists():
 # WebSocket streaming endpoint
 # ---------------------------------------------------------------------------
 
+def _extract_ws_token(websocket: WebSocket) -> str | None:
+    token = websocket.query_params.get("token")
+    if token:
+        return token
+    auth_header = websocket.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header[7:].strip()
+    return None
+
+
+async def _authorize_websocket(websocket: WebSocket) -> bool:
+    settings = get_settings()
+    if not settings.auth_required:
+        return True
+
+    token = _extract_ws_token(websocket)
+    if not token or decode_jwt(token) is None:
+        await websocket.close(code=4401, reason="Authentication required")
+        return False
+    return True
+
+
 @app.websocket("/api/v1/chat/stream")
 async def chat_stream(websocket: WebSocket):
+    if not await _authorize_websocket(websocket):
+        return
+
     await websocket.accept()
     session_id = "default"
     agent_id = "chat_support"
@@ -176,10 +207,11 @@ async def ui():
 
 @app.get("/api/v1")
 async def api_root():
+    settings = get_settings()
     return {
         "service": "Nexus Enterprise AI Agents",
         "version": "2.0.0",
-        "docs": "/docs",
+        "docs": "/docs" if not settings.is_production else None,
         "health": "/api/v1/health",
     }
 

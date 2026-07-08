@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from structlog import get_logger
 
 from src.auth import AuthContext, require_auth
@@ -238,12 +238,17 @@ async def receive_event(body: WebhookEventRequest) -> dict:
 
 @router.post("/demo/reset")
 async def reset_demo(ctx: Any = Depends(require_auth_dep)) -> dict:
+    settings = get_settings()
+    if settings.is_production:
+        raise HTTPException(status_code=404, detail="Not found")
+    if not settings.demo_mode:
+        raise HTTPException(status_code=404, detail="Not found")
+
     from src.auth import seed_demo_data
 
     tenant_id = ctx.tenant_id if ctx else "demo-acme"
 
     if ctx and ctx.tenant_id != "demo-acme":
-        from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Demo reset only available for demo tenant")
 
     with get_connection() as conn:

@@ -1,12 +1,13 @@
 """Integration tests for REST API endpoints using TestClient."""
 
 import pytest
-from fastapi.testclient import TestClient
 
 
 @pytest.fixture
 def client():
     from src.main import app
+    from fastapi.testclient import TestClient
+
     return TestClient(app)
 
 

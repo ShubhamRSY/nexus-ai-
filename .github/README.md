@@ -86,7 +86,22 @@ Nexus is organized around a small set of primitives so you can reason about the 
 
 ## Recent Changes
 
-See `project/README.md` for the full changelog and deployment details.
+### v2.0.0 — Production Hardening (June 2026)
+
+| Change | Description |
+|--------|-------------|
+| **HTTPS/TLS** | Caddy reverse proxy with auto-HTTPS (Let's Encrypt), security headers, edge rate limiting |
+| **PostgreSQL + Redis** | Docker Compose with Postgres 16 (connection pooling), Redis 7, health checks, persistent volumes |
+| **Rate limiting** | Redis-backed sliding window with in-memory fallback, per-endpoint-group limits |
+| **CI with PostgreSQL** | CI runs tests against both SQLite and PostgreSQL; conditional LLM E2E tests |
+| **Zero-downtime deploys** | Gunicorn with preload, max-requests, graceful SIGHUP reload, config file |
+| **Structured logging** | File sink with rotation, Loki push support, JSON output for production |
+| **Secrets management** | HashiCorp Vault integration (optional, via `hvac`), layered credential resolution |
+| **Automated backups** | Backup script for PostgreSQL + ChromaDB with S3 upload, retention, cron scheduling |
+| **Load testing config** | 15 benchmark scenarios, concurrency profiles, performance budgets in `benchmarks.json` |
+| **Dependencies pinned** | All 28 runtime deps pinned to exact versions; ruff + mypy in dev group |
+| **Dockerfile optimized** | Multi-stage build -> gunicorn config, COPY safety, non-root user |
+| **109+ tests** | Full coverage: unit, integration, E2E, non-functional, security, concurrency |
 
 ---
 
@@ -112,7 +127,7 @@ cp config/environment/.env.example config/environment/.env
 uvicorn src.main:app --reload --port 8001
 ```
 
-Open `http://127.0.0.1:8001`.
+Open **[http://127.0.0.1:8001](http://127.0.0.1:8001)** — the Nexus console loads with a welcome screen, session sidebar, and channel selector.
 
 Production console (example): `https://yournexus.duckdns.org/`
 
@@ -120,17 +135,104 @@ Production console (example): `https://yournexus.duckdns.org/`
 
 ## Production Deployment
 
-See `project/docs/deploy-oracle-duckdns.md`.
+### Docker Compose (recommended)
+
+```bash
+cd voice-agents/project
+
+# Full stack with TLS, Postgres, Redis
+docker compose -f deploy/docker/docker-compose.yml up
+
+# Include automated backups
+docker compose -f deploy/docker/docker-compose.yml --profile backup up
+```
+
+**Free hosting ($0/month):** See [`project/docs/deploy-oracle-duckdns.md`](project/docs/deploy-oracle-duckdns.md) for Oracle Cloud + DuckDNS step-by-step.
 
 ---
 
 ## Architecture
 
-See `project/docs/overview.md`.
+Full architecture → [`project/docs/overview.md`](project/docs/overview.md#architecture).
 
 ---
 
-## Features / API / Testing / Contributing / License
+## Features
 
-See the full documentation in `project/README.md`.
+- **Omnichannel** — unified console for chat, copilot, and voice with per-mode message filtering and sync toggle
+- **Multi-LLM** — OpenAI GPT-4o, Anthropic Claude 3.5, Google Gemini 2.0 — switch per agent
+- **Live streaming** — SSE (`GET /api/v1/chat/sse`) and WebSocket (`ws://.../chat/stream`) deliver tokens word-by-word
+- **RAG citations** — vector-based retrieval augments every response with source-grounded knowledge
+- **Voice (PSTN)** — Twilio, Amazon Connect, generic SIP/CCaaS with STT/TTS pipeline
+- **Feedback engine** — CSAT ratings dynamically tune agent temperature and RAG thresholds
+- **Encrypted vault** — AES-256-GCM for API keys and integration credentials at rest
+- **Session management** — history sidebar, rename, new/clear session
+- **iPaaS webhooks** — lifecycle events for n8n/Zapier
+- **Production infrastructure** — TLS termination, PostgreSQL, Redis, structured logging, automated backups
+
+---
+
+## API Overview
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/register` | Register a new tenant + admin user |
+| POST | `/api/v1/auth/login` | Login, receive JWT |
+| GET | `/api/v1/auth/me` | Current user info |
+| POST | `/api/v1/chat` | Send message, get AI response |
+| GET | `/api/v1/chat/sse` | SSE streaming chat (token-by-token) |
+| WS | `/api/v1/chat/stream` | WebSocket streaming chat |
+| POST | `/api/v1/copilot` | Agent-assist: transcript → suggested reply |
+| GET | `/api/v1/health` | Health check (no auth) |
+
+Full reference at `/docs` when the server is running.
+
+---
+
+## Testing
+
+```bash
+cd voice-agents/project
+
+# Unit & integration tests
+pytest tests/ --ignore=tests/e2e --timeout=60 -v
+
+# Lint + type check
+ruff check src/ scripts/
+mypy src/
+```
+
+---
+
+## Contributing
+
+1. Fork the repo and create a branch from `main`
+2. Run tests locally with `pytest tests/`
+3. Lint with `ruff check src/ scripts/`
+4. Run type check with `mypy src/`
+5. Submit a pull request
+
+All contributions — features, bug fixes, docs, tests — are welcome.
+
+---
+
+## Keeping `main` Safe
+
+**Branch protection (recommended)**
+
+- Protect `main` and require PRs (no direct pushes).
+- Require status checks to pass (CI / tests / lint / typecheck).
+- Require at least 1 review approval.
+- Enable “Require branches to be up to date before merging”.
+
+**Secrets hygiene**
+
+- Never commit `.env` files. Use `project/config/environment/.env.example` as the source of truth.
+- Treat production credentials as external (Vault, secret manager, or CI secrets) — not repo files.
+
+---
+
+## License
+
+[MIT](project/LICENSE) © [Shubham RSY](https://github.com/ShubhamRSY)
 

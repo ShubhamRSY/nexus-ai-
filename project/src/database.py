@@ -4,6 +4,7 @@ Supports database migrations and optional ChromaDB vector store backup.
 """
 
 import json
+import re
 import sqlite3
 import threading
 import time
@@ -22,6 +23,100 @@ _db_engine = None
 _pg_pool = None
 _db_initialized = False
 _db_lock = threading.Lock()
+
+
+def _adapt_sql_for_pg(sql: str) -> str:
+    """Translate SQLite-style SQL to PostgreSQL."""
+    text = sql.strip()
+    upper = re.sub(r"\s+", " ", text).upper()
+    if "INSERT OR IGNORE" in upper:
+        text = re.sub(r"(?i)INSERT\s+OR\s+IGNORE", "INSERT", text)
+        if " INTO TENANTS " in f" {upper} ":
+            text = text.rstrip(";") + " ON CONFLICT (id) DO NOTHING"
+        elif " INTO USERS " in f" {upper} ":
+            text = text.rstrip(";") + " ON CONFLICT (id) DO NOTHING"
+    return text.replace("?", "%s")
+
+
+def _insert_returns_id(sql: str) -> bool:
+    upper = re.sub(r"\s+", " ", sql).upper()
+    return (
+        upper.startswith("INSERT")
+        and "RETURNING" not in upper
+        and any(token in upper for token in ("INTO MESSAGES", "INTO KNOWLEDGE_ARTICLES", "INTO CSAT_SURVEYS"))
+    )
+
+
+class _PgExecuteResult:
+    """SQLite-compatible result wrapper for PostgreSQL cursors."""
+
+    def __init__(
+        self,
+        *,
+        rowcount: int = 0,
+        lastrowid: int | None = None,
+        prefetch_one=None,
+        prefetch_all: list | None = None,
+    ):
+        self.rowcount = rowcount
+        self.lastrowid = lastrowid
+        self._prefetch_one = prefetch_one
+        self._prefetch_all = prefetch_all
+        self._one_consumed = False
+
+    def fetchone(self):
+        if self._prefetch_all is not None:
+            return self._prefetch_all[0] if self._prefetch_all else None
+        if self._one_consumed:
+            return None
+        self._one_consumed = True
+        return self._prefetch_one
+
+    def fetchall(self):
+        if self._prefetch_all is not None:
+            return self._prefetch_all
+        return [self._prefetch_one] if self._prefetch_one is not None else []
+
+
+class _PgConnectionWrapper:
+    """Expose sqlite3-like conn.execute() on psycopg2 connections."""
+
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, sql, params=()):
+        from psycopg2.extras import RealDictCursor
+
+        adapted = _adapt_sql_for_pg(sql)
+        returning = _insert_returns_id(adapted)
+        if returning:
+            adapted = adapted.rstrip(";") + " RETURNING id"
+        cur = self._conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(adapted, params or ())
+        rowcount = cur.rowcount
+        if returning:
+            row = cur.fetchone()
+            cur.close()
+            return _PgExecuteResult(rowcount=rowcount, lastrowid=int(row["id"]) if row else None)
+        if adapted.lstrip().upper().startswith("SELECT"):
+            rows = cur.fetchall()
+            cur.close()
+            return _PgExecuteResult(
+                rowcount=rowcount,
+                prefetch_one=rows[0] if rows else None,
+                prefetch_all=rows,
+            )
+        cur.close()
+        return _PgExecuteResult(rowcount=rowcount)
+
+    def commit(self) -> None:
+        self._conn.commit()
+
+    def rollback(self) -> None:
+        self._conn.rollback()
+
+    def cursor(self, *args, **kwargs):
+        return self._conn.cursor(*args, **kwargs)
 
 
 def _get_pg_pool():
@@ -51,7 +146,7 @@ def _get_connection_unchecked():
         conn = pool.getconn()
         try:
             conn.autocommit = True
-            yield conn
+            yield _PgConnectionWrapper(conn)
         finally:
             pool.putconn(conn)
         return

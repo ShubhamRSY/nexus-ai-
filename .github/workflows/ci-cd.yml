@@ -184,6 +184,14 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Smoke test Docker image
+        run: |
+          docker run -d -p 8000:8000 --name nexus-test ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          sleep 5
+          docker logs nexus-test 2>&1 || true
+          curl -sf http://localhost:8000/api/v1/health || { echo "Health check failed"; docker logs nexus-test; exit 1; }
+          echo "Smoke test passed"
+          docker stop nexus-test && docker rm nexus-test
 
   deploy:
     runs-on: ubuntu-latest
@@ -199,5 +207,5 @@ jobs:
           script: |
             cd /opt/nexus
             docker compose pull nexus
-            docker compose up -d --no-deps --build nexus
+            docker compose up -d --no-deps nexus
             docker image prune -f

@@ -72,6 +72,7 @@ services:
 
   # ── Application ──────────────────────────────────────────────
   nexus:
+    image: ghcr.io/shubhamrsy/nexus-ai:latest
     build:
       context: ../..
       dockerfile: deploy/docker/Dockerfile

@@ -124,7 +124,7 @@ def _get_pg_pool():
     global _pg_pool
     if _pg_pool is None:
         try:
-            import psycopg2.pool  # type: ignore[import-untyped]
+            import psycopg2.pool
             settings = get_settings()
             _pg_pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn=2,

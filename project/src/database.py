@@ -370,13 +370,22 @@ def _run_sqlite_migrations(conn, current: int) -> None:
         logger.info("migration_003_applied")
 
     if current < 4:
-        conn.executescript("""
-            ALTER TABLE sessions ADD COLUMN assigned_to TEXT DEFAULT '';
-            ALTER TABLE sessions ADD COLUMN escalation_reason TEXT DEFAULT '';
-            ALTER TABLE sessions ADD COLUMN priority TEXT NOT NULL DEFAULT 'normal';
-            ALTER TABLE sessions ADD COLUMN locale TEXT DEFAULT 'en';
-            ALTER TABLE sessions ADD COLUMN handoff_status TEXT NOT NULL DEFAULT 'ai';
+        for col_sql in (
+            "ALTER TABLE sessions ADD COLUMN assigned_to TEXT DEFAULT ''",
+            "ALTER TABLE sessions ADD COLUMN escalation_reason TEXT DEFAULT ''",
+            "ALTER TABLE sessions ADD COLUMN priority TEXT NOT NULL DEFAULT 'normal'",
+            "ALTER TABLE sessions ADD COLUMN locale TEXT DEFAULT 'en'",
+            "ALTER TABLE sessions ADD COLUMN handoff_status TEXT NOT NULL DEFAULT 'ai'",
+        ):
+            try:
+                conn.execute(col_sql)
+            except sqlite3.OperationalError as e:
+                if "duplicate column" in str(e):
+                    logger.warning("column_already_exists", column=col_sql)
+                else:
+                    raise
 
+        conn.executescript("""
             CREATE TABLE IF NOT EXISTS tickets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 tenant_id TEXT NOT NULL REFERENCES tenants(id),
@@ -531,11 +540,20 @@ def _run_sqlite_migrations(conn, current: int) -> None:
         logger.info("migration_006_applied")
 
     if current < 7:
-        conn.executescript("""
-            ALTER TABLE tenant_subscriptions ADD COLUMN stripe_customer_id TEXT DEFAULT '';
-            ALTER TABLE tenant_subscriptions ADD COLUMN stripe_subscription_id TEXT DEFAULT '';
-            ALTER TABLE tenant_subscriptions ADD COLUMN trial_ends_at REAL;
+        for col_sql in (
+            "ALTER TABLE tenant_subscriptions ADD COLUMN stripe_customer_id TEXT DEFAULT ''",
+            "ALTER TABLE tenant_subscriptions ADD COLUMN stripe_subscription_id TEXT DEFAULT ''",
+            "ALTER TABLE tenant_subscriptions ADD COLUMN trial_ends_at REAL",
+        ):
+            try:
+                conn.execute(col_sql)
+            except sqlite3.OperationalError as e:
+                if "duplicate column" in str(e):
+                    logger.warning("column_already_exists", column=col_sql)
+                else:
+                    raise
 
+        conn.executescript("""
             CREATE TABLE IF NOT EXISTS saas_signup_pending (
                 id TEXT PRIMARY KEY,
                 email TEXT NOT NULL,

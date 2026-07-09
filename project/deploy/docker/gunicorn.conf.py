@@ -29,7 +29,8 @@ max_requests = int(os.getenv("GUNICORN_MAX_REQUESTS", "10000"))
 max_requests_jitter = int(os.getenv("GUNICORN_MAX_REQUESTS_JITTER", "1000"))
 
 # Preload app for faster worker spawn
-preload_app = True
+# Disabled on resource-constrained VMs where module-level I/O (chromadb, etc.) can hang boot
+preload_app = False
 
 # Logging
 loglevel = os.getenv("LOG_LEVEL", "info").lower()

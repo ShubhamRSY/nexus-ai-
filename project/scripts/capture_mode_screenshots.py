@@ -65,6 +65,7 @@ def main() -> None:
                   id: 'user-screenshot', email: 'demo@nexus.io', name: 'Demo User',
                   role: 'admin', tenant_id: 'default'
                 }));
+                localStorage.setItem('nexus_theme', 'dark');
             """)
 
             def _mock_me(route):
@@ -91,6 +92,13 @@ def main() -> None:
 
         page.wait_for_selector("#headerModes", timeout=30_000)
         page.wait_for_selector("#appShell", timeout=30_000)
+        # Force dark theme (default UI is dark; avoids light screenshots on macOS)
+        page.evaluate("""
+            () => {
+              localStorage.setItem('nexus_theme', 'dark');
+              document.body.dataset.theme = '';
+            }
+        """)
         time.sleep(2)
 
         for mode, filename in modes:

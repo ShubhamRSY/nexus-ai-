@@ -196,6 +196,32 @@ class SecretsVault:
             for event in WEBHOOK_EVENTS
         }
 
+    def diagnostics(self) -> dict[str, Any]:
+        """Report whether the vault file can be decrypted with the current key."""
+        exists = self.path.exists()
+        decrypt_ok = True
+        key_source = "generated"
+        if os.environ.get(KEY_ENV, "").strip():
+            key_source = "env"
+        elif VAULT_KEY_FILE.exists():
+            key_source = "file"
+
+        if exists:
+            try:
+                raw = self.path.read_bytes()
+                if raw:
+                    self._fernet.decrypt(raw)
+            except InvalidToken:
+                decrypt_ok = False
+
+        return {
+            "path": str(self.path),
+            "file_exists": exists,
+            "decrypt_ok": decrypt_ok,
+            "key_source": key_source,
+            "operational": (not exists) or decrypt_ok,
+        }
+
 
 @lru_cache
 def get_secrets_vault() -> SecretsVault:

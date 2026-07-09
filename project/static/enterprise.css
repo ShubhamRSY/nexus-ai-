@@ -1,0 +1,47 @@
+body[data-mode="enterprise"] #cxEnterprisePanel { display: flex; }
+
+body[data-mode="enterprise"] #chatColumn,
+body[data-mode="enterprise"] .copilot-transcript-pane,
+body[data-mode="enterprise"] #chatInput,
+body[data-mode="enterprise"] #voiceInput,
+body[data-mode="enterprise"] #cxInboxPanel,
+body[data-mode="enterprise"] #cxAnalyticsPanel,
+body[data-mode="enterprise"] #cxEmailPanel,
+body[data-mode="enterprise"] #cxTicketsPanel,
+body[data-mode="enterprise"] #cxWorkflowsPanel { display: none !important; }
+
+body[data-mode="enterprise"] #cxEnterprisePanel { display: flex !important; }
+
+.ent-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.ent-nav-btn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.ent-nav-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.ent-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.ent-status-btn { text-transform: capitalize; }

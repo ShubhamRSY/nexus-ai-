@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus Cloud — Start your free trial</title>
+  <link rel="stylesheet" href="/static/cx.css" />
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #050508; color: #f4f4f5; margin: 0; min-height: 100vh; }
+    .hero { text-align: center; padding: 2.5rem 1rem 1rem; background: linear-gradient(180deg, rgba(56,189,248,0.12), transparent); }
+    .hero h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin: 0 0 0.5rem; }
+    .hero p { color: #a1a1aa; max-width: 520px; margin: 0 auto 1.5rem; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 0 1rem 3rem; }
+    .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .plan { background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.25rem; cursor: pointer; transition: border-color 0.2s; }
+    .plan:hover, .plan.selected { border-color: #38bdf8; background: rgba(56,189,248,0.08); }
+    .plan h3 { margin: 0 0 0.25rem; }
+    .plan .price { font-size: 1.75rem; font-weight: 700; color: #38bdf8; }
+    .plan .meta { font-size: 0.85rem; color: #a1a1aa; margin-top: 0.75rem; }
+    .form-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; max-width: 480px; margin: 0 auto; }
+    label { display: block; font-size: 0.8rem; color: #a1a1aa; margin-bottom: 0.35rem; }
+    input { width: 100%; box-sizing: border-box; padding: 0.65rem 0.75rem; margin-bottom: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #0c0c12; color: #fff; font: inherit; }
+    .btn { width: 100%; padding: 0.85rem; border: none; border-radius: 10px; background: #38bdf8; color: #050508; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .err { color: #f87171; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .ok { text-align: center; padding: 3rem 1rem; }
+    .ok a { color: #38bdf8; }
+    .back { display: inline-block; margin-bottom: 1rem; color: #a1a1aa; text-decoration: none; font-size: 0.9rem; }
+    .back:hover { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <a class="back" href="/">← Back to console</a>
+    <h1>Nexus Cloud</h1>
+    <p>Hosted AI contact center — provision your workspace in under 60 seconds. 14-day free trial, no credit card required unless Stripe billing is enabled.</p>
+  </div>
+
+  <div class="wrap" id="signupFlow">
+    <div class="plans" id="plansGrid"></div>
+    <div class="form-card">
+      <div class="err" id="errBox" hidden></div>
+      <label>Company name</label>
+      <input type="text" id="company" placeholder="Acme Inc" required />
+      <label>Your name</label>
+      <input type="text" id="name" placeholder="Alex Admin" required />
+      <label>Work email</label>
+      <input type="email" id="email" placeholder="you@company.com" required />
+      <label>Password</label>
+      <input type="password" id="password" placeholder="At least 8 characters" minlength="8" required />
+      <label style="display:flex;align-items:flex-start;gap:0.5rem;font-size:0.85rem;color:#d4d4d8;margin-bottom:1rem">
+        <input type="checkbox" id="acceptTerms" style="width:auto;margin:0.2rem 0 0" required />
+        <span>I agree to the <a href="/legal/terms" target="_blank" style="color:#38bdf8">Terms of Service</a> and <a href="/legal/privacy" target="_blank" style="color:#38bdf8">Privacy Policy</a>.</span>
+      </label>
+      <button type="button" class="btn" id="submitBtn">Start free trial</button>
+    </div>
+  </div>
+
+  <div class="wrap ok" id="successView" hidden>
+    <h2>You're all set!</h2>
+    <p id="successMsg">Your workspace is being provisioned…</p>
+    <p><a href="/" id="goConsole">Open Nexus console →</a></p>
+  </div>
+
+  <script>
+    const API = '/api/v1';
+    let selectedPlan = 'starter';
+    let config = {};
+
+    function showErr(msg) {
+      const el = document.getElementById('errBox');
+      el.textContent = msg || '';
+      el.hidden = !msg;
+    }
+
+    async function loadConfig() {
+      const res = await fetch(`${API}/saas/signup/config`);
+      config = await res.json();
+      const grid = document.getElementById('plansGrid');
+      grid.innerHTML = (config.plans || []).map((p) => `
+        <div class="plan${p.id === selectedPlan ? ' selected' : ''}" data-plan="${p.id}">
+          <h3>${p.name}</h3>
+          <div class="price">$${p.price_monthly}<span style="font-size:0.9rem;font-weight:400;color:#a1a1aa">/mo</span></div>
+          <div class="meta">${p.agents} agents · ${Array.isArray(p.channels) ? p.channels.join(', ') : p.channels}</div>
+          <div class="meta">${p.trial_days || 14}-day trial</div>
+        </div>`).join('');
+      grid.querySelectorAll('.plan').forEach((el) => {
+        el.addEventListener('click', () => {
+          selectedPlan = el.dataset.plan;
+          grid.querySelectorAll('.plan').forEach((p) => p.classList.toggle('selected', p.dataset.plan === selectedPlan));
+        });
+      });
+      if (!config.enabled) {
+        showErr('Sign-up is temporarily disabled.');
+        document.getElementById('submitBtn').disabled = true;
+      }
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      showErr('');
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Provisioning…';
+      try {
+        const res = await fetch(`${API}/saas/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company_name: document.getElementById('company').value.trim(),
+            admin_name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value,
+            plan_id: selectedPlan,
+            accept_terms: document.getElementById('acceptTerms').checked,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Signup failed');
+
+        if (data.status === 'checkout_required') {
+          window.location.href = data.checkout_url;
+          return;
+        }
+
+        if (data.token) {
+          localStorage.setItem('nexus_auth_token', data.token);
+          localStorage.setItem('nexus_auth_user', JSON.stringify(data.user));
+        }
+        document.getElementById('signupFlow').hidden = true;
+        document.getElementById('successView').hidden = false;
+        document.getElementById('successMsg').textContent =
+          `Workspace ${data.tenant_id} is live on Nexus Cloud (${data.plan_id} plan, ${data.subscription_status || data.status}).`;
+      } catch (e) {
+        showErr(e.message);
+        btn.disabled = false;
+        btn.textContent = 'Start free trial';
+      }
+    });
+
+    async function handleStripeReturn() {
+      const params = new URLSearchParams(location.search);
+      if (params.get('canceled')) {
+        showErr('Checkout canceled — you can try again.');
+        return;
+      }
+      const pending = params.get('pending');
+      if (!params.get('success') || !pending) return;
+
+      document.getElementById('signupFlow').hidden = true;
+      document.getElementById('successView').hidden = false;
+      document.getElementById('successMsg').textContent = 'Payment received — provisioning your workspace…';
+
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const st = await fetch(`${API}/saas/signup/status?pending_id=${encodeURIComponent(pending)}`).then((r) => r.json());
+        if (st.completed) {
+          document.getElementById('successMsg').textContent =
+            'Workspace provisioned! Sign in with the email and password you used at checkout.';
+          return;
+        }
+      }
+      document.getElementById('successMsg').textContent =
+        'Provisioning is taking longer than usual. Check your email or contact support.';
+    }
+
+    loadConfig();
+    handleStripeReturn();
+  </script>
+</body>
+</html>

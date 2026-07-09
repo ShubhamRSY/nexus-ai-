@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 import structlog
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -22,6 +22,10 @@ from src.api.telephony_routes import router as telephony_router
 from src.api.integration_routes import router as integration_router_mod
 from src.api.admin_routes import router as admin_router
 from src.api.ops_routes import router as ops_router
+from src.api.cx_routes import router as cx_router
+from src.api.enterprise_routes import router as enterprise_router
+from src.api.portal_routes import router as portal_router
+from src.api.saas_routes import router as saas_router
 from src.api.deps import integration_router
 from src.auth import decode_jwt, seed_demo_data
 from src.config import ROOT_DIR, get_settings, reload_settings
@@ -53,7 +57,7 @@ async def lifespan(app: FastAPI):
         host=settings.app_host,
         port=settings.app_port,
         openai_configured=bool(settings.openai_api_key),
-        vault_enabled=get_secrets_vault().path.exists(),
+        vault=get_secrets_vault().diagnostics(),
         demo_mode=settings.demo_mode,
         auth_required=settings.auth_required,
         app_env=settings.app_env,
@@ -101,6 +105,10 @@ app.include_router(telephony_router, prefix="/api/v1")
 app.include_router(integration_router_mod, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(ops_router, prefix="/api/v1")
+app.include_router(cx_router, prefix="/api/v1")
+app.include_router(enterprise_router, prefix="/api/v1")
+app.include_router(portal_router, prefix="/api/v1")
+app.include_router(saas_router, prefix="/api/v1")
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -194,6 +202,46 @@ async def chat_stream(websocket: WebSocket):
 # ---------------------------------------------------------------------------
 # UI and root
 # ---------------------------------------------------------------------------
+
+@app.get("/signup")
+async def signup_ui():
+    page = STATIC_DIR / "signup.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache, must-revalidate"})
+    return {"message": "Signup page not found", "api": "/api/v1/saas/signup"}
+
+
+@app.get("/legal/terms")
+async def legal_terms():
+    page = STATIC_DIR / "legal" / "terms.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache, must-revalidate"})
+    raise HTTPException(status_code=404, detail="Terms not found")
+
+
+@app.get("/legal/privacy")
+async def legal_privacy():
+    page = STATIC_DIR / "legal" / "privacy.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache, must-revalidate"})
+    raise HTTPException(status_code=404, detail="Privacy policy not found")
+
+
+@app.get("/legal/licensing")
+async def legal_licensing():
+    page = STATIC_DIR / "legal" / "licensing.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache, must-revalidate"})
+    return {"message": "See COMMERCIAL_LICENSE.md", "startup": "$12,000/year", "growth": "$36,000/year", "enterprise": "from $96,000/year"}
+
+
+@app.get("/portal")
+async def portal_ui():
+    portal = STATIC_DIR / "portal.html"
+    if portal.exists():
+        return FileResponse(portal, headers={"Cache-Control": "no-cache, must-revalidate"})
+    return {"message": "Portal not found", "api": "/api/v1/portal"}
+
 
 @app.get("/")
 async def ui():

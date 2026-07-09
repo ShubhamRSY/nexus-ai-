@@ -52,8 +52,43 @@ def search_knowledge_base(query: str) -> str:
 @tool
 async def create_ticket(subject: str, description: str, customer_id: str = "unknown") -> str:
     """Create a support ticket for unresolved issues."""
-    ticket = await _crm.create_ticket(subject, description, customer_id)
-    return json.dumps({"created": True, "ticket": ticket})
+    from src.database import db
+    from src.integrations.webhooks import IntegrationRouter
+    from src.request_context import get_request_session_id, get_request_tenant_id
+
+    ticket_crm = await _crm.create_ticket(subject, description, customer_id)
+    session_id = get_request_session_id()
+    tenant_id = get_request_tenant_id()
+
+    from src.integrations.zendesk import ZendeskClient
+    from src.integrations.jira import JiraClient
+
+    zendesk = await ZendeskClient().create_ticket(subject, description, customer_id if "@" in customer_id else "")
+    jira = await JiraClient().create_issue(subject, description)
+
+    external_ids = ",".join(filter(None, [
+        str(ticket_crm.get("id", "")),
+        str(zendesk.get("id", "")),
+        str(jira.get("key", "")),
+    ]))
+    local = db.create_ticket(
+        tenant_id,
+        subject,
+        description,
+        session_id=session_id,
+        customer_id=customer_id,
+        external_id=external_ids,
+    )
+    router = IntegrationRouter()
+    await router.on_ticket_created({**local, "crm": ticket_crm, "zendesk": zendesk, "jira": jira})
+    from src.workflows.automation import run_workflows
+    session = db.get_session(session_id) if session_id else None
+    await run_workflows(tenant_id, "ticket.created", {
+        "session_id": session_id,
+        "subject": subject,
+        "channel": session.get("channel", "chat") if session else "chat",
+    })
+    return json.dumps({"created": True, "ticket": local, "crm": ticket_crm, "zendesk": zendesk, "jira": jira})
 
 
 @tool
@@ -71,13 +106,30 @@ async def transfer_to_human(reason: str) -> str:
     Triggers an outbound webhook event for CCaaS integration, SIP REFER, or
     queue insertion so the platform can actually route the caller to an agent.
     """
+    from src.database import db
     from src.integrations.webhooks import IntegrationRouter
+    from src.request_context import get_request_session_id, get_request_tenant_id
+
+    session_id = get_request_session_id()
+    tenant_id = get_request_tenant_id()
+    if session_id:
+        db.escalate_session(session_id, reason)
+
+    from src.workflows.automation import run_workflows
+    session = db.get_session(session_id) if session_id else None
+    await run_workflows(tenant_id, "conversation.escalated", {
+        "session_id": session_id,
+        "reason": reason,
+        "channel": session.get("channel", "chat") if session else "chat",
+    })
 
     router = IntegrationRouter()
-    await router.on_escalation(session_id="", reason=reason)
+    await router.on_escalation(session_id, reason)
+    db.log_audit(tenant_id, None, "handoff.escalated", "session", {"session_id": session_id, "reason": reason})
     return json.dumps({
         "action": "transfer",
         "reason": reason,
+        "session_id": session_id,
         "message": "Connecting you with a specialist now.",
         "transferred": True,
     })

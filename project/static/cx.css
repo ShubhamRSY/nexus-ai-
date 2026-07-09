@@ -1,0 +1,379 @@
+/* CX platform panels — inbox, analytics, email, feedback */
+
+.cx-panel {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.25rem 1.5rem 1.5rem;
+  overflow: hidden;
+}
+
+body[data-mode="inbox"] #cxInboxPanel,
+body[data-mode="analytics"] #cxAnalyticsPanel,
+body[data-mode="email"] #cxEmailPanel,
+body[data-mode="tickets"] #cxTicketsPanel,
+body[data-mode="workflows"] #cxWorkflowsPanel {
+  display: flex;
+}
+
+body[data-mode="inbox"] #chatColumn,
+body[data-mode="analytics"] #chatColumn,
+body[data-mode="email"] #chatColumn,
+body[data-mode="tickets"] #chatColumn,
+body[data-mode="workflows"] #chatColumn,
+body[data-mode="inbox"] .copilot-transcript-pane,
+body[data-mode="analytics"] .copilot-transcript-pane,
+body[data-mode="email"] .copilot-transcript-pane,
+body[data-mode="tickets"] .copilot-transcript-pane,
+body[data-mode="workflows"] .copilot-transcript-pane,
+body[data-mode="inbox"] #chatInput,
+body[data-mode="inbox"] #voiceInput,
+body[data-mode="analytics"] #chatInput,
+body[data-mode="analytics"] #voiceInput,
+body[data-mode="email"] #chatInput,
+body[data-mode="email"] #voiceInput,
+body[data-mode="tickets"] #chatInput,
+body[data-mode="tickets"] #voiceInput,
+body[data-mode="workflows"] #chatInput,
+body[data-mode="workflows"] #voiceInput {
+  display: none !important;
+}
+
+.cx-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.cx-panel-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.cx-panel-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cx-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cx-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+}
+
+.cx-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.cx-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cx-split {
+  display: grid;
+  grid-template-columns: minmax(220px, 340px) 1fr;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 900px) {
+  .cx-split { grid-template-columns: 1fr; }
+}
+
+.cx-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.cx-list-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.cx-list-item:hover,
+.cx-list-item.active {
+  background: var(--surface-hover);
+}
+
+.cx-list-item .meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.cx-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  margin-left: 0.35rem;
+}
+
+.cx-badge.queued { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+.cx-badge.human_active { background: rgba(56, 189, 248, 0.2); color: var(--accent); }
+.cx-badge.resolved { background: rgba(52, 211, 153, 0.2); color: var(--success); }
+
+.cx-detail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.cx-thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cx-msg {
+  max-width: 85%;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.cx-msg.user { align-self: flex-start; background: var(--surface-2); }
+.cx-msg.assistant, .cx-msg.agent { align-self: flex-end; background: var(--accent-soft); border: 1px solid rgba(56,189,248,0.25); }
+
+.cx-reply-bar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.cx-reply-bar textarea {
+  flex: 1;
+  resize: none;
+  min-height: 44px;
+  max-height: 120px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+}
+
+.cx-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* CSAT / NPS modal */
+.cx-feedback-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.cx-feedback-modal[hidden] { display: none; }
+
+.cx-feedback-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.cx-feedback-card {
+  position: relative;
+  width: min(420px, 100%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.cx-feedback-card h3 { margin: 0 0 0.35rem; font-family: var(--font-display); }
+.cx-feedback-card p { margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.9rem; }
+
+.cx-stars, .cx-nps-row {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.cx-star-btn, .cx-nps-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.cx-star-btn:hover, .cx-nps-btn:hover,
+.cx-star-btn.active, .cx-nps-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.cx-feedback-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.tab[data-mode="inbox"] .tab-icon,
+.tab[data-mode="analytics"] .tab-icon,
+.tab[data-mode="email"] .tab-icon,
+.tab[data-mode="tickets"] .tab-icon,
+.tab[data-mode="workflows"] .tab-icon { opacity: 0.9; }
+
+.cx-section-title {
+  margin: 1.25rem 0 0.65rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.cx-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  padding: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.cx-chart-bar {
+  flex: 1;
+  min-width: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.cx-chart-fill {
+  width: 100%;
+  max-width: 24px;
+  background: linear-gradient(180deg, var(--accent), rgba(56,189,248,0.35));
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+}
+
+.cx-ticket-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cx-ticket-status {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+}
+
+.cx-flow-builder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.cx-flow-node {
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+}
+
+.cx-flow-node.trigger { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.35); }
+.cx-flow-node.condition { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.35); }
+.cx-flow-node.action { background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.35); }
+
+.cx-flow-arrow { color: var(--text-muted); font-weight: 700; }
+
+.cx-flow-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cx-flow-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.cx-flow-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+

@@ -149,8 +149,10 @@ Open in your browser:
 
 - **Website:** `https://yournexus.duckdns.org`
 - **Health:** `https://yournexus.duckdns.org/api/v1/health`
+- **Nexus Cloud sign-up:** `https://yournexus.duckdns.org/signup`
+- **Legal:** `/legal/terms`, `/legal/privacy`, `/legal/licensing`
 
-Register your first admin account:
+Register your first admin account (bootstrap only — public registration closes after first user unless `ALLOW_REGISTRATION=true`):
 
 ```bash
 curl -X POST https://yournexus.duckdns.org/api/v1/auth/register \

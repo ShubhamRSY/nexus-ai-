@@ -91,3 +91,59 @@ async def me(ctx: AuthContext = Depends(require_auth)) -> dict:
         "role": ctx.role,
         "is_admin": ctx.is_admin(),
     }
+
+
+@router.get("/auth/demo/config")
+async def demo_config() -> dict:
+    from src.config import get_settings
+    settings = get_settings()
+    return {
+        "enabled": settings.allow_guest_demo or settings.demo_mode,
+        "demo_mode": settings.demo_mode,
+        "live_url": settings.twilio_webhook_base_url or "",
+    }
+
+
+@router.post("/auth/demo-login")
+async def demo_login() -> dict[str, Any]:
+    """One-click sandbox login for try-it-now on the login screen."""
+    from fastapi import HTTPException
+    from src.config import get_settings
+    from src.auth import DEMO_TENANT_ID, DEMO_USERS, seed_demo_data
+
+    settings = get_settings()
+    if not settings.allow_guest_demo and not settings.demo_mode:
+        raise HTTPException(status_code=403, detail="Guest demo is disabled")
+
+    if settings.demo_mode:
+        seed_demo_data()
+
+    demo_user = DEMO_USERS[1]  # agent@acme.com
+    user = db.get_user_by_email(demo_user["email"])
+    if not user:
+        db.create_tenant(DEMO_TENANT_ID, "Acme Demo", "demo-acme")
+        db.create_user(
+            demo_user["id"], DEMO_TENANT_ID, demo_user["email"],
+            hash_password(demo_user["password"]), demo_user["name"], demo_user["role"],
+        )
+        user = db.get_user_by_email(demo_user["email"])
+
+    token = create_jwt({
+        "sub": user["id"],
+        "tenant_id": user["tenant_id"],
+        "email": user["email"],
+        "name": user["name"],
+        "role": user["role"],
+    })
+    db.log_audit(user["tenant_id"], user["id"], "auth.login.success", "user", {"method": "demo"})
+    return {
+        "token": token,
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "name": user["name"],
+            "role": user["role"],
+            "tenant_id": user["tenant_id"],
+        },
+        "sandbox": True,
+    }

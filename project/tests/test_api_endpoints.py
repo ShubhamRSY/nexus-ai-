@@ -16,7 +16,7 @@ class TestHealth:
         res = client.get("/api/v1/health")
         assert res.status_code == 200
         body = res.json()
-        assert body["status"] == "healthy"
+        assert body["status"] in ("healthy", "degraded")
         assert "service" in body
 
     def test_metrics_endpoint(self, client):
@@ -286,3 +286,39 @@ class TestWebSocket:
             ws.send_json({"message": "Hello", "agent_id": "nonexistent"})
             data = ws.receive_json()
             assert "error" in data.get("type", "").lower() or data.get("type") == "error"
+
+
+class TestSaasSignup:
+    def test_signup_config(self, client):
+        res = client.get("/api/v1/saas/signup/config")
+        assert res.status_code == 200
+        body = res.json()
+        assert "plans" in body
+        assert len(body["plans"]) >= 3
+
+    def test_signup_provisions_workspace(self, client):
+        import uuid
+        suffix = uuid.uuid4().hex[:8]
+        email = f"saas-{suffix}@example.com"
+        res = client.post("/api/v1/saas/signup", json={
+            "company_name": f"Test Co {suffix}",
+            "admin_name": "SaaS Admin",
+            "email": email,
+            "password": "SecurePass123!",
+            "plan_id": "starter",
+            "accept_terms": True,
+        })
+        assert res.status_code == 200, res.text
+        body = res.json()
+        assert body["status"] == "provisioned"
+        assert body["token"]
+        assert body["tenant_id"].startswith("tenant-")
+
+        me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {body['token']}"})
+        assert me.status_code == 200
+        assert me.json()["email"] == email
+
+    def test_signup_page(self, client):
+        res = client.get("/signup")
+        assert res.status_code == 200
+        assert "Nexus Cloud" in res.text

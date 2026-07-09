@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexus · Customer Portal</title>
+  <link rel="stylesheet" href="/static/cx.css" />
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0c0c12; color: #f4f4f5; margin: 0; padding: 2rem 1rem; }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    p.sub { color: #a1a1aa; margin-top: 0; }
+    .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.25rem; margin: 1rem 0; }
+    input, textarea, button { font: inherit; }
+    input, textarea { width: 100%; box-sizing: border-box; padding: 0.6rem 0.75rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: #050508; color: #f4f4f5; margin: 0.35rem 0 0.75rem; }
+    button { background: #38bdf8; color: #050508; border: none; padding: 0.65rem 1.2rem; border-radius: 10px; font-weight: 600; cursor: pointer; }
+    button.ghost { background: transparent; color: #a1a1aa; border: 1px solid rgba(255,255,255,0.15); }
+    .tabs { display: flex; gap: 0.5rem; margin: 1.25rem 0; flex-wrap: wrap; }
+    .tabs button { background: rgba(255,255,255,0.06); color: #f4f4f5; }
+    .tabs button.active { background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.45); color: #38bdf8; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .result { white-space: pre-wrap; font-size: 0.9rem; color: #d4d4d8; margin-top: 0.75rem; }
+    a { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Help Center</h1>
+    <p class="sub">Search articles, submit a ticket, or track an existing request.</p>
+    <p class="sub"><a href="/">← Agent console</a></p>
+
+    <div class="tabs">
+      <button type="button" class="active" data-panel="search">Search KB</button>
+      <button type="button" data-panel="ticket">New ticket</button>
+      <button type="button" data-panel="track">Track ticket</button>
+      <button type="button" data-panel="cobrowse">Co-browse</button>
+    </div>
+
+    <div class="card panel active" id="panel-search">
+      <label>How can we help?</label>
+      <input type="text" id="searchQuery" placeholder="e.g. reset password, billing" />
+      <button type="button" id="searchBtn">Search</button>
+      <div class="result" id="searchResult"></div>
+    </div>
+
+    <div class="card panel" id="panel-ticket">
+      <label>Your email</label>
+      <input type="email" id="ticketEmail" placeholder="you@company.com" />
+      <label>Subject</label>
+      <input type="text" id="ticketSubject" placeholder="Brief summary" />
+      <label>Description</label>
+      <textarea id="ticketBody" rows="5" placeholder="Describe your issue…"></textarea>
+      <button type="button" id="ticketSubmit">Submit ticket</button>
+      <div class="result" id="ticketResult"></div>
+    </div>
+
+    <div class="card panel" id="panel-track">
+      <label>Ticket ID</label>
+      <input type="number" id="trackId" placeholder="123" />
+      <label>Your email</label>
+      <input type="email" id="trackEmail" placeholder="you@company.com" />
+      <button type="button" id="trackBtn">Look up</button>
+      <div class="result" id="trackResult"></div>
+    </div>
+
+    <div class="card panel" id="panel-cobrowse">
+      <p>Start a co-browsing session so an agent can guide you on screen.</p>
+      <label>Session code (your email or reference)</label>
+      <input type="text" id="cbToken" placeholder="you@company.com" />
+      <button type="button" id="cbStart">Start co-browse</button>
+      <div class="result" id="cbResult"></div>
+    </div>
+  </div>
+  <script>
+    const API = '/api/v1';
+    document.querySelectorAll('.tabs button').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tabs button').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+      });
+    });
+
+    async function post(path, body) {
+      const res = await fetch(API + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || 'Request failed');
+      return data;
+    }
+
+    document.getElementById('searchBtn').onclick = async () => {
+      const q = document.getElementById('searchQuery').value.trim();
+      if (!q) return;
+      const data = await post('/portal/kb/search', { query: q });
+      const arts = (data.articles || []).map((a) => `• ${a.title}`).join('\n') || 'No articles matched.';
+      document.getElementById('searchResult').textContent = (data.context || '').slice(0, 800) + '\n\n' + arts;
+    };
+
+    document.getElementById('ticketSubmit').onclick = async () => {
+      const data = await post('/portal/tickets', {
+        email: document.getElementById('ticketEmail').value.trim(),
+        subject: document.getElementById('ticketSubject').value.trim(),
+        description: document.getElementById('ticketBody').value.trim(),
+      });
+      document.getElementById('ticketResult').textContent = `Ticket #${data.ticket.id} created. Status: ${data.ticket.status}`;
+    };
+
+    document.getElementById('trackBtn').onclick = async () => {
+      const data = await post('/portal/tickets/lookup', {
+        ticket_id: Number(document.getElementById('trackId').value),
+        email: document.getElementById('trackEmail').value.trim(),
+      });
+      const t = data.ticket;
+      document.getElementById('trackResult').textContent = `#${t.id} ${t.subject}\nStatus: ${t.status}\nPriority: ${t.priority}`;
+    };
+
+    let cbWs = null;
+    document.getElementById('cbStart').onclick = async () => {
+      const token = document.getElementById('cbToken').value.trim();
+      if (!token) return;
+      const res = await fetch(API + '/portal/cobrowse/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer_token: token }),
+      });
+      const data = await res.json();
+      if (!res.ok) { document.getElementById('cbResult').textContent = data.detail || 'Start failed (agent login may be required)'; return; }
+      const sid = data.session.id;
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      cbWs = new WebSocket(`${proto}://${location.host}${data.join_url}`);
+      cbWs.onmessage = (e) => { document.getElementById('cbResult').textContent += '\nAgent: ' + e.data; };
+      document.getElementById('cbResult').textContent = `Session ${sid} started. Waiting for agent…`;
+    };
+  </script>
+</body>
+</html>

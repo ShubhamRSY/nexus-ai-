@@ -1,5 +1,6 @@
 """Application configuration loaded from environment and YAML."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,39 @@ ENV_DIR = CONFIG_DIR / "environment"
 DATA_DIR = ROOT_DIR / "data"
 ENV_FILE = ENV_DIR / ".env"
 EVALUATION_DIR = CONFIG_DIR / "evaluation"
+HF_CACHE_DIR = DATA_DIR / "hf_cache"
+
+
+def _path_is_writable(path: Path) -> bool:
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        probe = path / ".write_probe"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink(missing_ok=True)
+        return True
+    except OSError:
+        return False
+
+
+def ensure_hf_cache() -> Path:
+    """Point HuggingFace caches at a writable project directory.
+
+    Fixes broken placeholders like ``/Volumes/<YourDriveName>`` in .env that
+    cause PermissionError when sentence-transformers downloads models.
+    """
+    HF_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    default = str(HF_CACHE_DIR)
+    for var in ("HF_HOME", "SENTENCE_TRANSFORMERS_HOME", "TRANSFORMERS_CACHE", "HUGGINGFACE_HUB_CACHE"):
+        raw = os.environ.get(var, "").strip()
+        if not raw or "<" in raw or ">" in raw or not _path_is_writable(Path(raw)):
+            if raw and ("<" in raw or ">" in raw):
+                logger.warning("hf_cache_path_invalid", variable=var, path=raw, fallback=default)
+            os.environ[var] = default
+    return HF_CACHE_DIR
+
+
+# Run before any sentence-transformers / huggingface_hub import.
+ensure_hf_cache()
 
 
 def project_path(relative: str | Path) -> Path:
@@ -110,6 +144,46 @@ class Settings(BaseSettings):
     oidc_default_role: str = "agent"
     # Comma-separated admin email domains; matching users get admin role
     oidc_admin_domains: str = ""
+
+    # Email channel (SMTP outbound)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+
+    # Meta Messenger / Instagram
+    meta_page_access_token: str = ""
+    meta_verify_token: str = ""
+    meta_app_secret: str = ""
+
+    # Zendesk (also in vault)
+    # zendesk_api_key, zendesk_subdomain already above
+
+    # Jira
+    jira_base_url: str = ""
+    jira_user_email: str = ""
+    jira_api_token: str = ""
+    jira_project_key: str = "SUP"
+
+    # Guest demo sandbox on login screen
+    allow_guest_demo: bool = True
+
+    # Multi-region HA
+    primary_region: str = "us-east-1"
+    secondary_region: str = ""
+    ha_failover_enabled: bool = False
+    database_read_replica_url: str = ""
+    ha_peer_health_url: str = ""
+
+    # Compliance mode flags
+    hipaa_mode: bool = False
+
+    # Nexus Cloud SaaS
+    saas_signup_enabled: bool = True
+    app_public_url: str = "http://localhost:8001"
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
 
     @property
     def is_production(self) -> bool:

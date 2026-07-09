@@ -1,10 +1,14 @@
 """WhatsApp/SMS messaging channel via Twilio Messaging API."""
 
+import hashlib
+
 import httpx
 import structlog
 from fastapi import HTTPException
 
 from src.config import get_settings
+from src.database import db
+from src.request_context import set_request_context
 
 logger = structlog.get_logger()
 
@@ -65,15 +69,43 @@ class WhatsAppMessenger:
             }
 
     async def handle_inbound_webhook(self, form_data: dict) -> dict:
-        """Process incoming WhatsApp/SMS webhook from Twilio."""
+        """Process incoming WhatsApp/SMS webhook from Twilio and reply via AI or queue."""
+        from src.api.deps import get_session as get_orch_session
+        from src.integrations.translation import detect_locale, localize_response, translate_text
+
         from_number = form_data.get("From", "")
         to_number = form_data.get("To", "")
         body = form_data.get("Body", "")
         message_sid = form_data.get("MessageSid", "")
 
         channel = "whatsapp" if "whatsapp:" in from_number else "sms"
+        tenant_id = "default"
+        session_id = f"msg-{hashlib.md5(from_number.encode()).hexdigest()[:12]}"
+        locale = detect_locale(body)
 
         logger.info("incoming_message", channel=channel, from_=from_number, body=body[:100])
+
+        if not db.get_session(session_id):
+            db.create_session(session_id, tenant_id, "chat_support", channel, from_number)
+        db.update_session_locale(session_id, locale)
+
+        translated = await translate_text(body, target_locale="en", source_locale=locale)
+        inbound_text = translated["text"]
+
+        set_request_context(session_id=session_id, tenant_id=tenant_id)
+        orch = get_orch_session(session_id, "chat_support", tenant_id)
+        result = await orch.invoke(user_input=inbound_text, customer_info=from_number)
+        db.save_message(session_id, "user", body)
+        db.save_message(session_id, "assistant", result["response"], tool_calls=result.get("tool_calls", []))
+
+        session = db.get_session(session_id) or {}
+        reply = result["response"]
+        if session.get("handoff_status") == "queued":
+            reply = "Thanks for your message. A specialist will respond shortly."
+        else:
+            reply = await localize_response(reply, locale)
+
+        send_result = await self.send_message(from_number, reply, channel)
 
         return {
             "message_sid": message_sid,
@@ -81,4 +113,7 @@ class WhatsAppMessenger:
             "to": to_number,
             "body": body,
             "channel": channel,
+            "session_id": session_id,
+            "response": reply,
+            "send": send_result,
         }

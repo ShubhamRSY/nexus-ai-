@@ -35,6 +35,9 @@ class ChatResponse(BaseModel):
     agent_id: str = Field(description="Agent that handled the request")
     tool_calls: list[dict] = Field(default_factory=list, description="Tools invoked during processing")
     metrics: dict = Field(default_factory=dict, description="Response metrics (latency, mode, etc.)")
+    message_id: int | None = Field(None, description="Database ID of the assistant message (for thumbs feedback)")
+    session_id: str = Field("", description="Session ID for this conversation")
+    locale: str = Field("en", description="Detected customer locale")
 
 
 class CopilotRequest(BaseModel):

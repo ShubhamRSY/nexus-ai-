@@ -11,6 +11,8 @@ from structlog import get_logger
 from src.config import load_agent_config
 from src.database import db
 from src.workflows.orchestrator import AgentOrchestrator
+from src.request_context import set_request_context
+from src.integrations.translation import detect_locale, localize_response, translate_text
 from src.api.deps import (
     ChatRequest, ChatResponse, CopilotRequest, CSATRequest,
     _sessions, integration_router, require_auth, get_session,
@@ -31,19 +33,30 @@ async def chat(request: ChatRequest, ctx: Any = Depends(require_auth)) -> ChatRe
     session_id = request.session_id or f"session-{uuid.uuid4().hex[:12]}"
     orchestrator = get_session(session_id, request.agent_id, tenant_id)
 
+    locale = detect_locale(request.message)
+    translated = await translate_text(request.message, target_locale="en", source_locale=locale)
+    user_input = translated["text"]
+
+    set_request_context(session_id=session_id, tenant_id=tenant_id)
     result = await orchestrator.invoke(
-        user_input=request.message,
+        user_input=user_input,
         customer_info=request.customer_info or "No customer identified",
     )
 
     existing = db.get_session(session_id)
     if not existing:
         db.create_session(session_id, tenant_id, request.agent_id, "chat", request.customer_info)
+    db.update_session_locale(session_id, locale)
     db.save_message(session_id, "user", request.message)
-    db.save_message(
-        session_id, "assistant", result["response"],
+
+    response_text = result["response"]
+    if locale != "en":
+        response_text = await localize_response(response_text, locale)
+
+    msg_id = db.save_message(
+        session_id, "assistant", response_text,
         tool_calls=result.get("tool_calls", []),
-        metrics=result.get("metrics", {}),
+        metrics={**(result.get("metrics", {})), "locale": locale},
     )
     db.log_audit(tenant_id, ctx.user_id if ctx else None, "chat.message", "session", {
         "session_id": session_id, "agent_id": request.agent_id,
@@ -54,10 +67,13 @@ async def chat(request: ChatRequest, ctx: Any = Depends(require_auth)) -> ChatRe
     })
 
     return ChatResponse(
-        response=result["response"],
+        response=response_text,
         agent_id=result["agent_id"],
         tool_calls=result.get("tool_calls", []),
-        metrics=result.get("metrics", {}),
+        metrics={**(result.get("metrics", {})), "locale": locale},
+        message_id=msg_id,
+        session_id=session_id,
+        locale=locale,
     )
 
 
@@ -89,6 +105,7 @@ async def chat_stream_sse(
     sid = session_id or f"session-{uuid.uuid4().hex[:12]}"
 
     async def event_stream():
+        set_request_context(session_id=sid, tenant_id=tenant_id)
         orchestrator = get_session(sid, agent_id, tenant_id)
         collected: list[str] = []
         async for event in orchestrator.invoke_stream(

@@ -25,14 +25,17 @@ router = APIRouter()
 async def integrations_status() -> dict[str, Any]:
     settings = get_settings()
     vault = get_secrets_vault()
+    vault_diag = vault.diagnostics()
     creds = vault.credential_status(env_credentials())
     hooks = vault.webhook_status()
 
     return {
         "encryption": {
-            "enabled": vault.path.exists(),
-            "vault_path": str(vault.path),
-            "key_source": "env" if settings.integrations_encryption_key else "local_file",
+            "enabled": vault_diag["file_exists"],
+            "operational": vault_diag["operational"],
+            "decrypt_ok": vault_diag["decrypt_ok"],
+            "vault_path": vault_diag["path"],
+            "key_source": vault_diag["key_source"],
         },
         "providers": {
             "openai": {
@@ -84,6 +87,18 @@ async def integrations_status() -> dict[str, Any]:
                     for key in ("twilio_account_sid", "twilio_auth_token", "twilio_phone_number")
                 ),
                 "features": ["messaging", "inbound_webhook"],
+            },
+            "zendesk": {
+                "configured": bool(settings.zendesk_api_key and settings.zendesk_subdomain),
+                "features": ["ticket_sync", "contact_search"],
+            },
+            "jira": {
+                "configured": bool(settings.jira_base_url and settings.jira_api_token),
+                "features": ["issue_sync"],
+            },
+            "meta": {
+                "configured": bool(settings.meta_page_access_token),
+                "features": ["messenger", "instagram", "inbound_webhook"],
             },
             "ipaas": {
                 "configured": any(item["configured"] for item in hooks.values()),

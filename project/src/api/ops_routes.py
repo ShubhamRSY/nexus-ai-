@@ -28,13 +28,25 @@ router = APIRouter()
 
 @router.get("/health")
 async def health() -> dict[str, Any]:
+    from src.integrations.secrets_vault import get_secrets_vault
+
     settings = get_settings()
+    vault = get_secrets_vault().diagnostics()
+    if settings.openai_api_key:
+        rag_mode = "openai"
+    else:
+        # Avoid loading sentence-transformers on every health probe.
+        rag_mode = "local_embeddings"
+    degraded = not vault["operational"]
     return {
-        "status": "healthy",
+        "status": "degraded" if degraded else "healthy",
         "service": "enterprise-voice-agents",
         "stt_available": bool(settings.openai_api_key),
         "tts_available": bool(settings.openai_api_key),
         "tts_voice": "shimmer",
+        "rag_mode": rag_mode,
+        "vault": vault,
+        "saas_signup_enabled": settings.saas_signup_enabled,
     }
 
 

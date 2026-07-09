@@ -82,8 +82,15 @@ class LocalHashEmbeddings:
         try:
             from sentence_transformers import SentenceTransformer  # type: ignore[import-not-found]
             self._model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
-            self.dim = self._model.get_sentence_embedding_dimension()
+            self.dim = self._model.get_embedding_dimension()
         except ImportError:
+            self._model = None
+        except Exception as exc:
+            logger.warning(
+                "sentence_transformer_unavailable",
+                error=str(exc),
+                fallback="hash_embeddings",
+            )
             self._model = None
 
     def _hash_embed(self, text: str) -> list[float]:

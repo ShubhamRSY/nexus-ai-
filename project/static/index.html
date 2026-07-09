@@ -2347,6 +2347,8 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       }
     }
   </style>
+  <link rel="stylesheet" href="/static/cx.css" />
+  <link rel="stylesheet" href="/static/enterprise.css" />
 </head>
 <body>
   <div class="ambient-orbs" aria-hidden="true">
@@ -2396,6 +2398,12 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           </div>
         </div>
         <button type="submit" class="auth-submit" id="loginSubmit">Sign in</button>
+        <button type="button" class="auth-submit" id="demoLoginBtn" style="margin-top:0.6rem;background:linear-gradient(135deg,rgba(56,189,248,0.25),rgba(129,140,248,0.2));border:1px solid rgba(56,189,248,0.45);color:var(--accent)">
+          Try live demo — no signup
+        </button>
+        <p style="text-align:center;margin:0.85rem 0 0;font-size:0.85rem">
+          <a href="/signup" style="color:var(--accent);text-decoration:none;font-weight:600">Start Nexus Cloud free trial →</a>
+        </p>
         <button type="button" class="auth-submit" id="oidcLoginBtn" style="display:none;margin-top:0.6rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.16)">
           Sign in with SSO
         </button>
@@ -2461,6 +2469,12 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       <button class="tab active" data-mode="chat" type="button"><span class="tab-icon">◆</span>Chat</button>
       <button class="tab" data-mode="copilot" type="button"><span class="tab-icon">✦</span>Copilot</button>
       <button class="tab" data-mode="voice" type="button"><span class="tab-icon">◎</span>Voice</button>
+      <button class="tab" data-mode="inbox" type="button"><span class="tab-icon">☰</span>Inbox</button>
+      <button class="tab" data-mode="analytics" type="button"><span class="tab-icon">▣</span>Analytics</button>
+      <button class="tab" data-mode="email" type="button"><span class="tab-icon">✉</span>Email</button>
+      <button class="tab" data-mode="tickets" type="button"><span class="tab-icon">🎫</span>Tickets</button>
+      <button class="tab" data-mode="workflows" type="button"><span class="tab-icon">⚡</span>Flows</button>
+      <button class="tab" data-mode="enterprise" type="button"><span class="tab-icon">🏢</span>Enterprise</button>
     </div>
 
     <button class="sync-toggle" id="syncToggle" type="button" aria-label="Toggle mode sync" title="Toggle mode sync — when off, each mode shows its own messages">
@@ -2490,6 +2504,12 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
     <button class="tab active" data-mode="chat" type="button"><span class="tab-icon">◆</span>Chat</button>
     <button class="tab" data-mode="copilot" type="button"><span class="tab-icon">✦</span>Copilot</button>
     <button class="tab" data-mode="voice" type="button"><span class="tab-icon">◎</span>Voice</button>
+    <button class="tab" data-mode="inbox" type="button"><span class="tab-icon">☰</span>Inbox</button>
+    <button class="tab" data-mode="analytics" type="button"><span class="tab-icon">▣</span>Analytics</button>
+    <button class="tab" data-mode="email" type="button"><span class="tab-icon">✉</span>Email</button>
+    <button class="tab" data-mode="tickets" type="button"><span class="tab-icon">🎫</span>Tickets</button>
+    <button class="tab" data-mode="workflows" type="button"><span class="tab-icon">⚡</span>Flows</button>
+    <button class="tab" data-mode="enterprise" type="button"><span class="tab-icon">🏢</span>Enterprise</button>
   </nav>
 
   <div class="connection-banner" id="connectionBanner" role="alert">
@@ -2533,6 +2553,12 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           <button class="tab active" data-mode="chat" type="button">Chat</button>
           <button class="tab" data-mode="copilot" type="button">Copilot</button>
           <button class="tab" data-mode="voice" type="button">Voice</button>
+          <button class="tab" data-mode="inbox" type="button">Inbox</button>
+          <button class="tab" data-mode="analytics" type="button">Analytics</button>
+          <button class="tab" data-mode="email" type="button">Email</button>
+          <button class="tab" data-mode="tickets" type="button">Tickets</button>
+          <button class="tab" data-mode="workflows" type="button">Flows</button>
+          <button class="tab" data-mode="enterprise" type="button">Enterprise</button>
         </div>
       </div>
 
@@ -2790,6 +2816,79 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
         </div>
       </div>
         </div>
+
+      <section class="cx-panel" id="cxInboxPanel" aria-label="Agent inbox">
+        <div class="cx-panel-header">
+          <h2>Agent Inbox</h2>
+          <div class="cx-panel-actions">
+            <button type="button" class="btn btn-ghost" id="cxInboxRefresh">Refresh</button>
+          </div>
+        </div>
+        <div class="cx-split">
+          <div class="cx-list" id="cxInboxList"><div class="cx-empty">Escalated conversations appear here.</div></div>
+          <div id="cxInboxDetail"><div class="cx-empty">Select a conversation to claim and reply.</div></div>
+        </div>
+      </section>
+
+      <section class="cx-panel" id="cxAnalyticsPanel" aria-label="Analytics dashboard">
+        <div class="cx-panel-header">
+          <h2>Analytics &amp; Reporting</h2>
+          <div class="cx-panel-actions">
+            <button type="button" class="btn btn-ghost" id="cxAnalyticsRefresh">Refresh</button>
+          </div>
+        </div>
+        <div id="cxAnalyticsRoot"><div class="cx-empty">KPIs, CSAT, NPS, and agent scorecards load here.</div></div>
+      </section>
+
+      <section class="cx-panel" id="cxEmailPanel" aria-label="Email channel">
+        <div class="cx-panel-header">
+          <h2>Email Channel</h2>
+        </div>
+        <div class="field">
+          <label for="cxEmailTo">To</label>
+          <input type="email" id="cxEmailTo" placeholder="customer@example.com" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="cxEmailSubject">Subject</label>
+          <input type="text" id="cxEmailSubject" placeholder="Re: Your support request" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="cxEmailBody">Message</label>
+          <textarea id="cxEmailBody" rows="8" placeholder="Compose outbound email…"></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" id="cxEmailSend">Send Email</button>
+        <p class="call-info" style="margin-top:1rem">Configure SMTP in environment (<code>SMTP_HOST</code>, <code>SMTP_FROM_EMAIL</code>). Inbound: <code>POST /api/v1/email/inbound</code>. Social: <code>POST /api/v1/meta/webhook</code> (Messenger + Instagram).</p>
+      </section>
+
+      <section class="cx-panel" id="cxTicketsPanel" aria-label="Ticket management">
+        <div class="cx-panel-header">
+          <h2>Tickets</h2>
+          <div class="cx-panel-actions">
+            <button type="button" class="btn btn-primary" id="cxTicketNew">New ticket</button>
+            <button type="button" class="btn btn-ghost" id="cxTicketsRefresh">Refresh</button>
+          </div>
+        </div>
+        <div id="cxTicketsRoot"><div class="cx-empty">Support tickets from AI and agents appear here.</div></div>
+      </section>
+
+      <section class="cx-panel" id="cxWorkflowsPanel" aria-label="Workflow automation builder">
+        <div class="cx-panel-header">
+          <h2>Automation Flows</h2>
+          <div class="cx-panel-actions">
+            <button type="button" class="btn btn-primary" id="cxWorkflowNew">New flow</button>
+            <button type="button" class="btn btn-ghost" id="cxWorkflowsRefresh">Refresh</button>
+          </div>
+        </div>
+        <div id="cxWorkflowsRoot"><div class="cx-empty">Build trigger → condition → action flows without code.</div></div>
+      </section>
+
+      <section class="cx-panel" id="cxEnterprisePanel" aria-label="Enterprise contact center">
+        <div class="cx-panel-header">
+          <h2>Enterprise</h2>
+          <p class="call-info" style="margin:0"><a href="/portal" target="_blank">Customer portal ↗</a></p>
+        </div>
+        <div id="cxEnterpriseRoot"><div class="cx-empty">Team status, IVR, supervisor, QM, co-browse, and SaaS plans.</div></div>
+      </section>
       </div>
     </main>
   </div>
@@ -2808,6 +2907,41 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
 
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
+  <div class="cx-feedback-modal" id="cxFeedbackModal" hidden>
+    <div class="cx-feedback-backdrop" id="cxFeedbackBackdrop"></div>
+    <div class="cx-feedback-card">
+      <h3>How did we do?</h3>
+      <p>Rate your experience before starting a new session (CSAT 1–5 and NPS 0–10).</p>
+      <div class="cx-stars" aria-label="CSAT rating">
+        <button type="button" class="cx-star-btn" data-score="1">1</button>
+        <button type="button" class="cx-star-btn" data-score="2">2</button>
+        <button type="button" class="cx-star-btn" data-score="3">3</button>
+        <button type="button" class="cx-star-btn" data-score="4">4</button>
+        <button type="button" class="cx-star-btn" data-score="5">5</button>
+      </div>
+      <div class="cx-nps-row" aria-label="NPS score">
+        <button type="button" class="cx-nps-btn" data-score="0">0</button>
+        <button type="button" class="cx-nps-btn" data-score="1">1</button>
+        <button type="button" class="cx-nps-btn" data-score="2">2</button>
+        <button type="button" class="cx-nps-btn" data-score="3">3</button>
+        <button type="button" class="cx-nps-btn" data-score="4">4</button>
+        <button type="button" class="cx-nps-btn" data-score="5">5</button>
+        <button type="button" class="cx-nps-btn" data-score="6">6</button>
+        <button type="button" class="cx-nps-btn" data-score="7">7</button>
+        <button type="button" class="cx-nps-btn" data-score="8">8</button>
+        <button type="button" class="cx-nps-btn" data-score="9">9</button>
+        <button type="button" class="cx-nps-btn" data-score="10">10</button>
+      </div>
+      <textarea id="cxFeedbackComment" rows="2" placeholder="Optional comment…" style="width:100%;margin-bottom:1rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:0.55rem 0.75rem;font:inherit"></textarea>
+      <div class="cx-feedback-actions">
+        <button type="button" class="btn btn-ghost" id="cxFeedbackSkip">Skip</button>
+        <button type="button" class="btn btn-primary" id="cxFeedbackSubmit">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/cx.js"></script>
+  <script src="/static/enterprise.js"></script>
   <script>
     const API = '/api/v1';
     const AUTH_TOKEN_KEY = 'nexus_auth_token';
@@ -3373,6 +3507,9 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       if (sidebarBtn) sidebarBtn.disabled = true;
 
       const sessionId = document.getElementById('sessionId').value || 'web-session';
+      if (window.CX?.promptFeedback && document.getElementById('messages')?.children.length > 1) {
+        window.CX.promptFeedback(sessionId);
+      }
       abortInFlight();
       resetComposerFields();
       await clearServerSession(sessionId);
@@ -4157,12 +4294,16 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       const useBtn = isCopilotReply
         ? `<button class="bubble-action" type="button" data-use="">Use as reply</button>`
         : '';
+      const thumbsBtn = isAgentReply && options.messageId
+        ? `<button class="bubble-action" type="button" data-thumb="up" title="Helpful">👍</button>
+           <button class="bubble-action" type="button" data-thumb="down" title="Not helpful">👎</button>`
+        : '';
 
       row.innerHTML = `
         <div class="avatar">${labels.avatar}</div>
         <div class="bubble-wrap">
           <div class="bubble">${bubbleInner}</div>
-          ${showCopy ? `<div class="bubble-actions">${copyBtn}${useBtn}</div>` : ''}
+          ${(showCopy || thumbsBtn) ? `<div class="bubble-actions">${copyBtn}${useBtn}${thumbsBtn}</div>` : ''}
         </div>`;
 
       const copyEl = row.querySelector('[data-copy]');
@@ -4171,6 +4312,9 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       if (useEl) useEl.addEventListener('click', () => {
         navigator.clipboard.writeText(text).then(() => showToast('Reply ready — paste to customer', 'success'));
       });
+      const sid = options.sessionId || document.getElementById('sessionId')?.value || 'web-session';
+      row.querySelector('[data-thumb="up"]')?.addEventListener('click', (e) => rateMessage(options.messageId, sid, 1, e.currentTarget));
+      row.querySelector('[data-thumb="down"]')?.addEventListener('click', (e) => rateMessage(options.messageId, sid, -1, e.currentTarget));
 
       row.dataset.msgMode = mode;
       document.getElementById('messages').appendChild(row);
@@ -4248,6 +4392,22 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       document.getElementById('typing')?.remove();
     }
 
+    async function rateMessage(messageId, sessionId, rating, btn) {
+      if (!messageId) return;
+      try {
+        const res = await fetch(`${API}/messages/${messageId}/feedback`, {
+          method: 'POST',
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ session_id: sessionId, rating }),
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Failed');
+        btn?.classList.add('copied');
+        showToast(rating === 1 ? 'Thanks for the feedback!' : 'Feedback recorded', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
     async function sendMessage() {
       const input = document.getElementById('input');
       const text = input.value.trim();
@@ -4289,7 +4449,11 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
 
         const tools = (data.tool_calls || []).map(t => t.name);
         const replyRole = mode === 'copilot' ? 'copilot' : 'agent';
-        addMessage(data.response || JSON.stringify(data), replyRole, data.metrics, tools, { stream: true });
+        addMessage(data.response || JSON.stringify(data), replyRole, data.metrics, tools, {
+          stream: true,
+          messageId: data.message_id,
+          sessionId: data.session_id || sessionId,
+        });
       } catch (err) {
         hideTyping();
         if (epoch !== sessionEpoch) return;
@@ -4706,6 +4870,19 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
     document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
     document.getElementById('registerForm')?.addEventListener('submit', handleRegister);
     document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    document.getElementById('demoLoginBtn')?.addEventListener('click', async () => {
+      try {
+        const res = await fetch(`${API}/auth/demo-login`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Demo unavailable');
+        setAuthSession(data.token, data.user);
+        hideAuthGate();
+        showToast('Welcome to the live demo sandbox!', 'success');
+        await bootAuthenticatedApp();
+      } catch (err) {
+        showAuthError(err.message);
+      }
+    });
     document.querySelectorAll('[data-pw-toggle]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.pwToggle;
@@ -4736,6 +4913,9 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
             window.location.href = `${API}/auth/oidc/login`;
           });
         }
+        const demoCfg = await fetch(`${API}/auth/demo/config`).then(r => r.json()).catch(() => ({}));
+        const demoBtn = document.getElementById('demoLoginBtn');
+        if (demoBtn && demoCfg && !demoCfg.enabled) demoBtn.style.display = 'none';
       } catch {}
       const ok = await verifyAuthSession();
       if (ok) {

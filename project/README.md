@@ -3,12 +3,14 @@
 # Nexus
 
 **Purpose-built AI agents. One CX platform. (Open-source)**  
+
+**[Try live demo →](https://yournexus.duckdns.org/)** — or **[Start Nexus Cloud free trial](https://yournexus.duckdns.org/signup)** (provisions your workspace in ~60s).
 Nexus is an omnichannel AI agent platform for customer experience teams — one orchestrator for **Chat**, **Copilot**, and **Voice**, grounded with **RAG**, protected by **JWT auth + guardrails**, and built for **operations** (streaming, rate limits, logs, backups).
 
 [![CI](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: AGPLv3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-109%20unit%20passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-216%20passing-brightgreen.svg)](tests/)
 
 </div>
 
@@ -62,33 +64,31 @@ Customer experience (CX) teams lose time and accuracy when chat, voice, and inte
 
 ---
 
-## Commercial / Hosted Nexus (coming soon)
+## Nexus Cloud (hosted SaaS)
 
-Nexus is open-source, but a hosted/enterprise offering is planned for teams that want managed operations and advanced CX workflows.
+Nexus Cloud is **live** at [/signup](https://yournexus.duckdns.org/signup) — self-serve workspace provisioning with 14-day trial, legal acceptance (ToS + Privacy), and optional Stripe billing.
 
 **Licensing**
 
 - **Open-source**: AGPLv3 (`project/LICENSE`)
-- **Commercial license**: available for closed-source/proprietary usage — see [`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md)
+- **Commercial license**: AGPL alternative with published pricing — see [`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md) or `/legal/licensing` (Startup **$12k/yr**, Growth **$36k/yr**, Enterprise **from $96k/yr**)
 
-**Planned hosted features** (beyond what’s already in the open-source repo)
+**Hosted features (live now)**
 
-- **Fully managed operations** (hands-off updates, on-call, SLA)
-- **Advanced analytics & QA** (evaluation dashboards, coaching insights, quality scoring)
-- **Premium integrations** (CRM/ticketing/telephony connectors) and white-glove onboarding
+- **Nexus Cloud sign-up** — tenant + admin + subscription + starter KB in ~60s
+- **Legal pages** — `/legal/terms`, `/legal/privacy` (required at sign-up)
+- **Enterprise CX** — inbox, analytics, tickets, workflows, IVR, supervisor tools, customer portal
+- OIDC SSO (Auth0) + JWT auth, encrypted integrations vault, daily backups
 
-**Already in open source (pilot-ready)**
+**Enterprise add-ons** (docs + API; contact for dedicated infra)
 
-- OIDC SSO (Auth0 / Okta / Azure AD / Google Workspace) + JIT user provisioning
-- Request metrics, latency tracking, auth-failure counters (`/api/v1/metrics`)
-- Daily backups, restore drill, DR runbooks, k6 load-test harness
-- SOC 2 readiness checklist and access-control / key-rotation docs
+- HIPAA BAA, multi-region HA, dedicated per-tenant VMs
 
 **Branding**
 
 - The **Nexus** name/logo/branding are trademarks. See [`TRADEMARKS.md`](TRADEMARKS.md).
 
-If you want early access, open a GitHub issue with “Hosted Nexus” in the title.
+Docs: [`docs/saas-hosted.md`](docs/saas-hosted.md) · [`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md)
 
 ---
 
@@ -117,6 +117,62 @@ Nexus is organized around a small set of primitives so you can reason about the 
 ---
 
 ## Recent Changes
+
+### v2.4.0 — Deploy + dark deck (July 2026)
+
+| Change | Description |
+|--------|-------------|
+| **Production deploy** | SaaS, legal, CX/enterprise features on yournexus.duckdns.org |
+| **LinkedIn PPT** | `exports/Nexus_LinkedIn_Launch.pptx` — dark-mode Chat/Copilot/Voice screenshots |
+| **E2E verified** | 216 tests passing (unit + integration + live server) |
+
+### v2.3.2 — Production blockers fixed (July 2026)
+
+| Change | Description |
+|--------|-------------|
+| **RAG / HF cache** | Auto-fix invalid `HF_HOME` paths (e.g. `/Volumes/<YourDriveName>`); hash fallback if model load fails |
+| **Vault diagnostics** | `/health` reports `vault.decrypt_ok` — fix `INTEGRATIONS_ENCRYPTION_KEY` mismatch |
+| **Legal** | `/legal/terms`, `/legal/privacy`, `/legal/licensing` — required on SaaS sign-up |
+| **Commercial license** | Published pricing: Startup $12k, Growth $36k, Enterprise from $96k/yr |
+| **Restart script** | `bash scripts/restart_local.sh` after deploy |
+
+### v2.3.1 — Live SaaS sign-up (July 2026)
+
+| Change | Description |
+|--------|-------------|
+| **Public sign-up** | [/signup](https://yournexus.duckdns.org/signup) — plan picker + instant workspace provisioning |
+| **Provisioning** | Auto-creates tenant, admin, subscription, starter KB |
+| **Stripe optional** | Checkout + webhook when `STRIPE_SECRET_KEY` is set; otherwise 14-day trial |
+| **API** | `POST /api/v1/saas/signup`, `GET /api/v1/saas/signup/config` |
+
+### v2.3.0 — Enterprise contact center (July 2026)
+
+| Change | Description |
+|--------|-------------|
+| **Nexus Cloud (SaaS)** | Plans API, subscription management, [hosted SaaS docs](docs/saas-hosted.md) |
+| **Visual IVR designer** | Drag-style flow builder, stored flows, Twilio execution engine |
+| **Mobile SDK** | iOS Swift + Android Kotlin + embeddable web widget (`sdk/`) |
+| **Customer portal** | `/portal` — KB search, ticket submit/track, co-browse |
+| **HIPAA readiness** | `HIPAA_MODE` flag + [compliance checklist](docs/compliance/hipaa-readiness.md) |
+| **Multi-region HA** | `GET /api/v1/ha/status`, peer health checks, failover config |
+| **Co-browsing** | WebSocket relay + screen-share hooks for agent assist |
+| **Supervisor tools** | Monitor, whisper, barge on live sessions |
+| **Quality management** | QM review queue, rubric scoring, review workflows |
+| **Agent status** | Available/away/break/offline team dashboard + heartbeat |
+
+### v2.2.0 — Full CX platform (July 2026)
+
+| Change | Description |
+|--------|-------------|
+| **Agent inbox** | Human handoff queue with claim, reply, and resolve — hybrid AI + agent model |
+| **Analytics dashboard** | KPIs + avg response time, volume chart, CSAT, NPS, thumbs-up rate, agent scorecard |
+| **Email channel** | SMTP outbound + inbound webhook with AI auto-reply |
+| **WhatsApp / SMS / Messenger / Instagram** | Twilio + Meta Graph API inbound with AI reply in customer language |
+| **Ticketing UI** | Full ticket list with status management; syncs to HubSpot, Zendesk, and Jira |
+| **CSAT + NPS + thumbs** | Session-end survey + per-message 👍/👎 on every AI reply |
+| **Translation** | Auto-detect locale; replies translated back to customer language |
+| **Workflow builder** | Visual trigger → condition → action flows with runtime execution |
+| **Try-it-now demo** | One-click sandbox login (`POST /api/v1/auth/demo-login`) on the login screen |
 
 ### v2.1.0 — Enterprise pilot (July 2026)
 
@@ -392,12 +448,12 @@ Full reference at `/docs` when the server is running.
 ## Testing
 
 ```bash
-# Unit & integration tests (109 tests)
-pytest tests/ --ignore=tests/e2e --timeout=60 -v
+# Unit & integration + live E2E (216 tests; server on :8001 for comprehensive e2e)
+bash scripts/restart_local.sh   # terminal 1
+pytest tests/ -q
 
-# E2E tests (requires running server)
-python -m uvicorn src.main:app --port 8001 &
-pytest tests/e2e/ -v --reruns 2
+# E2E only (requires running server)
+pytest tests/test_comprehensive_e2e.py tests/e2e/ -v
 
 # Full CI pipeline locally
 bash scripts/ci.sh

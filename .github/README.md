@@ -8,11 +8,11 @@ Nexus is an omnichannel AI agent platform for customer experience teams — one 
 [![CI](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: AGPLv3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](project/LICENSE)
-[![Tests](https://img.shields.io/badge/tests-109%20unit%20passing-brightgreen.svg)](project/tests/)
+[![Tests](https://img.shields.io/badge/tests-216%20passing-brightgreen.svg)](project/tests/)
 
 </div>
 
-**Live pilot:** [https://yournexus.duckdns.org/](https://yournexus.duckdns.org/) — chat, copilot, voice, RAG, JWT auth, and Auth0 OIDC SSO.
+**Live pilot:** [https://yournexus.duckdns.org/](https://yournexus.duckdns.org/) — chat, copilot, voice, RAG, JWT auth, Auth0 OIDC SSO, and **[Nexus Cloud sign-up](https://yournexus.duckdns.org/signup)**.
 
 ---
 

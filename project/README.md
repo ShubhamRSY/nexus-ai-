@@ -123,6 +123,7 @@ Nexus is organized around a small set of primitives so you can reason about the 
 | Change | Description |
 |--------|-------------|
 | **Live production** | Deployed at [yournexus.duckdns.org](https://yournexus.duckdns.org/) (Oracle Cloud VM + Caddy + systemd) |
+| **PostgreSQL (Neon)** | Managed Postgres in production (`DATABASE_URL`); SQLite remains default for local dev |
 | **OIDC SSO** | Auth0 integration with JIT provisioning, role mapping, audit logging — [setup guide](docs/ops-oidc-auth0.md) |
 | **Observability** | Request/latency/5xx/auth metrics middleware; Prometheus + JSON health dashboards |
 | **Reliability** | Daily backup timer, restore-drill script, RPO/RTO runbook |
@@ -212,11 +213,25 @@ wscat -c ws://127.0.0.1:8001/api/v1/chat/stream
 |------|--------|-------|
 | **Core product** | Ready | Chat, copilot, voice, RAG, admin console |
 | **Auth** | Ready | JWT + Auth0 OIDC SSO |
+| **Database** | Ready | **Neon PostgreSQL** in production; SQLite for local dev |
 | **TLS / edge** | Ready | Caddy + Let's Encrypt |
-| **Backups & DR** | Ready | Daily timer + [restore drill](docs/ops-dr-runbook.md) |
+| **Backups & DR** | Ready | Daily timer + [restore drill](docs/ops-dr-runbook.md); Neon handles DB backups |
 | **Monitoring** | Ready | Uptime alerts + in-app observability |
 | **SOC 2 audit** | Prep only | Checklist + policies — formal audit is future work |
 | **HA / multi-region** | Future | See [HA architecture](docs/ha-multi-region.md) |
+
+**Tier B (paying SMB customers) — optional next:** Redis (Upstash), S3 offsite backups for Chroma/config, custom domain, k6 load test, staging env.
+
+### Managed PostgreSQL (Neon) on a small VM
+
+For VMs with limited RAM (~512 MB), run Postgres **off the VM** instead of installing it locally:
+
+1. Create a project at [neon.tech](https://neon.tech) and copy the connection string.
+2. Set `DATABASE_URL=postgresql://...?sslmode=require` in `config/environment/.env`.
+3. Restart Nexus — migrations run automatically on startup.
+4. Register the **first admin** (empty database) or sign in via SSO (JIT provisioning).
+
+The app uses a PostgreSQL compatibility layer in `src/database.py` so the same CRUD code works with SQLite (dev) and Postgres (prod).
 
 ### Docker Compose (recommended)
 
@@ -242,7 +257,7 @@ This starts:
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DOMAIN` | No | `:80` | Domain for auto-HTTPS (set to `nexus.example.com` in prod) |
-| `DATABASE_URL` | No | SQLite | `postgresql://user:pass@host:5432/db` |
+| `DATABASE_URL` | No | SQLite (local) | `postgresql://...` — use [Neon](https://neon.tech) or Docker Postgres |
 | `REDIS_URL` | No | in-memory | `redis://host:6379/0` |
 | `OPENAI_API_KEY` | No | mock | LLM provider key |
 | `SENTRY_DSN` | No | — | Error tracking |

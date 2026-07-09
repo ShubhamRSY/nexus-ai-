@@ -13,6 +13,10 @@ From the repo root:
 BACKUP_DIR=~/backups ./scripts/backup.sh
 ```
 
+When `DATABASE_URL` points to PostgreSQL, the script runs `pg_dump`. When empty (SQLite), it copies `data/nexus.db`.
+
+**Managed Postgres (Neon):** Neon provides point-in-time recovery on paid tiers; still back up Chroma and `.env` locally or to S3.
+
 Artifacts:
 
 - `nexus-sqlite-<timestamp>.db`

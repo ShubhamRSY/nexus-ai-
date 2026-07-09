@@ -121,7 +121,8 @@ Nexus is organized around a small set of primitives so you can reason about the 
 | Change | Description |
 |--------|-------------|
 | **Live production** | Deployed at [yournexus.duckdns.org](https://yournexus.duckdns.org/) (Oracle Cloud VM + Caddy + systemd) |
-| **OIDC SSO** | Auth0 integration with JIT provisioning, role mapping, audit logging — [setup guide](project/docs/ops-oidc-auth0.md) |
+| **PostgreSQL (Neon)** | Managed Postgres in production; SQLite for local dev |
+| **OIDC SSO** | Auth0 integration — [setup guide](project/docs/ops-oidc-auth0.md) |
 | **Observability** | Request/latency/5xx/auth metrics middleware; Prometheus + JSON health dashboards |
 | **Reliability** | Daily backup timer, restore-drill script, RPO/RTO runbook |
 | **SOC 2 prep** | Evidence checklist, access-control policy template, key-rotation procedures |
@@ -179,8 +180,11 @@ Open **[http://127.0.0.1:8001](http://127.0.0.1:8001)** — the Nexus console lo
 |------|--------|
 | Core product (chat, copilot, voice, RAG) | Ready |
 | Auth (JWT + Auth0 OIDC SSO) | Ready |
+| Database (Neon PostgreSQL) | Ready |
 | Backups, DR, uptime monitoring | Ready |
 | SOC 2 formal audit / HA multi-region | Future — see `project/docs/` |
+
+Production uses **Neon PostgreSQL** (`DATABASE_URL`) on the VM; SQLite is for local development only.
 
 ---
 

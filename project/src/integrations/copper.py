@@ -1,5 +1,7 @@
 """Copper CRM adapter for leads and opportunities."""
 
+from typing import Any
+
 import httpx
 import structlog
 
@@ -24,7 +26,7 @@ class CopperClient:
     async def create_lead(self, name: str, email: str = "") -> dict:
         if not self._is_configured():
             return {"id": 1, "name": name, "email": email}
-        payload = {"name": name}
+        payload: dict[str, Any] = {"name": name}
         if email:
             payload["email"] = {"email": email, "category": "work"}
         async with httpx.AsyncClient() as client:

@@ -1,5 +1,7 @@
 """Guru adapter for knowledge cards and search."""
 
+from typing import Any
+
 import httpx
 import structlog
 
@@ -24,7 +26,7 @@ class GuruClient:
     async def create_card(self, title: str, content: str = "") -> dict:
         if not self._is_configured():
             return {"id": "guru-mock-001", "title": title}
-        payload = {"preferredPhrase": title, "content": content or title}
+        payload: dict[str, Any] = {"preferredPhrase": title, "content": content or title}
         if self.collection_id:
             payload["collection"] = {"id": self.collection_id}
         async with httpx.AsyncClient() as client:

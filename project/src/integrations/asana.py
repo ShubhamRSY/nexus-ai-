@@ -1,5 +1,7 @@
 """Asana adapter for project and task management."""
 
+from typing import Any
+
 import httpx
 import structlog
 
@@ -24,7 +26,7 @@ class AsanaClient:
         if not self._is_configured():
             return {"gid": "task-mock-001", "name": name, "resource_type": "task"}
 
-        data = {"name": name, "notes": notes}
+        data: dict[str, Any] = {"name": name, "notes": notes}
         if project_gid:
             data["projects"] = [project_gid]
         if assignee:

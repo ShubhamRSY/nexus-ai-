@@ -205,7 +205,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /opt/nexus
+            export COMPOSE_FILE=/opt/nexus/project/deploy/docker/docker-compose.yml
+            cd /opt/nexus/project && git pull
             docker compose pull nexus
             docker compose up -d --no-deps nexus
             docker image prune -f

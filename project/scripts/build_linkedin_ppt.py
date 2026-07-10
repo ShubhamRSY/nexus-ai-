@@ -59,8 +59,6 @@ def render_linkedin_slide(img_path: Path, size: tuple[int, int]):
 
 
 def export_linkedin_images(size: tuple[int, int]) -> list[Path]:
-    from PIL import Image
-
     LINKEDIN_DIR.mkdir(parents=True, exist_ok=True)
     paths: list[Path] = []
     for idx, (filename, label) in enumerate(SLIDES, start=1):

@@ -5,490 +5,445 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nexus — AI Ops Console for Customer Experience</title>
 <meta name="description" content="Purpose-built AI agents. One CX platform. 62 native integrations, 8 channels, RAG knowledge layer. Open-source.">
+<meta name="theme-color" content="#030014">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
-  --fg:#f0f0f5;--fg2:#a0a0b8;--fg3:#6a6a80;
-  --accent:#6c5ce7;--accent2:#a29bfe;--accent-glow:rgba(108,92,231,.25);
-  --green:#00b894;--blue:#0984e3;--orange:#fdcb6e;--red:#e17055;
-  --radius:12px;--radius-lg:20px;
-}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);line-height:1.6;overflow-x:hidden}
-a{color:var(--accent2);text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* NAV */
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(10,10,15,.8);border-bottom:1px solid rgba(255,255,255,.06)}
-.nav-logo{font-size:1.3rem;font-weight:800;letter-spacing:-.02em}
-.nav-logo span{color:var(--accent2)}
-.nav-links{display:flex;gap:2rem;align-items:center}
-.nav-links a{color:var(--fg2);font-size:.9rem;font-weight:500;transition:color .2s}
-.nav-links a:hover{color:var(--fg);text-decoration:none}
-.nav-cta{background:var(--accent);color:#fff!important;padding:.5rem 1.2rem;border-radius:8px;font-weight:600;transition:all .2s}
-.nav-cta:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 20px var(--accent-glow)}
-
-/* HERO */
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8rem 2rem 4rem;position:relative}
-.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;opacity:.4}
-.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:.4rem 1rem;font-size:.8rem;color:var(--fg2);margin-bottom:2rem}
-.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;letter-spacing:-.03em;line-height:1.1;max-width:900px;margin-bottom:1.5rem}
-.hero h1 .gradient{background:linear-gradient(135deg,var(--accent2),var(--accent),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero p{font-size:1.2rem;color:var(--fg2);max-width:640px;margin-bottom:2.5rem}
-.hero-actions{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 1.8rem;border-radius:10px;font-weight:600;font-size:1rem;transition:all .25s;border:none;cursor:pointer}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 30px var(--accent-glow);text-decoration:none}
-.btn-secondary{background:var(--bg3);color:var(--fg);border:1px solid rgba(255,255,255,.1)}
-.btn-secondary:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
-
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;max-width:1000px;margin:0 auto 6rem;padding:0 2rem}
-.stat{text-align:center;padding:1.5rem}
-.stat-num{font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-label{font-size:.85rem;color:var(--fg3);margin-top:.3rem}
-
-/* SECTIONS */
-section{padding:6rem 2rem}
-.section-title{text-align:center;margin-bottom:1rem;font-size:2.2rem;font-weight:800;letter-spacing:-.02em}
-.section-sub{text-align:center;color:var(--fg2);max-width:600px;margin:0 auto 4rem;font-size:1.05rem}
-
-/* CHANNELS */
-.channels-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;max-width:1100px;margin:0 auto}
-.channel-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:1.8rem 1.2rem;text-align:center;transition:all .3s;position:relative;overflow:hidden}
-.channel-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 40px rgba(108,92,231,.15)}
-.channel-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .3s}
-.channel-card:hover::before{opacity:1}
-.channel-icon{font-size:2rem;margin-bottom:.8rem}
-.channel-card h3{font-size:1rem;font-weight:600;margin-bottom:.3rem}
-.channel-card p{font-size:.8rem;color:var(--fg3)}
-
-/* FEATURES */
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:1100px;margin:0 auto}
-.feature-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);padding:2rem;transition:all .3s}
-.feature-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-3px)}
-.feature-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1rem}
-.fi-purple{background:rgba(108,92,231,.15)}
-.fi-green{background:rgba(0,184,148,.15)}
-.fi-blue{background:rgba(9,132,227,.15)}
-.fi-orange{background:rgba(253,203,110,.15)}
-.fi-red{background:rgba(225,112,85,.15)}
-.fi-teal{background:rgba(0,206,209,.15)}
-.feature-card h3{font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
-.feature-card p{font-size:.9rem;color:var(--fg2);line-height:1.6}
-
-/* INTEGRATIONS */
-.integrations{background:var(--bg2)}
-.integrations-logos{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;max-width:1000px;margin:0 auto}
-.int-logo{background:var(--bg3);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:.5rem 1rem;font-size:.8rem;font-weight:500;color:var(--fg2);transition:all .2s}
-.int-logo:hover{border-color:var(--accent);color:var(--fg);transform:translateY(-2px)}
-
-/* SCREENSHOTS */
-.screenshots{max-width:1200px;margin:0 auto}
-.screenshots-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
-.screenshot-card{border-radius:var(--radius-lg);overflow:hidden;border:1px solid rgba(255,255,255,.06);background:var(--bg2);transition:all .3s}
-.screenshot-card:hover{border-color:rgba(108,92,231,.3);transform:scale(1.02)}
-.screenshot-card img{width:100%;display:block}
-.screenshot-label{padding:1rem 1.2rem;font-weight:600;font-size:.95rem;color:var(--fg2)}
-
-/* TECH STACK */
-.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;max-width:1000px;margin:0 auto}
-.tech-item{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:1.5rem;text-align:center;transition:all .3s}
-.tech-item:hover{border-color:var(--accent);transform:translateY(-2px)}
-.tech-item .tech-icon{font-size:2rem;margin-bottom:.5rem}
-.tech-item h4{font-size:.95rem;font-weight:600}
-.tech-item p{font-size:.75rem;color:var(--fg3);margin-top:.2rem}
-
-/* ARCHITECTURE */
-.arch-box{max-width:900px;margin:0 auto;background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);padding:2.5rem;font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.8;color:var(--fg2);overflow-x:auto}
-.arch-box .highlight{color:var(--accent2)}
-.arch-box .green{color:var(--green)}
-.arch-box .orange{color:var(--orange)}
-.arch-box .blue{color:var(--blue)}
-
-/* DEPLOY */
-.deploy-options{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:1000px;margin:0 auto}
-.deploy-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);padding:2rem;text-align:center;transition:all .3s}
-.deploy-card:hover{border-color:var(--accent);transform:translateY(-3px)}
-.deploy-card .price{font-size:2.5rem;font-weight:800;margin:.8rem 0}
-.deploy-card .price.free{color:var(--green)}
-.deploy-card h3{font-size:1.2rem;font-weight:700}
-.deploy-card p{font-size:.85rem;color:var(--fg2);margin:.8rem 0 1.2rem}
-.deploy-features{text-align:left;font-size:.85rem;color:var(--fg2)}
-.deploy-features li{padding:.3rem 0;list-style:none}
-.deploy-features li::before{content:'✓ ';color:var(--green);font-weight:700}
-
-/* CTA */
-.cta{text-align:center;padding:8rem 2rem;position:relative}
-.cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;opacity:.3}
-.cta h2{font-size:2.5rem;font-weight:900;margin-bottom:1rem}
-.cta p{color:var(--fg2);margin-bottom:2rem;font-size:1.1rem}
-
-/* FOOTER */
-footer{border-top:1px solid rgba(255,255,255,.06);padding:3rem 2rem;text-align:center;color:var(--fg3);font-size:.85rem}
-footer a{color:var(--fg2)}
-
-/* RESPONSIVE */
-@media(max-width:768px){
-  .nav-links{display:none}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .channels-grid{grid-template-columns:repeat(2,1fr)}
-  .features-grid{grid-template-columns:1fr}
-  .screenshots-grid{grid-template-columns:1fr}
-  .tech-grid{grid-template-columns:repeat(2,1fr)}
-  .deploy-options{grid-template-columns:1fr}
-}
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/landing.css">
 </head>
 <body>
 
+<div class="ambient" aria-hidden="true">
+  <div class="ambient-orb ambient-orb--1"></div>
+  <div class="ambient-orb ambient-orb--2"></div>
+  <div class="ambient-orb ambient-orb--3"></div>
+</div>
+<div class="grid-overlay" aria-hidden="true"></div>
+<div id="spotlight" aria-hidden="true"></div>
+<div class="scroll-progress" aria-hidden="true"></div>
+
 <!-- NAV -->
-<nav class="nav">
-  <div class="nav-logo">Nexus<span>.</span></div>
-  <div class="nav-links">
-    <a href="#channels">Channels</a>
-    <a href="#features">Features</a>
-    <a href="#integrations">Integrations</a>
-    <a href="#tech">Tech Stack</a>
-    <a href="#deploy">Deploy</a>
-    <a href="https://github.com/ShubhamRSY/nexus-ai-" class="nav-cta" target="_blank">GitHub →</a>
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <span class="nav-logo-mark">N</span>
+      Nexus
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#channels">Channels</a>
+      <a href="#features">Features</a>
+      <a href="#showcase">Product</a>
+      <a href="#integrations">Integrations</a>
+      <a href="#deploy">Deploy</a>
+      <a href="https://github.com/ShubhamRSY/nexus-ai-" class="nav-cta" target="_blank" rel="noopener">GitHub →</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+</header>
+
+<nav class="mobile-menu" aria-label="Mobile">
+  <a href="#channels">Channels</a>
+  <a href="#features">Features</a>
+  <a href="#showcase">Product</a>
+  <a href="#integrations">Integrations</a>
+  <a href="#deploy">Deploy</a>
+  <a href="https://github.com/ShubhamRSY/nexus-ai-" target="_blank" rel="noopener">GitHub</a>
 </nav>
+
+<main>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge"><span class="dot"></span> Open-source · v2.5.0</div>
-  <h1>Purpose-built <span class="gradient">AI agents</span>.<br>One CX platform.</h1>
-  <p>Omnichannel AI agent platform for customer experience teams. Chat, Voice, Email, WhatsApp, SMS, Messenger, Instagram — powered by 62 native integrations and RAG knowledge layer.</p>
+  <div class="hero-badge"><span class="pulse"></span> Open-source · v2.5.0 · Self-hosted</div>
+  <h1>
+    <span class="gradient-text">AI agents</span> for every<br>
+    <span class="hero-rotate">Chat</span> channel. One platform.
+  </h1>
+  <p>Omnichannel CX platform — chat, voice, email, WhatsApp, SMS, Messenger &amp; Instagram. 62 native integrations, RAG knowledge layer, enterprise guardrails.</p>
   <div class="hero-actions">
-    <a href="https://github.com/ShubhamRSY/nexus-ai-" class="btn btn-primary" target="_blank">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    <a href="https://github.com/ShubhamRSY/nexus-ai-" class="btn btn-primary" target="_blank" rel="noopener">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
       View on GitHub
     </a>
-    <a href="https://yournexus.duckdns.org/" class="btn btn-secondary" target="_blank">Live Demo →</a>
-    <a href="/integrations" class="btn btn-secondary">62 Integrations</a>
+    <a href="/" class="btn btn-ghost">Live Demo →</a>
+    <a href="/integrations" class="btn btn-ghost">62 Integrations</a>
+  </div>
+  <div class="hero-preview">
+    <div class="hero-preview-glow" aria-hidden="true"></div>
+    <div class="hero-preview-frame">
+      <img src="/static/screenshots/01-chat.png" alt="Nexus AI chat console with streaming responses and RAG citations" width="1920" height="1080" fetchpriority="high">
+    </div>
   </div>
 </section>
 
 <!-- STATS -->
-<div class="stats">
-  <div class="stat"><div class="stat-num">8</div><div class="stat-label">Communication Channels</div></div>
-  <div class="stat"><div class="stat-num">62</div><div class="stat-label">Native Integrations</div></div>
-  <div class="stat"><div class="stat-num">215+</div><div class="stat-label">Tests Passing</div></div>
-  <div class="stat"><div class="stat-num">$0</div><div class="stat-label">Hosting Possible</div></div>
+<div class="wrap reveal">
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num" data-count="8">0</div>
+      <div class="stat-label">Communication Channels</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="62">0</div>
+      <div class="stat-label">Native Integrations</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="215+">0</div>
+      <div class="stat-label">Tests Passing</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="$0">$0</div>
+      <div class="stat-label">Hosting Possible</div>
+    </div>
+  </div>
 </div>
 
 <!-- CHANNELS -->
 <section id="channels">
-  <h2 class="section-title">8 Channels. One Engine.</h2>
-  <p class="section-sub">Every customer interaction — chat, voice, email, social — flows through a single AI orchestrator.</p>
-  <div class="channels-grid">
-    <div class="channel-card">
-      <div class="channel-icon">💬</div>
-      <h3>Web Chat</h3>
-      <p>SSE & WebSocket streaming, RAG citations</p>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Omnichannel</div>
+      <h2 class="section-title">8 channels. One engine.</h2>
+      <p class="section-sub">Every customer touchpoint flows through a single AI orchestrator. Click a channel to explore.</p>
     </div>
-    <div class="channel-card">
-      <div class="channel-icon">🤖</div>
-      <h3>Agent Copilot</h3>
-      <p>Transcript-to-draft, summarization, escalation</p>
-    </div>
-    <div class="channel-card">
-      <div class="channel-icon">📞</div>
-      <h3>Voice (PSTN)</h3>
-      <p>Twilio, Amazon Connect, SIP/CCaaS</p>
-    </div>
-    <div class="channel-card">
-      <div class="channel-icon">📧</div>
-      <h3>Email</h3>
-      <p>SMTP outbound + inbound, AI auto-reply</p>
-    </div>
-    <div class="channel-card">
-      <div class="channel-icon">📱</div>
-      <h3>WhatsApp</h3>
-      <p>Two-way messaging via Twilio</p>
-    </div>
-    <div class="channel-card">
-      <div class="channel-icon">✉️</div>
-      <h3>SMS</h3>
-      <p>Two-way SMS via Twilio</p>
-    </div>
-    <div class="channel-card">
-      <div class="channel-icon">👥</div>
-      <h3>Messenger</h3>
-      <p>Meta Graph API integration</p>
-    </div>
-    <div class="channel-card">
-      <div class="channel-icon">📸</div>
-      <h3>Instagram</h3>
-      <p>DMs via Meta Graph API</p>
+    <div class="bento">
+      <div class="channel-card span-6 reveal reveal-delay-1" data-channel="chat">
+        <div class="channel-icon">💬</div>
+        <h3>Web Chat</h3>
+        <p>SSE &amp; WebSocket streaming with RAG citations and embeddable widget.</p>
+        <span class="channel-tag">Real-time streaming</span>
+      </div>
+      <div class="channel-card reveal reveal-delay-2" data-channel="copilot">
+        <div class="channel-icon">🤖</div>
+        <h3>Agent Copilot</h3>
+        <p>Transcript-to-draft, summarization, escalation assist.</p>
+        <span class="channel-tag">Agent assist</span>
+      </div>
+      <div class="channel-card reveal reveal-delay-3" data-channel="voice">
+        <div class="channel-icon">📞</div>
+        <h3>Voice (PSTN)</h3>
+        <p>Twilio, Amazon Connect, SIP/CCaaS integrations.</p>
+        <span class="channel-tag">PSTN ready</span>
+      </div>
+      <div class="channel-card reveal" data-channel="email">
+        <div class="channel-icon">📧</div>
+        <h3>Email</h3>
+        <p>SMTP outbound + inbound with AI auto-reply.</p>
+        <span class="channel-tag">Inbound + outbound</span>
+      </div>
+      <div class="channel-card reveal reveal-delay-1" data-channel="whatsapp">
+        <div class="channel-icon">📱</div>
+        <h3>WhatsApp</h3>
+        <p>Two-way messaging via Twilio.</p>
+        <span class="channel-tag">Twilio powered</span>
+      </div>
+      <div class="channel-card reveal reveal-delay-2" data-channel="sms">
+        <div class="channel-icon">✉️</div>
+        <h3>SMS</h3>
+        <p>Two-way SMS conversations at scale.</p>
+        <span class="channel-tag">Two-way SMS</span>
+      </div>
+      <div class="channel-card reveal reveal-delay-3" data-channel="messenger">
+        <div class="channel-icon">👥</div>
+        <h3>Messenger</h3>
+        <p>Meta Graph API for Facebook Messenger.</p>
+        <span class="channel-tag">Meta Graph</span>
+      </div>
+      <div class="channel-card reveal" data-channel="instagram">
+        <div class="channel-icon">📸</div>
+        <h3>Instagram</h3>
+        <p>DMs via Meta Graph API integration.</p>
+        <span class="channel-tag">Social DMs</span>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- FEATURES -->
-<section id="features" style="background:var(--bg2)">
-  <h2 class="section-title">Built for Production</h2>
-  <p class="section-sub">Enterprise-grade from day one. Auth, observability, guardrails, and ops — not afterthoughts.</p>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon fi-purple">🧠</div>
-      <h3>Multi-LLM Support</h3>
-      <p>Switch between OpenAI GPT-4o, Anthropic Claude 3.5, and Google Gemini 2.0 per agent. No vendor lock-in.</p>
+<section id="features" class="features-section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Enterprise ready</div>
+      <h2 class="section-title">Built for production</h2>
+      <p class="section-sub">Auth, observability, guardrails, and ops — engineered in from day one, not bolted on later.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon fi-green">📚</div>
-      <h3>RAG Knowledge Layer</h3>
-      <p>ChromaDB vector store with citations, auto-detect locale, translate replies, and guardrails.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon fi-blue">🔐</div>
-      <h3>JWT Auth + Multi-Tenant</h3>
-      <p>Multi-tenant SaaS with OIDC SSO (Auth0), encrypted vault (AES-256-GCM), key rotation.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon fi-orange">📊</div>
-      <h3>Analytics & Insights</h3>
-      <p>CSAT/NPS/feedback-driven auto-tuning, agent scorecards, response time tracking, KPI dashboards.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon fi-red">🛡️</div>
-      <h3>Enterprise Contact Center</h3>
-      <p>Visual IVR designer, supervisor tools (monitor/whisper/barge), quality management, co-browsing.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon fi-teal">📱</div>
-      <h3>Mobile SDKs</h3>
-      <p>iOS Swift + Android Kotlin + embeddable web widget. Drop-in chat for any app or website.</p>
+    <div class="bento">
+      <div class="feature-card wide reveal">
+        <div class="feature-icon fi-violet">🧠</div>
+        <h3>Multi-LLM Support</h3>
+        <p>Switch between OpenAI GPT-4o, Anthropic Claude 3.5, and Google Gemini 2.0 per agent. Route by task, cost, or latency — no vendor lock-in.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon fi-emerald">📚</div>
+        <h3>RAG Knowledge Layer</h3>
+        <p>ChromaDB vector store with citations, locale detection, translation, and guardrails.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon fi-cyan">🔐</div>
+        <h3>JWT + Multi-Tenant</h3>
+        <p>OIDC SSO (Auth0), encrypted vault (AES-256-GCM), key rotation.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-amber">📊</div>
+        <h3>Analytics &amp; Insights</h3>
+        <p>CSAT/NPS auto-tuning, agent scorecards, response time tracking, KPI dashboards.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon fi-rose">🛡️</div>
+        <h3>Contact Center</h3>
+        <p>Visual IVR designer, supervisor tools (monitor/whisper/barge), quality management.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-icon fi-sky">📱</div>
+        <h3>Mobile SDKs</h3>
+        <p>iOS Swift + Android Kotlin + embeddable web widget for any app or site.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- SCREENSHOTS -->
-<section id="screenshots">
-  <h2 class="section-title">See It In Action</h2>
-  <p class="section-sub">One console for chat, copilot, voice, and 62 integrations.</p>
-  <div class="screenshots">
-    <div class="screenshots-grid">
-      <div class="screenshot-card">
-        <img src="/static/screenshots/01-chat.png" alt="Nexus Chat Interface" loading="lazy">
-        <div class="screenshot-label">💬 AI Chat — Real-time streaming with RAG citations</div>
+<!-- PRODUCT SHOWCASE -->
+<section id="showcase">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Interactive demo</div>
+      <h2 class="section-title">See it in action</h2>
+      <p class="section-sub">One console for chat, copilot, voice, and 62 integrations. Click a tab or let it auto-play.</p>
+    </div>
+    <div class="showcase reveal">
+      <div class="showcase-tabs" role="tablist" aria-label="Product views">
+        <button class="showcase-tab active" role="tab" aria-selected="true">
+          <span class="showcase-tab-icon">💬</span>
+          <div>
+            <h4>AI Chat</h4>
+            <p>Streaming with RAG citations</p>
+          </div>
+        </button>
+        <button class="showcase-tab" role="tab" aria-selected="false">
+          <span class="showcase-tab-icon">🤖</span>
+          <div>
+            <h4>Agent Copilot</h4>
+            <p>Drafts, summaries, escalations</p>
+          </div>
+        </button>
+        <button class="showcase-tab" role="tab" aria-selected="false">
+          <span class="showcase-tab-icon">📞</span>
+          <div>
+            <h4>Voice</h4>
+            <p>PSTN via Twilio / Connect</p>
+          </div>
+        </button>
+        <button class="showcase-tab" role="tab" aria-selected="false">
+          <span class="showcase-tab-icon">🔌</span>
+          <div>
+            <h4>Integrations</h4>
+            <p>62 connectors, encrypted vault</p>
+          </div>
+        </button>
       </div>
-      <div class="screenshot-card">
-        <img src="/static/screenshots/02-copilot.png" alt="Nexus Copilot Interface" loading="lazy">
-        <div class="screenshot-label">🤖 Agent Copilot — Draft replies, summaries, escalations</div>
-      </div>
-      <div class="screenshot-card">
-        <img src="/static/screenshots/03-voice.png" alt="Nexus Voice Interface" loading="lazy">
-        <div class="screenshot-label">📞 Voice — PSTN via Twilio / Amazon Connect</div>
-      </div>
-      <div class="screenshot-card">
-        <img src="/static/screenshots/04-integrations.png" alt="Nexus Integrations Catalog" loading="lazy">
-        <div class="screenshot-label">🔌 62 Integrations — CRM, ticketing, CCaaS, BI, HRIS</div>
+      <div class="showcase-viewport">
+        <div class="showcase-slide active">
+          <img src="/static/screenshots/01-chat.png" alt="Nexus chat interface" loading="lazy">
+          <div class="showcase-caption">Real-time AI chat with knowledge-base citations</div>
+        </div>
+        <div class="showcase-slide">
+          <img src="/static/screenshots/02-copilot.png" alt="Nexus copilot interface" loading="lazy">
+          <div class="showcase-caption">Agent copilot — draft replies from live transcripts</div>
+        </div>
+        <div class="showcase-slide">
+          <img src="/static/screenshots/03-voice.png" alt="Nexus voice interface" loading="lazy">
+          <div class="showcase-caption">Voice channel with Twilio and Amazon Connect</div>
+        </div>
+        <div class="showcase-slide">
+          <img src="/static/screenshots/04-integrations.png" alt="Nexus integrations catalog" loading="lazy">
+          <div class="showcase-caption">62 native integrations across CRM, CCaaS, BI &amp; HRIS</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- INTEGRATIONS -->
-<section id="integrations" class="integrations">
-  <h2 class="section-title">62 Native Integrations</h2>
-  <p class="section-sub">Connect everything. CRM, ticketing, telephony, BI, HRIS, project tools — all with encrypted vault credentials.</p>
-  <div class="integrations-logos">
-    <div class="int-logo">HubSpot</div>
-    <div class="int-logo">Salesforce</div>
-    <div class="int-logo">Zendesk</div>
-    <div class="int-logo">Freshdesk</div>
-    <div class="int-logo">Pipedrive</div>
-    <div class="int-logo">Dynamics 365</div>
-    <div class="int-logo">Zoho</div>
-    <div class="int-logo">Help Scout</div>
-    <div class="int-logo">Front</div>
-    <div class="int-logo">Twilio</div>
-    <div class="int-logo">Amazon Connect</div>
-    <div class="int-logo">Five9</div>
-    <div class="int-logo">Genesys</div>
-    <div class="int-logo">Talkdesk</div>
-    <div class="int-logo">Zoom</div>
-    <div class="int-logo">Vonage</div>
-    <div class="int-logo">RingCentral</div>
-    <div class="int-logo">Snowflake</div>
-    <div class="int-logo">BigQuery</div>
-    <div class="int-logo">Tableau</div>
-    <div class="int-logo">Power BI</div>
-    <div class="int-logo">Amplitude</div>
-    <div class="int-logo">Workday</div>
-    <div class="int-logo">BambooHR</div>
-    <div class="int-logo">ADP</div>
-    <div class="int-logo">Gusto</div>
-    <div class="int-logo">Jira</div>
-    <div class="int-logo">Asana</div>
-    <div class="int-logo">Monday</div>
-    <div class="int-logo">Linear</div>
-    <div class="int-logo">PagerDuty</div>
-    <div class="int-logo">n8n</div>
-    <div class="int-logo">Zapier</div>
-    <div class="int-logo">Epic</div>
-    <div class="int-logo">Copper</div>
-    <div class="int-logo">Azure DevOps</div>
+<section id="integrations" class="integrations-section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Connect everything</div>
+      <h2 class="section-title">62 native integrations</h2>
+      <p class="section-sub">CRM, ticketing, telephony, BI, HRIS, project tools — encrypted vault credentials.</p>
+    </div>
   </div>
-  <p style="text-align:center;margin-top:2rem"><a href="/integrations" style="font-weight:600">View all 62 integrations →</a></p>
+  <div class="marquee-wrap reveal">
+    <div class="marquee">
+      <span class="int-pill">HubSpot</span><span class="int-pill">Salesforce</span><span class="int-pill">Zendesk</span>
+      <span class="int-pill">Freshdesk</span><span class="int-pill">Pipedrive</span><span class="int-pill">Dynamics 365</span>
+      <span class="int-pill">Zoho</span><span class="int-pill">Help Scout</span><span class="int-pill">Front</span>
+      <span class="int-pill">Twilio</span><span class="int-pill">Amazon Connect</span><span class="int-pill">Five9</span>
+      <span class="int-pill">Genesys</span><span class="int-pill">Talkdesk</span><span class="int-pill">Zoom</span>
+      <span class="int-pill">Vonage</span><span class="int-pill">RingCentral</span><span class="int-pill">Snowflake</span>
+    </div>
+  </div>
+  <div class="marquee-wrap reveal">
+    <div class="marquee reverse">
+      <span class="int-pill">BigQuery</span><span class="int-pill">Tableau</span><span class="int-pill">Power BI</span>
+      <span class="int-pill">Amplitude</span><span class="int-pill">Workday</span><span class="int-pill">BambooHR</span>
+      <span class="int-pill">ADP</span><span class="int-pill">Gusto</span><span class="int-pill">Jira</span>
+      <span class="int-pill">Asana</span><span class="int-pill">Monday</span><span class="int-pill">Linear</span>
+      <span class="int-pill">PagerDuty</span><span class="int-pill">n8n</span><span class="int-pill">Zapier</span>
+      <span class="int-pill">Epic</span><span class="int-pill">Copper</span><span class="int-pill">Azure DevOps</span>
+    </div>
+  </div>
+  <div class="wrap integrations-cta reveal">
+    <a href="/integrations">View all 62 integrations →</a>
+  </div>
 </section>
 
 <!-- TECH STACK -->
 <section id="tech">
-  <h2 class="section-title">Tech Stack</h2>
-  <p class="section-sub">Battle-tested technologies. Python 3.11+, FastAPI, LangGraph, Docker.</p>
-  <div class="tech-grid">
-    <div class="tech-item">
-      <div class="tech-icon">⚡</div>
-      <h4>FastAPI</h4>
-      <p>Async Python backend</p>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Under the hood</div>
+      <h2 class="section-title">Battle-tested stack</h2>
+      <p class="section-sub">Python 3.11+, FastAPI, LangGraph, Docker — production-grade from the ground up.</p>
     </div>
-    <div class="tech-item">
-      <div class="tech-icon">🔗</div>
-      <h4>LangGraph</h4>
-      <p>AI orchestration</p>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">🗄️</div>
-      <h4>PostgreSQL 16</h4>
-      <p>Production database</p>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">📦</div>
-      <h4>Redis 7</h4>
-      <p>Cache + task queue</p>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">🔍</div>
-      <h4>ChromaDB</h4>
-      <p>Vector store for RAG</p>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">🛡️</div>
-      <h4>Caddy</h4>
-      <p>TLS + rate limiting</p>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">🐳</div>
-      <h4>Docker</h4>
-      <p>Multi-stage builds</p>
-    </div>
-    <div class="tech-item">
-      <div class="tech-icon">📈</div>
-      <h4>Prometheus</h4>
-      <p>Metrics + monitoring</p>
+    <div class="tech-orbit">
+      <div class="tech-chip reveal"><div class="emoji">⚡</div><h4>FastAPI</h4><p>Async Python</p></div>
+      <div class="tech-chip reveal reveal-delay-1"><div class="emoji">🔗</div><h4>LangGraph</h4><p>AI orchestration</p></div>
+      <div class="tech-chip reveal reveal-delay-2"><div class="emoji">🗄️</div><h4>PostgreSQL 16</h4><p>Production DB</p></div>
+      <div class="tech-chip reveal reveal-delay-3"><div class="emoji">📦</div><h4>Redis 7</h4><p>Cache + queue</p></div>
+      <div class="tech-chip reveal"><div class="emoji">🔍</div><h4>ChromaDB</h4><p>Vector RAG</p></div>
+      <div class="tech-chip reveal reveal-delay-1"><div class="emoji">🛡️</div><h4>Caddy</h4><p>TLS + limits</p></div>
+      <div class="tech-chip reveal reveal-delay-2"><div class="emoji">🐳</div><h4>Docker</h4><p>Multi-stage</p></div>
+      <div class="tech-chip reveal reveal-delay-3"><div class="emoji">📈</div><h4>Prometheus</h4><p>Metrics</p></div>
     </div>
   </div>
 </section>
 
 <!-- ARCHITECTURE -->
-<section style="background:var(--bg2)">
-  <h2 class="section-title">Architecture</h2>
-  <p class="section-sub">Clean layered design. Browser → FastAPI → Orchestrator → Tools + KB.</p>
-  <div class="arch-box">
-<span class="highlight">┌─────────────────────────────────────────────────────┐</span>
-<span class="highlight">│</span>  <span class="green">Browser UI</span> (static HTML/CSS/JS)                   <span class="highlight">│</span>
-<span class="highlight">│</span>  ↕ SSE / WebSocket streaming                        <span class="highlight">│</span>
-<span class="highlight">├─────────────────────────────────────────────────────┤</span>
-<span class="highlight">│</span>  <span class="blue">Caddy</span> — TLS, rate limiting, security headers      <span class="highlight">│</span>
-<span class="highlight">├─────────────────────────────────────────────────────┤</span>
-<span class="highlight">│</span>  <span class="orange">FastAPI</span> — REST + WebSocket + static files          <span class="highlight">│</span>
-<span class="highlight">│</span>  ↕ JWT auth, multi-tenant, audit log                 <span class="highlight">│</span>
-<span class="highlight">├─────────────────────────────────────────────────────┤</span>
-<span class="highlight">│</span>  <span class="green">LangGraph Orchestrator</span> — agent routing + tools     <span class="highlight">│</span>
-<span class="highlight">│</span>  ↕ RAG retrieval, LLM calls, tool execution          <span class="highlight">│</span>
-<span class="highlight">├─────────────────────────────────────────────────────┤</span>
-<span class="highlight">│</span>  <span class="blue">PostgreSQL</span> · <span class="orange">Redis</span> · <span class="green">ChromaDB</span>                       <span class="highlight">│</span>
-<span class="highlight">│</span>  <span class="blue">62 integration adapters</span> · <span class="orange">Twilio</span> · <span class="green">Meta Graph API</span>    <span class="highlight">│</span>
-<span class="highlight">└─────────────────────────────────────────────────────┘</span>
+<section id="architecture">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Architecture</div>
+      <h2 class="section-title">Layered by design</h2>
+      <p class="section-sub">Browser → edge → API → orchestrator → data. Click each layer to dive in.</p>
+    </div>
+    <div class="arch-interactive reveal">
+      <div class="arch-layers">
+        <button class="arch-layer" data-layer="ui" type="button">
+          <div class="arch-layer-left">
+            <span class="arch-layer-num">1</span>
+            <div><h4>Browser UI</h4><p>Static HTML/CSS/JS · SSE · WebSocket</p></div>
+          </div>
+          <span class="arch-layer-arrow">→</span>
+        </button>
+        <button class="arch-layer" data-layer="edge" type="button">
+          <div class="arch-layer-left">
+            <span class="arch-layer-num">2</span>
+            <div><h4>Caddy Edge</h4><p>TLS · rate limiting · security headers</p></div>
+          </div>
+          <span class="arch-layer-arrow">→</span>
+        </button>
+        <button class="arch-layer" data-layer="api" type="button">
+          <div class="arch-layer-left">
+            <span class="arch-layer-num">3</span>
+            <div><h4>FastAPI</h4><p>REST · WebSocket · JWT · multi-tenant</p></div>
+          </div>
+          <span class="arch-layer-arrow">→</span>
+        </button>
+        <button class="arch-layer" data-layer="orch" type="button">
+          <div class="arch-layer-left">
+            <span class="arch-layer-num">4</span>
+            <div><h4>LangGraph Orchestrator</h4><p>Agent routing · tools · RAG · LLM calls</p></div>
+          </div>
+          <span class="arch-layer-arrow">→</span>
+        </button>
+        <button class="arch-layer" data-layer="data" type="button">
+          <div class="arch-layer-left">
+            <span class="arch-layer-num">5</span>
+            <div><h4>Data &amp; Integrations</h4><p>Postgres · Redis · ChromaDB · 62 adapters</p></div>
+          </div>
+          <span class="arch-layer-arrow">→</span>
+        </button>
+      </div>
+      <div class="arch-detail mono" id="arch-detail">Click a layer to explore how data flows through Nexus.</div>
+    </div>
   </div>
 </section>
 
 <!-- DEPLOY -->
 <section id="deploy">
-  <h2 class="section-title">Deploy Anywhere</h2>
-  <p class="section-sub">From $0/month to enterprise cluster. Your call.</p>
-  <div class="deploy-options">
-    <div class="deploy-card">
-      <h3>Free Tier</h3>
-      <div class="price free">$0/mo</div>
-      <p>Oracle Cloud Always Free + DuckDNS</p>
-      <ul class="deploy-features">
-        <li>1 VM (4 cores, 24GB RAM)</li>
-        <li>Free TLS via Caddy</li>
-        <li>SQLite (dev) or managed Postgres</li>
-        <li>Full feature set</li>
-      </ul>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-eyebrow">Deploy anywhere</div>
+      <h2 class="section-title">From $0 to enterprise</h2>
+      <p class="section-sub">Oracle Always Free, Docker Compose on any VPS, or Kubernetes at scale.</p>
     </div>
-    <div class="deploy-card" style="border-color:var(--accent)">
-      <h3>Docker Compose</h3>
-      <div class="price" style="color:var(--accent2)">Self-host</div>
-      <p>Any VPS, any cloud</p>
-      <ul class="deploy-features">
-        <li>4-service stack (Caddy, Postgres, Redis, Nexus)</li>
-        <li>Health checks + auto-restart</li>
-        <li>Daily backups</li>
-        <li>systemd integration</li>
-      </ul>
-    </div>
-    <div class="deploy-card">
-      <h3>Kubernetes</h3>
-      <div class="price" style="color:var(--orange)">Scale</div>
-      <p>Production clusters</p>
-      <ul class="deploy-features">
-        <li>Horizontal scaling</li>
-        <li>Multi-region ready</li>
-        <li>Prometheus + Grafana</li>
-        <li>SOC 2 + HIPAA checklist</li>
-      </ul>
+    <div class="deploy-grid">
+      <div class="deploy-card reveal">
+        <h3>Free Tier</h3>
+        <div class="deploy-price free">$0/mo</div>
+        <p class="sub">Oracle Cloud Always Free + DuckDNS</p>
+        <ul class="deploy-list">
+          <li>1 VM (4 cores, 24GB RAM)</li>
+          <li>Free TLS via Caddy</li>
+          <li>SQLite or managed Postgres</li>
+          <li>Full feature set</li>
+        </ul>
+      </div>
+      <div class="deploy-card featured reveal reveal-delay-1">
+        <h3>Docker Compose</h3>
+        <div class="deploy-price accent">Self-host</div>
+        <p class="sub">Any VPS, any cloud provider</p>
+        <ul class="deploy-list">
+          <li>4-service stack (Caddy, Postgres, Redis, Nexus)</li>
+          <li>Health checks + auto-restart</li>
+          <li>Daily backups</li>
+          <li>systemd integration</li>
+        </ul>
+      </div>
+      <div class="deploy-card reveal reveal-delay-2">
+        <h3>Kubernetes</h3>
+        <div class="deploy-price warm">Scale</div>
+        <p class="sub">Production clusters</p>
+        <ul class="deploy-list">
+          <li>Horizontal scaling</li>
+          <li>Multi-region ready</li>
+          <li>Prometheus + Grafana</li>
+          <li>SOC 2 + HIPAA checklist</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta">
-  <h2>Ready to build AI agents<br>for your CX team?</h2>
-  <p>Open-source. Self-hosted. 62 integrations out of the box.</p>
-  <div class="hero-actions">
-    <a href="https://github.com/ShubhamRSY/nexus-ai-" class="btn btn-primary" target="_blank">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-      Get Started on GitHub
-    </a>
-    <a href="https://yournexus.duckdns.org/" class="btn btn-secondary" target="_blank">Try Live Demo →</a>
+<section class="cta-section">
+  <div class="cta-card reveal">
+    <h2>Ready to build AI agents<br>for your CX team?</h2>
+    <p>Open-source. Self-hosted. 62 integrations out of the box.</p>
+    <div class="cta-actions">
+      <a href="https://github.com/ShubhamRSY/nexus-ai-" class="btn btn-primary" target="_blank" rel="noopener">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        Get Started on GitHub
+      </a>
+      <a href="/" class="btn btn-ghost">Try Live Demo →</a>
+    </div>
   </div>
 </section>
 
-<!-- FOOTER -->
+</main>
+
 <footer>
-  <p>Built by <a href="https://github.com/ShubhamRSY" target="_blank">Shubham RSY</a> · Licensed under <a href="/legal/licensing">AGPLv3</a> (commercial available)</p>
-  <p style="margin-top:.5rem"><a href="/legal/terms">Terms</a> · <a href="/legal/privacy">Privacy</a> · <a href="/integrations">Integrations</a> · <a href="https://github.com/ShubhamRSY/nexus-ai-" target="_blank">GitHub</a></p>
+  <p>Built by <a href="https://github.com/ShubhamRSY" target="_blank" rel="noopener">Shubham RSY</a> · Licensed under <a href="/legal/licensing">AGPLv3</a> (commercial available)</p>
+  <div class="links">
+    <a href="/legal/terms">Terms</a>
+    <a href="/legal/privacy">Privacy</a>
+    <a href="/integrations">Integrations</a>
+    <a href="https://github.com/ShubhamRSY/nexus-ai-" target="_blank" rel="noopener">GitHub</a>
+  </div>
 </footer>
 
-<script>
-// Smooth scroll for nav links
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-});
-
-// Fade-in on scroll
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = 1; e.target.style.transform = 'translateY(0)'; }});
-}, { threshold: 0.1 });
-document.querySelectorAll('.channel-card,.feature-card,.screenshot-card,.tech-item,.deploy-card,.stat').forEach(el => {
-  el.style.opacity = 0; el.style.transform = 'translateY(20px)'; el.style.transition = 'all .6s ease';
-  observer.observe(el);
-});
-</script>
+<script src="/static/landing.js" defer></script>
 </body>
 </html>

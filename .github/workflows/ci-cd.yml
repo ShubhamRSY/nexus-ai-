@@ -48,7 +48,7 @@ jobs:
         working-directory: project
       - name: Dependency audit with pip-audit
         run: |
-          pip freeze | grep -viE '^(enterprise-voice-agents|(-e )?file:)' > /tmp/requirements-audit.txt
+          python scripts/audit_deps.py /tmp/requirements-audit.txt
           pip-audit --strict -r /tmp/requirements-audit.txt
         working-directory: project
 

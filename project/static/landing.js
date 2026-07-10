@@ -143,7 +143,7 @@
 
   // ── Product showcase tabs + lazy images ──
   const tabs = $$('.showcase-tab');
-  const panels = $$('.feature-panel');
+  const panels = $$('.deliver-panel');
   let autoTab = 0;
   let tabTimer = null;
 
@@ -257,8 +257,8 @@
   const showcaseGrid = document.getElementById('showcaseLogoGrid');
   if (showcaseGrid) {
     showcaseGrid.innerHTML = SHOWCASE_LOGOS.map(([id, name]) => {
-      const img = window.nexusLogoImg?.(id, 28, name) || '';
-      return `<div class="mock-logo-tile">${img}<span class="mock-logo-fallback">${name.charAt(0)}</span><span>${name}</span></div>`;
+      const img = window.nexusLogoImg?.(id, 24, name) || '';
+      return `<span class="deliver-logo-pill">${img}<span class="mock-logo-fallback">${name.charAt(0)}</span>${name}</span>`;
     }).join('');
   }
 

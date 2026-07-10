@@ -14,9 +14,24 @@ import os
 # Socket binding
 bind = f"0.0.0.0:{os.getenv('APP_PORT', '8000')}"
 
-# Workers — 2× CPU cores for I/O-bound (uvicorn async workers)
+# Workers — 2× CPU cores for I/O-bound (uvicorn async workers).
+# Cap at 2 when the container has ≤2 GiB RAM (Oracle Free micro VMs, etc.).
 _workers_raw = os.getenv("GUNICORN_WORKERS", "").strip()
-workers = int(_workers_raw) if _workers_raw else max(2, multiprocessing.cpu_count() * 2)
+if _workers_raw:
+    workers = int(_workers_raw)
+else:
+    workers = max(2, multiprocessing.cpu_count() * 2)
+    try:
+        with open("/sys/fs/cgroup/memory.max", encoding="utf-8") as f:
+            mem_max = f.read().strip()
+        if mem_max.isdigit():
+            mem_gib = int(mem_max) / (1024**3)
+            if mem_gib <= 1.5:
+                workers = 1
+            elif mem_gib <= 2:
+                workers = min(workers, 2)
+    except OSError:
+        pass
 worker_class = "uvicorn.workers.UvicornWorker"
 worker_connections = 1000
 

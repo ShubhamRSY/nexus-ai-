@@ -115,7 +115,8 @@ def verify_password(plain: str, hashed: str) -> bool:
     pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
     try:
         return pwd_context.verify(plain, hashed)
-    except Exception:
+    except Exception as exc:
+        logger.debug("password_verify_failed", error=str(exc))
         return False
 
 

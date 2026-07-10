@@ -1,8 +1,12 @@
 """RAG retriever with context formatting for agent prompts."""
 
+import structlog
+
 from src.config import get_settings, load_agent_config
 from src.rag.keyword_search import search_faq
 from src.rag.vector_store import VectorStore
+
+logger = structlog.get_logger()
 
 
 class KnowledgeRetriever:
@@ -15,7 +19,8 @@ class KnowledgeRetriever:
         top_k = top_k or self.config["top_k"]
         try:
             results = self.store.similarity_search(query, k=top_k)
-        except Exception:
+        except Exception as exc:
+            logger.warning("vector_search_failed_using_keyword_fallback", error=str(exc))
             results = []
         if not results:
             results = search_faq(query, top_k=top_k)

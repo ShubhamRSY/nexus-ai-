@@ -24,6 +24,7 @@ class TestProductionDocs:
     def test_openapi_disabled_in_production(self, monkeypatch):
         monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("DEMO_MODE", "false")
+        monkeypatch.setenv("CORS_ORIGINS", "https://example.com")
         from src.config import reload_settings
 
         reload_settings()
@@ -39,6 +40,7 @@ class TestProductionDocs:
     def test_demo_reset_disabled_in_production(self, monkeypatch):
         monkeypatch.setenv("APP_ENV", "production")
         monkeypatch.setenv("DEMO_MODE", "true")
+        monkeypatch.setenv("CORS_ORIGINS", "https://example.com")
         from src.config import reload_settings
 
         reload_settings()
@@ -50,6 +52,28 @@ class TestProductionDocs:
         with TestClient(src.main.app) as prod_client:
             res = prod_client.post("/api/v1/demo/reset")
             assert res.status_code == 404
+
+
+class TestProductionCORS:
+    def test_wildcard_cors_forbidden_in_production(self, monkeypatch):
+        monkeypatch.setenv("APP_ENV", "production")
+        monkeypatch.setenv("CORS_ORIGINS", "*")
+        from src.config import get_cors_origins_list, reload_settings
+
+        reload_settings()
+        with pytest.raises(ValueError, match="wildcard"):
+            get_cors_origins_list()
+
+    def test_explicit_cors_allowed_in_production(self, monkeypatch):
+        monkeypatch.setenv("APP_ENV", "production")
+        monkeypatch.setenv("CORS_ORIGINS", "https://app.example.com,https://admin.example.com")
+        from src.config import get_cors_origins_list, reload_settings
+
+        reload_settings()
+        assert get_cors_origins_list() == [
+            "https://app.example.com",
+            "https://admin.example.com",
+        ]
 
 
 class TestTwilioSignature:

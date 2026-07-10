@@ -28,7 +28,8 @@ from src.api.portal_routes import router as portal_router
 from src.api.saas_routes import router as saas_router
 from src.api.deps import integration_router
 from src.auth import decode_jwt, seed_demo_data
-from src.config import ROOT_DIR, get_settings, reload_settings
+from src import __version__
+from src.config import ROOT_DIR, get_cors_origins_list, get_settings, reload_settings
 from src.database import init_db
 from src.integrations.secrets_vault import get_secrets_vault
 from src.logging_config import setup_logging
@@ -76,7 +77,7 @@ _docs_enabled = not settings.is_production
 app = FastAPI(
     title="Nexus · Enterprise Voice & Chat AI Agents",
     description="Production-grade omnichannel AI agent platform with multi-tenant auth, streaming, analytics, and enterprise integrations.",
-    version="2.0.0",
+    version=__version__,
     lifespan=lifespan,
     docs_url="/docs" if _docs_enabled else None,
     redoc_url="/redoc" if _docs_enabled else None,
@@ -86,7 +87,7 @@ app = FastAPI(
 # Middleware stack
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins.split(",") if settings.cors_origins != "*" else ["*"],
+    allow_origins=get_cors_origins_list(settings),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -264,7 +265,7 @@ async def api_root():
     settings = get_settings()
     return {
         "service": "Nexus Enterprise AI Agents",
-        "version": "2.0.0",
+        "version": __version__,
         "docs": "/docs" if not settings.is_production else None,
         "health": "/api/v1/health",
     }

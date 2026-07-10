@@ -182,7 +182,8 @@ def _get_user_version(conn) -> int:
             cur.execute("SELECT version FROM _schema_version")
             row = cur.fetchone()
             return row[0] if row else 0
-    except Exception:
+    except Exception as exc:
+        logger.debug("schema_version_read_failed", error=str(exc))
         conn.rollback()
         return 0
 
@@ -1247,7 +1248,8 @@ class Database:
                     "SELECT * FROM migrations_log ORDER BY version ASC"
                 ).fetchall()
                 return [dict(r) for r in rows]
-            except Exception:
+            except Exception as exc:
+                logger.warning("migration_history_read_failed", error=str(exc))
                 return []
 
     def update_session_locale(self, session_id: str, locale: str) -> None:

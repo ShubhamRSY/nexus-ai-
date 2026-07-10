@@ -178,7 +178,8 @@ class VectorStore:
                 )
                 results = self.store.similarity_search_with_relevance_scores(query, k=k)
             return _filter_vector_hits(results, threshold=threshold)
-        except Exception:
+        except Exception as exc:
+            logger.warning("vector_search_failed_using_faq_fallback", error=str(exc))
             faq = search_faq(query, top_k=k)
             return [
                 {

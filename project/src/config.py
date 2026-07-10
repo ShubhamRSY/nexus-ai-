@@ -349,6 +349,27 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.app_env.strip().lower() == "production"
 
+    @property
+    def is_staging(self) -> bool:
+        return self.app_env.strip().lower() == "staging"
+
+
+def get_cors_origins_list(settings: Settings | None = None) -> list[str]:
+    """Resolve CORS origins; forbid wildcard in production/staging."""
+    s = settings or get_settings()
+    raw = s.cors_origins.strip()
+    env = s.app_env.strip().lower()
+    if env in ("production", "staging"):
+        if not raw or raw == "*":
+            raise ValueError(
+                f"CORS_ORIGINS must list explicit origins when APP_ENV={env} "
+                "(wildcard * is forbidden)"
+            )
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    if raw == "*":
+        return ["*"]
+    return [o.strip() for o in raw.split(",") if o.strip()] or ["*"]
+
 
 @lru_cache
 def get_settings() -> Settings:

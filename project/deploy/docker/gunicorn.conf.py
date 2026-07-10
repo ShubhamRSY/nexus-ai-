@@ -14,8 +14,9 @@ import os
 # Socket binding
 bind = f"0.0.0.0:{os.getenv('APP_PORT', '8000')}"
 
-# Workers — 2-4x CPU cores for I/O-bound (uvicorn async workers)
-workers = int(os.getenv("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2))
+# Workers — 2× CPU cores for I/O-bound (uvicorn async workers)
+_workers_raw = os.getenv("GUNICORN_WORKERS", "").strip()
+workers = int(_workers_raw) if _workers_raw else max(2, multiprocessing.cpu_count() * 2)
 worker_class = "uvicorn.workers.UvicornWorker"
 worker_connections = 1000
 

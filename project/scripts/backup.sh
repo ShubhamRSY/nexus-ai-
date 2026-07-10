@@ -34,13 +34,10 @@ backup_postgres() {
   local dump_path="$BACKUP_DIR/nexus-pg-$TIMESTAMP.sql.gz"
   echo "==> Backing up PostgreSQL to $dump_path"
 
-  # Support both direct connection and docker-compose context
   if command -v pg_dump &>/dev/null && [ -n "${DATABASE_URL:-}" ]; then
     pg_dump "$DATABASE_URL" | gzip > "$dump_path"
-  elif docker compose ps -q postgres &>/dev/null; then
-    docker compose exec -T postgres pg_dump -U nexus nexus | gzip > "$dump_path"
   else
-    echo "WARNING: No PostgreSQL access. Skipping database backup."
+    echo "ERROR: pg_dump unavailable or DATABASE_URL not set. Skipping database backup."
     return 1
   fi
 

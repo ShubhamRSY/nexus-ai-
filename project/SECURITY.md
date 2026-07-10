@@ -4,6 +4,7 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 2.5.x   | :white_check_mark: |
 | 2.0.x   | :white_check_mark: |
 | < 2.0   | :x:                |
 
@@ -29,7 +30,9 @@ Before exposing Nexus to the public internet, configure:
 | `INTEGRATIONS_ENCRYPTION_KEY` | Fernet key for credential vault |
 | `CORS_ORIGINS` | Your domain(s) only — never `*` |
 | `DEMO_MODE` | `false` in production |
-| `POSTGRES_PASSWORD` | Strong, unique password |
+| `POSTGRES_PASSWORD` | Strong, unique password (required — no default in docker-compose) |
+| `REDIS_PASSWORD` | Strong, unique password (required for Redis in docker-compose) |
+| `REDIS_URL` | Must include password in production, e.g. `redis://:PASSWORD@redis:6379/0` |
 | `SETTINGS_ADMIN_TOKEN` | Required for credential API writes |
 | `TWILIO_AUTH_TOKEN` | Required for voice; enables webhook signature validation |
 
@@ -41,7 +44,10 @@ Before exposing Nexus to the public internet, configure:
 - **Encrypted integrations vault** (AES-256-GCM via Fernet)
 - **Optional HashiCorp Vault** overlay for secrets
 - **Rate limiting** (Redis-backed with in-memory fallback)
-- **Caddy TLS termination** with security headers in Docker Compose stack
+- **CORS enforcement** — wildcard `*` rejected when `APP_ENV=production` or `staging`
+- **Redis authentication** in Docker Compose stack
+- **CI security scanning** — Bandit (SAST) + pip-audit on every PR
+- **Staging environment** — `docker-compose.staging.yml` + `develop` branch deploy job
 - **Non-root Docker user** (`appuser`)
 
 ## Known Development Defaults
@@ -50,7 +56,7 @@ These defaults are intentional for local development but **must be changed for p
 
 - `AUTH_REQUIRED=false` — API endpoints are open without a token
 - `DEMO_MODE=false` — demo users are not seeded unless explicitly enabled
-- `CORS_ORIGINS=*` — permissive CORS (overridden in Docker Compose production stack)
+- `CORS_ORIGINS=*` — permissive CORS in development only (rejected at startup in production/staging)
 - Auto-generated JWT secret file when `JWT_SECRET` is unset (use a persistent secret in production)
 
 ## Dependency Updates

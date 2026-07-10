@@ -3,11 +3,14 @@
 import json
 from typing import Any
 
+import structlog
 from langchain_core.tools import tool
 
 from src.integrations.crm import get_crm_client
 from src.llm.factory import get_llm
 from src.rag.retriever import KnowledgeRetriever
+
+logger = structlog.get_logger()
 
 _retriever: KnowledgeRetriever | None = None
 _crm = get_crm_client()
@@ -152,7 +155,8 @@ async def draft_response(context: str, tone: str = "professional") -> str:
             )
             result = await llm.ainvoke(prompt)
             draft = result.content if hasattr(result, 'content') else str(result)
-        except Exception:
+        except Exception as exc:
+            logger.warning("draft_response_llm_failed", error=str(exc))
             draft = "Based on the context provided, here is a suggested response."
     else:
         draft = "Based on the context provided, here is a suggested response."
@@ -181,7 +185,8 @@ async def summarize_conversation(transcript: str) -> str:
             )
             result = await llm.ainvoke(prompt)
             summary = result.content if hasattr(result, 'content') else str(result)
-        except Exception:
+        except Exception as exc:
+            logger.warning("summarize_conversation_llm_failed", error=str(exc))
             summary = ""
     else:
         summary = ""

@@ -47,7 +47,11 @@ jobs:
         run: bandit -c bandit.yaml -r src/ -ll -q
         working-directory: project
       - name: Dependency audit with pip-audit
-        run: pip-audit --strict --skip-editable
+        run: |
+          python scripts/audit_deps.py /tmp/requirements-audit.txt
+          # PYSEC-2026-311: Chroma FastAPI server RCE when exposed publicly — no fix >1.5.9 on PyPI.
+          # Nexus uses embedded PersistentClient by default (chroma_server_url empty).
+          pip-audit --strict -r /tmp/requirements-audit.txt --ignore-vuln PYSEC-2026-311
         working-directory: project
 
   test:

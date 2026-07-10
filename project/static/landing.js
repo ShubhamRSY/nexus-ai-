@@ -153,7 +153,12 @@
       t.classList.toggle('active', on);
       t.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    panels.forEach((p, i) => p.classList.toggle('active', i === idx));
+    panels.forEach((p, i) => {
+      const on = i === idx;
+      p.classList.toggle('active', on);
+      if (on) p.removeAttribute('hidden');
+      else p.setAttribute('hidden', '');
+    });
     autoTab = idx;
   };
 
@@ -226,18 +231,15 @@
     ['stripe', 'Stripe'], ['shopify', 'Shopify'], ['intercom', 'Intercom'],
   ];
   const pillHtml = ([id, name]) => {
-    const url = window.nexusLogoUrl?.(id);
-    const img = url ? `<img src="${url}" alt="" width="22" height="22" loading="lazy">` : '';
-    return `<span class="int-pill int-pill--logo">${img}<span>${name}</span></span>`;
+    const img = window.nexusLogoImg?.(id, 22, name) || '';
+    const initial = name.charAt(0);
+    return `<span class="int-pill int-pill--logo">${img}<span class="int-pill-fallback">${initial}</span><span>${name}</span></span>`;
   };
   const mountMarquee = (id, items) => {
     const el = document.getElementById(id);
-    if (el) el.innerHTML = items.map(pillHtml).join('');
+    if (!el) return;
+    el.innerHTML = items.map(pillHtml).join('');
   };
-  mountMarquee('logoMarqueeA', MARQUEE_A);
-  mountMarquee('logoMarqueeB', MARQUEE_B);
-
-  // ── Duplicate marquee items when visible ──
   const initMarquees = () => {
     $$('.marquee').forEach((track) => {
       if (track.dataset.cloned) return;
@@ -246,16 +248,28 @@
       items.forEach((item) => track.appendChild(item.cloneNode(true)));
     });
   };
-  const integrationsSection = $('#integrations');
-  if (integrationsSection) {
-    const marqueeObs = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        initMarquees();
-        marqueeObs.disconnect();
-      },
-      { rootMargin: '80px' }
-    );
-    marqueeObs.observe(integrationsSection);
+
+  const SHOWCASE_LOGOS = [
+    ['salesforce', 'Salesforce'], ['hubspot', 'HubSpot'], ['zendesk', 'Zendesk'],
+    ['twilio', 'Twilio'], ['slack', 'Slack'], ['jira', 'Jira'],
+    ['snowflake', 'Snowflake'], ['stripe', 'Stripe'],
+  ];
+  const showcaseGrid = document.getElementById('showcaseLogoGrid');
+  if (showcaseGrid) {
+    showcaseGrid.innerHTML = SHOWCASE_LOGOS.map(([id, name]) => {
+      const img = window.nexusLogoImg?.(id, 28, name) || '';
+      return `<div class="mock-logo-tile">${img}<span class="mock-logo-fallback">${name.charAt(0)}</span><span>${name}</span></div>`;
+    }).join('');
+  }
+
+  const bootMarquees = () => {
+    mountMarquee('logoMarqueeA', MARQUEE_A);
+    mountMarquee('logoMarqueeB', MARQUEE_B);
+    initMarquees();
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootMarquees);
+  } else {
+    bootMarquees();
   }
 })();

@@ -57,8 +57,10 @@
 <!-- HERO -->
 <section class="hero">
   <div class="brand-masthead reveal visible">
-    <img src="/static/nexus-logo.svg" alt="" class="brand-logo" width="56" height="56">
-    <p class="brand-name">Nexus</p>
+    <img src="/static/nexus-logo.svg" alt="" class="brand-logo" width="64" height="64">
+    <h1 class="brand-name" aria-label="Nexus">
+      <span class="brand-letter" style="--i:0">N</span><span class="brand-letter" style="--i:1">e</span><span class="brand-letter" style="--i:2">x</span><span class="brand-letter" style="--i:3">u</span><span class="brand-letter" style="--i:4">s</span>
+    </h1>
     <p class="brand-tagline">Every conversation deserves to feel human.</p>
     <p class="brand-promise">Purpose-built AI agents for customer experience — one platform for chat, voice, email, and every channel your customers love.</p>
   </div>
@@ -106,7 +108,7 @@
       <p class="section-sub">Every customer touchpoint flows through a single AI orchestrator. Click a channel to explore.</p>
     </div>
     <div class="bento">
-      <div class="channel-card span-6 reveal reveal-delay-1" data-channel="chat">
+      <div class="channel-card reveal reveal-delay-1" data-channel="chat">
         <div class="channel-icon">💬</div>
         <h3>Web Chat</h3>
         <p>SSE &amp; WebSocket streaming with RAG citations and embeddable widget.</p>
@@ -240,44 +242,50 @@
           </div>
         </button>
       </div>
-      <div class="showcase-viewport">
-        <div class="feature-panel active" data-panel="0">
-          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
-          <div class="mock-title">AI Chat · streaming + RAG</div>
+      <div class="showcase-viewport" aria-live="polite">
+        <div class="feature-panel active" data-panel="0" role="tabpanel">
+          <div class="panel-chrome">
+            <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+            <div class="mock-title">AI Chat · streaming + RAG</div>
+          </div>
           <div class="mock-chat">
             <div class="mock-bubble user">Where is my order #4821?</div>
             <div class="mock-bubble agent">Your package shipped yesterday and arrives Friday.<span class="cite">📎 Order policy KB · p.12</span></div>
+            <div class="mock-bubble user">Can I change the delivery address?</div>
+            <div class="mock-bubble agent">Absolutely — I’ve updated it to your saved address on file.</div>
           </div>
         </div>
-        <div class="feature-panel" data-panel="1">
-          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
-          <div class="mock-title">Agent Copilot · draft assist</div>
+        <div class="feature-panel" data-panel="1" role="tabpanel" hidden>
+          <div class="panel-chrome">
+            <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+            <div class="mock-title">Agent Copilot · draft assist</div>
+          </div>
           <div class="mock-copilot">
             <h5>Suggested reply</h5>
-            <p style="margin:0;font-size:.9rem;color:var(--fg-muted)">Hi Sarah — I’ve applied a 15% loyalty credit to your account. You’ll see it on your next invoice. Is there anything else I can help with today?</p>
+            <p>Hi Sarah — I’ve applied a 15% loyalty credit to your account. You’ll see it on your next invoice. Is there anything else I can help with today?</p>
+          </div>
+          <div class="mock-copilot-meta">
+            <span>⚡ 2.1s draft</span><span>🎯 Tone: empathetic</span><span>📋 KB: loyalty policy</span>
           </div>
         </div>
-        <div class="feature-panel" data-panel="2">
-          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
-          <div class="mock-title">Voice · PSTN + AI</div>
+        <div class="feature-panel" data-panel="2" role="tabpanel" hidden>
+          <div class="panel-chrome">
+            <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+            <div class="mock-title">Voice · PSTN + AI</div>
+          </div>
           <div class="mock-voice">
-            <div class="mock-waveform" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-            <p style="margin:0;font-size:.85rem;color:var(--fg-muted)">“I can reschedule your appointment to Tuesday at 2pm. Shall I confirm that?”</p>
+            <div class="mock-waveform" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <p class="mock-voice-line">“I can reschedule your appointment to Tuesday at 2pm. Shall I confirm that?”</p>
           </div>
+          <div class="mock-voice-meta"><span>📞 Twilio PSTN</span><span>🎙️ Live STT</span><span>🔊 Neural TTS</span></div>
         </div>
-        <div class="feature-panel" data-panel="3">
-          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
-          <div class="mock-title">62 integrations · encrypted vault</div>
-          <div class="mock-logo-grid">
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/salesforce/a0a0b8" alt="Salesforce" loading="lazy">Salesforce</div>
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/hubspot/a0a0b8" alt="HubSpot" loading="lazy">HubSpot</div>
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/zendesk/a0a0b8" alt="Zendesk" loading="lazy">Zendesk</div>
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/twilio/a0a0b8" alt="Twilio" loading="lazy">Twilio</div>
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/slack/a0a0b8" alt="Slack" loading="lazy">Slack</div>
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/jira/a0a0b8" alt="Jira" loading="lazy">Jira</div>
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/snowflake/a0a0b8" alt="Snowflake" loading="lazy">Snowflake</div>
-            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/stripe/a0a0b8" alt="Stripe" loading="lazy">Stripe</div>
+        <div class="feature-panel" data-panel="3" role="tabpanel" hidden>
+          <div class="panel-chrome">
+            <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+            <div class="mock-title">62 integrations · encrypted vault</div>
           </div>
+          <div class="mock-logo-grid" id="showcaseLogoGrid"></div>
+          <p class="mock-vault-note">🔐 Credentials encrypted at rest · tenant-isolated · signed webhooks</p>
         </div>
       </div>
     </div>
@@ -293,11 +301,11 @@
       <p class="section-sub">CRM, ticketing, telephony, BI, HRIS, project tools — encrypted vault credentials.</p>
     </div>
   </div>
-  <div class="marquee-wrap reveal">
-    <div class="marquee" id="logoMarqueeA"></div>
+  <div class="marquee-wrap reveal visible">
+    <div class="marquee" id="logoMarqueeA" aria-hidden="true"></div>
   </div>
-  <div class="marquee-wrap reveal">
-    <div class="marquee reverse" id="logoMarqueeB"></div>
+  <div class="marquee-wrap reveal visible">
+    <div class="marquee reverse" id="logoMarqueeB" aria-hidden="true"></div>
   </div>
   <div class="wrap integrations-cta reveal">
     <a href="/integrations">View all 62 integrations →</a>

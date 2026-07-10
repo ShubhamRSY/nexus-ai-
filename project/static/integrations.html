@@ -23,7 +23,9 @@
     .int-chip.active { background: rgba(139,92,246,.15); border-color: var(--accent); color: var(--accent-2); }
     .int-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .75rem; }
     .int-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: .9rem 1rem; display: flex; gap: .75rem; align-items: flex-start; }
-    .int-card-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; margin-top: .15rem; }
+    .int-card-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; margin-top: .15rem; filter: brightness(0) invert(.88); }
+    .int-card-fallback{display:none;width:32px;height:32px;border-radius:8px;background:rgba(139,92,246,.2);color:#a78bfa;font-size:.85rem;font-weight:700;place-items:center;flex-shrink:0}
+    .int-card-fallback.show{display:grid}
     .int-card h4 { margin: 0 0 .35rem; font-size: .95rem; display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
     .int-card .meta { font-size: .75rem; color: var(--fg-dim); margin-bottom: .5rem; }
     .badge { display: inline-block; font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: .2rem .45rem; border-radius: 6px; }
@@ -137,8 +139,9 @@
       }
       empty.hidden = true;
       grid.innerHTML = items.map((item) => {
-        const logo = window.nexusLogoUrl?.(item.id);
-        const logoHtml = logo ? `<img src="${logo}" alt="" class="int-card-logo" width="32" height="32" loading="lazy">` : '<span class="int-card-logo" style="display:grid;place-items:center;font-size:1.1rem">🔌</span>';
+        const logo = window.nexusLogoImg?.(item.id, 32, item.name) || '';
+        const initial = item.name.charAt(0);
+        const logoHtml = logo ? `${logo}<span class="int-card-fallback">${initial}</span>` : `<span class="int-card-logo int-card-fallback show">${initial}</span>`;
         return `<div class="int-card">${logoHtml}<div><h4>${item.name}${item.configured ? '<span class="badge badge-on">Live</span>' : ''}</h4><div class="meta">${item.category_label}</div><span class="badge ${badgeClass(item.tier)}">${item.tier_label}</span></div></div>`;
       }).join('');
     }

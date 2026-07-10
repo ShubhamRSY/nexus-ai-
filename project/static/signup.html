@@ -33,7 +33,7 @@
   <div class="hero">
     <a class="back" href="/">← Back to console</a>
     <h1>Nexus Cloud</h1>
-    <p>Hosted AI contact center — provision your workspace in under 60 seconds. 14-day free trial, no credit card required unless Stripe billing is enabled. <a href="/integrations" style="color:#38bdf8">Browse integrations →</a></p>
+    <p>Hosted AI contact center — start free. <a href="/contact" style="color:#38bdf8">Request pricing</a> for voice &amp; messaging · <a href="/integrations" style="color:#38bdf8">Integrations</a></p>
   </div>
 
   <div class="wrap" id="signupFlow">
@@ -52,7 +52,7 @@
         <input type="checkbox" id="acceptTerms" style="width:auto;margin:0.2rem 0 0" required />
         <span>I agree to the <a href="/legal/terms" target="_blank" style="color:#38bdf8">Terms of Service</a> and <a href="/legal/privacy" target="_blank" style="color:#38bdf8">Privacy Policy</a>.</span>
       </label>
-      <button type="button" class="btn" id="submitBtn">Start free trial</button>
+      <button type="button" class="btn" id="submitBtn">Create workspace</button>
     </div>
   </div>
 
@@ -64,7 +64,7 @@
 
   <script>
     const API = '/api/v1';
-    let selectedPlan = 'starter';
+    let selectedPlan = 'free';
     let config = {};
 
     function showErr(msg) {
@@ -77,15 +77,19 @@
       const res = await fetch(`${API}/saas/signup/config`);
       config = await res.json();
       const grid = document.getElementById('plansGrid');
-      grid.innerHTML = (config.plans || []).map((p) => `
-        <div class="plan${p.id === selectedPlan ? ' selected' : ''}" data-plan="${p.id}">
+      grid.innerHTML = (config.plans || []).filter((p) => !p.contact_sales).map((p) => `
+        <div class="plan${p.id === selectedPlan ? ' selected' : ''}" data-plan="${p.id}" data-paid="${p.price_monthly > 0 ? '1' : '0'}">
           <h3>${p.name}</h3>
-          <div class="price">${p.price_monthly === 0 ? 'Free' : `$${p.price_monthly}<span style="font-size:0.9rem;font-weight:400;color:#a1a1aa">/mo</span>`}</div>
+          <div class="price">${p.price_monthly === 0 ? 'Free' : 'Request pricing'}</div>
           <div class="meta">${p.agents} agents · ${Array.isArray(p.channels) ? p.channels.join(', ') : p.channels}</div>
-          <div class="meta">${p.trial_days > 0 ? `${p.trial_days}-day trial` : p.price_monthly === 0 ? 'No credit card required' : '14-day trial'}</div>
+          <div class="meta">${p.price_monthly === 0 ? 'No credit card required' : 'Enquire to activate'}</div>
         </div>`).join('');
       grid.querySelectorAll('.plan').forEach((el) => {
         el.addEventListener('click', () => {
+          if (el.dataset.paid === '1') {
+            window.location.href = '/contact?plan=' + encodeURIComponent(el.dataset.plan);
+            return;
+          }
           selectedPlan = el.dataset.plan;
           grid.querySelectorAll('.plan').forEach((p) => p.classList.toggle('selected', p.dataset.plan === selectedPlan));
         });

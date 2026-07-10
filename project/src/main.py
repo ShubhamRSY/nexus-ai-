@@ -230,6 +230,30 @@ async def signup_ui():
     return {"message": "Signup page not found", "api": "/api/v1/saas/signup"}
 
 
+@app.get("/pricing")
+async def pricing_ui():
+    page = STATIC_DIR / "pricing.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache, must-revalidate"})
+    raise HTTPException(status_code=404, detail="Pricing page not found")
+
+
+@app.get("/faq")
+async def faq_ui():
+    page = STATIC_DIR / "faq.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache, must-revalidate"})
+    raise HTTPException(status_code=404, detail="FAQ not found")
+
+
+@app.get("/contact")
+async def contact_ui():
+    page = STATIC_DIR / "contact.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache, must-revalidate"})
+    raise HTTPException(status_code=404, detail="Contact page not found")
+
+
 @app.get("/integrations")
 async def integrations_ui():
     page = STATIC_DIR / "integrations.html"

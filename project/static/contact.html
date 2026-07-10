@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexus — Contact &amp; Enquiries</title>
+<meta name="description" content="Contact Nexus for pricing, support, and enterprise enquiries.">
+<link rel="stylesheet" href="/static/landing.css">
+</head>
+<body class="subpage">
+<div class="ambient" aria-hidden="true"><div class="ambient-orb ambient-orb--2"></div></div>
+<div class="grid-overlay" aria-hidden="true"></div>
+
+<header class="nav scrolled">
+  <div class="nav-inner">
+    <a href="/landing" class="nav-logo"><span class="nav-logo-mark">N</span> Nexus</a>
+    <nav class="nav-links">
+      <a href="/landing">Home</a>
+      <a href="/pricing">Plans</a>
+      <a href="/faq">FAQ</a>
+      <a href="/signup" class="nav-cta">Start free →</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" style="padding-top:calc(var(--nav-h) + 2rem);padding-bottom:4rem">
+  <div class="section-head reveal visible">
+    <div class="section-eyebrow">Get in touch</div>
+    <h1 class="section-title">Send an enquiry</h1>
+    <p class="section-sub">Pricing, demos, enterprise licensing — all enquiries go to our team at <strong>hello@nexus.com</strong>.</p>
+  </div>
+
+  <div class="enquiry-form-wrap reveal visible">
+    <form id="enquiryForm" class="enquiry-form">
+      <label for="name">Your name</label>
+      <input type="text" id="name" name="name" required placeholder="Alex Chen">
+
+      <label for="email">Your email</label>
+      <input type="email" id="email" name="email" required placeholder="you@company.com">
+
+      <label for="company">Company (optional)</label>
+      <input type="text" id="company" name="company" placeholder="Acme Inc">
+
+      <label for="interest">I'm interested in</label>
+      <select id="interest" name="interest">
+        <option value="pricing">Request pricing</option>
+        <option value="starter">Starter plan</option>
+        <option value="growth">Growth plan</option>
+        <option value="enterprise">Enterprise / self-host</option>
+        <option value="demo">Product demo</option>
+        <option value="support">Support</option>
+      </select>
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="5" required placeholder="Team size, channels you need (voice, WhatsApp, etc.), and any questions…"></textarea>
+
+      <button type="submit" class="btn btn-primary" style="width:100%">Send enquiry</button>
+      <p class="enquiry-hint">Opens your email app with the message addressed to our team. You can also email directly: <a href="mailto:yedekarshubham7188@gmail.com?subject=Nexus%20Enquiry">hello@nexus.com</a></p>
+    </form>
+
+    <div class="contact-side">
+      <div class="contact-card">
+        <h3>Email</h3>
+        <a class="contact-email" href="mailto:yedekarshubham7188@gmail.com?subject=Nexus%20Enquiry%20(hello@nexus.com)">hello@nexus.com</a>
+        <p class="contact-hint">All enquiries land in our inbox.</p>
+      </div>
+      <div class="contact-card">
+        <h3>Start free</h3>
+        <p class="contact-hint">No enquiry needed for the free tier — chat &amp; email, 2 agents.</p>
+        <a href="/signup" class="btn btn-ghost" style="width:100%;margin-top:.75rem">Create free workspace →</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>© Nexus · <a href="/legal/terms">Terms</a> · <a href="/legal/privacy">Privacy</a></p>
+</footer>
+
+<script>
+(function () {
+  const TO = 'yedekarshubham7188@gmail.com';
+  const params = new URLSearchParams(location.search);
+  const plan = params.get('plan');
+  if (plan) {
+    const sel = document.getElementById('interest');
+    const opt = [...sel.options].find((o) => o.value === plan);
+    if (opt) sel.value = plan;
+  }
+  document.getElementById('enquiryForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const company = document.getElementById('company').value.trim();
+    const interest = document.getElementById('interest').selectedOptions[0].textContent;
+    const message = document.getElementById('message').value.trim();
+    const subject = `Nexus Enquiry — ${interest}`;
+    const body = [
+      `Name: ${name}`,
+      `Email: ${email}`,
+      company ? `Company: ${company}` : '',
+      `Interest: ${interest}`,
+      '',
+      message,
+    ].filter(Boolean).join('\n');
+    location.href = `mailto:${TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+})();
+</script>
+</body>
+</html>

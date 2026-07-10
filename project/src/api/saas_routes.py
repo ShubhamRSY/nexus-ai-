@@ -57,6 +57,10 @@ async def saas_signup(body: SaasSignupRequest) -> dict[str, Any]:
     if not get_plan(body.plan_id):
         raise HTTPException(status_code=400, detail="Invalid plan")
 
+    plan = get_plan(body.plan_id)
+    if plan and plan.get("contact_sales"):
+        raise HTTPException(status_code=400, detail="Contact sales for Enterprise — see /contact")
+
     if db.get_user_by_email(str(body.email)):
         raise HTTPException(status_code=409, detail="Email already registered")
 

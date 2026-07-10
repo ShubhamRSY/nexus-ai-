@@ -13,7 +13,7 @@
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
         # The UI is shipped as a single-file app with inline <script>.
         # Allow inline scripts so the console can execute (login/register included).
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self';"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.simpleicons.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self';"
     }
 
     # Proxy to nexus backend

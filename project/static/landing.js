@@ -70,7 +70,7 @@
 
   // ── Rotating hero words ──
   const rotateEl = $('.hero-rotate');
-  const words = ['Chat', 'Voice', 'Email', 'WhatsApp', 'SMS', 'Social'];
+  const words = ['Cares', 'Listens', 'Resolves', 'Supports', 'Connects'];
   let wordIdx = 0;
   if (rotateEl) {
     const cycle = () => {
@@ -143,16 +143,9 @@
 
   // ── Product showcase tabs + lazy images ──
   const tabs = $$('.showcase-tab');
-  const slides = $$('.showcase-slide');
+  const panels = $$('.feature-panel');
   let autoTab = 0;
   let tabTimer = null;
-
-  const loadSlideImage = (idx) => {
-    const img = slides[idx]?.querySelector('img[data-src]');
-    if (!img || img.src) return;
-    img.src = img.dataset.src;
-    img.removeAttribute('data-src');
-  };
 
   const setTab = (idx) => {
     tabs.forEach((t, i) => {
@@ -160,19 +153,17 @@
       t.classList.toggle('active', on);
       t.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
-    loadSlideImage(idx);
+    panels.forEach((p, i) => p.classList.toggle('active', i === idx));
     autoTab = idx;
   };
 
   tabs.forEach((tab, i) => tab.addEventListener('click', () => setTab(i)));
 
   const showcaseSection = $('#showcase');
-  if (showcaseSection && slides.length) {
+  if (showcaseSection && panels.length) {
     const showcaseObs = new IntersectionObserver(
       (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
-        loadSlideImage(0);
         showcaseObs.disconnect();
         tabTimer = window.setInterval(() => setTab((autoTab + 1) % tabs.length), 6000);
       },
@@ -220,6 +211,31 @@
       });
     });
   }
+
+  // ── Integration logo marquees ──
+  const MARQUEE_A = [
+    ['hubspot', 'HubSpot'], ['salesforce', 'Salesforce'], ['zendesk', 'Zendesk'],
+    ['freshdesk', 'Freshdesk'], ['pipedrive', 'Pipedrive'], ['zoho', 'Zoho'],
+    ['help-scout', 'Help Scout'], ['front', 'Front'], ['twilio', 'Twilio'],
+    ['amazon-connect', 'Amazon Connect'], ['slack', 'Slack'], ['ringcentral', 'RingCentral'],
+  ];
+  const MARQUEE_B = [
+    ['snowflake', 'Snowflake'], ['bigquery', 'BigQuery'], ['jira', 'Jira'],
+    ['asana', 'Asana'], ['monday', 'Monday'], ['linear', 'Linear'],
+    ['pagerduty', 'PagerDuty'], ['n8n', 'n8n'], ['zapier', 'Zapier'],
+    ['stripe', 'Stripe'], ['shopify', 'Shopify'], ['intercom', 'Intercom'],
+  ];
+  const pillHtml = ([id, name]) => {
+    const url = window.nexusLogoUrl?.(id);
+    const img = url ? `<img src="${url}" alt="" width="22" height="22" loading="lazy">` : '';
+    return `<span class="int-pill int-pill--logo">${img}<span>${name}</span></span>`;
+  };
+  const mountMarquee = (id, items) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = items.map(pillHtml).join('');
+  };
+  mountMarquee('logoMarqueeA', MARQUEE_A);
+  mountMarquee('logoMarqueeB', MARQUEE_B);
 
   // ── Duplicate marquee items when visible ──
   const initMarquees = () => {

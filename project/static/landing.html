@@ -7,7 +7,6 @@
 <meta name="description" content="Nexus Cloud — AI agents for customer experience. Start free. Upgrade for voice, WhatsApp, and 62 integrations.">
 <meta name="theme-color" content="#030014">
 <link rel="preload" href="/static/landing.css" as="style">
-<link rel="preload" href="/static/screenshots/landing/01-chat-hero.webp" as="image" type="image/webp" fetchpriority="high">
 <link rel="stylesheet" href="/static/landing.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,8 +27,8 @@
 <!-- NAV -->
 <header class="nav">
   <div class="nav-inner">
-    <a href="#" class="nav-logo">
-      <span class="nav-logo-mark">N</span>
+    <a href="/landing" class="nav-logo">
+      <img src="/static/nexus-logo.svg" alt="" width="32" height="32" class="nav-logo-img">
       Nexus
     </a>
     <nav class="nav-links" aria-label="Primary">
@@ -57,25 +56,22 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge"><span class="pulse"></span> Nexus Cloud · Free to start · v2.5.0</div>
+  <div class="brand-masthead reveal visible">
+    <img src="/static/nexus-logo.svg" alt="" class="brand-logo" width="56" height="56">
+    <p class="brand-name">Nexus</p>
+    <p class="brand-tagline">Every conversation deserves to feel human.</p>
+    <p class="brand-promise">Purpose-built AI agents for customer experience — one platform for chat, voice, email, and every channel your customers love.</p>
+  </div>
+  <div class="hero-badge"><span class="pulse"></span> Nexus Cloud · Free to start</div>
   <h1>
-    <span class="gradient-text">AI agents</span> for every<br>
-    <span class="hero-rotate">Chat</span> channel. One platform.
+    <span class="gradient-text">AI that listens.</span><br>
+    Answers. <span class="hero-rotate">Cares</span>.
   </h1>
-  <p>Omnichannel CX platform — chat, voice, email, WhatsApp, SMS, Messenger &amp; Instagram. 62 native integrations, RAG knowledge layer, enterprise guardrails.</p>
+  <p>Give your team superpowers — resolve issues faster, support agents in the moment, and turn every interaction into a relationship that lasts.</p>
   <div class="hero-actions">
     <a href="/signup" class="btn btn-primary">Start free →</a>
     <a href="/" class="btn btn-ghost">Live demo</a>
     <a href="/contact" class="btn btn-ghost">Request pricing</a>
-  </div>
-  <div class="hero-preview">
-    <div class="hero-preview-glow" aria-hidden="true"></div>
-    <div class="hero-preview-frame">
-      <picture>
-        <source srcset="/static/screenshots/landing/01-chat-hero.webp" type="image/webp">
-        <img src="/static/screenshots/landing/01-chat-hero.webp" alt="Nexus AI chat console with streaming responses and RAG citations" width="1200" height="675" fetchpriority="high" decoding="async">
-      </picture>
-    </div>
   </div>
 </section>
 
@@ -210,8 +206,8 @@
   <div class="wrap">
     <div class="section-head reveal">
       <div class="section-eyebrow">Interactive demo</div>
-      <h2 class="section-title">See it in action</h2>
-      <p class="section-sub">One console for chat, copilot, voice, and 62 integrations. Click a tab or let it auto-play.</p>
+      <h2 class="section-title">What Nexus delivers</h2>
+      <p class="section-sub">Explore capabilities — no tiny screenshots, just the features that matter to your CX team.</p>
     </div>
     <div class="showcase reveal">
       <div class="showcase-tabs" role="tablist" aria-label="Product views">
@@ -245,21 +241,43 @@
         </button>
       </div>
       <div class="showcase-viewport">
-        <div class="showcase-slide active">
-          <img data-src="/static/screenshots/landing/01-chat.webp" alt="Nexus chat interface" decoding="async">
-          <div class="showcase-caption">Real-time AI chat with knowledge-base citations</div>
+        <div class="feature-panel active" data-panel="0">
+          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+          <div class="mock-title">AI Chat · streaming + RAG</div>
+          <div class="mock-chat">
+            <div class="mock-bubble user">Where is my order #4821?</div>
+            <div class="mock-bubble agent">Your package shipped yesterday and arrives Friday.<span class="cite">📎 Order policy KB · p.12</span></div>
+          </div>
         </div>
-        <div class="showcase-slide">
-          <img data-src="/static/screenshots/landing/02-copilot.webp" alt="Nexus copilot interface" decoding="async">
-          <div class="showcase-caption">Agent copilot — draft replies from live transcripts</div>
+        <div class="feature-panel" data-panel="1">
+          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+          <div class="mock-title">Agent Copilot · draft assist</div>
+          <div class="mock-copilot">
+            <h5>Suggested reply</h5>
+            <p style="margin:0;font-size:.9rem;color:var(--fg-muted)">Hi Sarah — I’ve applied a 15% loyalty credit to your account. You’ll see it on your next invoice. Is there anything else I can help with today?</p>
+          </div>
         </div>
-        <div class="showcase-slide">
-          <img data-src="/static/screenshots/landing/03-voice.webp" alt="Nexus voice interface" decoding="async">
-          <div class="showcase-caption">Voice channel with Twilio and Amazon Connect</div>
+        <div class="feature-panel" data-panel="2">
+          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+          <div class="mock-title">Voice · PSTN + AI</div>
+          <div class="mock-voice">
+            <div class="mock-waveform" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <p style="margin:0;font-size:.85rem;color:var(--fg-muted)">“I can reschedule your appointment to Tuesday at 2pm. Shall I confirm that?”</p>
+          </div>
         </div>
-        <div class="showcase-slide">
-          <img data-src="/static/screenshots/landing/04-integrations.webp" alt="Nexus integrations catalog" decoding="async">
-          <div class="showcase-caption">62 native integrations across CRM, CCaaS, BI &amp; HRIS</div>
+        <div class="feature-panel" data-panel="3">
+          <div class="mock-bar"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span></div>
+          <div class="mock-title">62 integrations · encrypted vault</div>
+          <div class="mock-logo-grid">
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/salesforce/a0a0b8" alt="Salesforce" loading="lazy">Salesforce</div>
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/hubspot/a0a0b8" alt="HubSpot" loading="lazy">HubSpot</div>
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/zendesk/a0a0b8" alt="Zendesk" loading="lazy">Zendesk</div>
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/twilio/a0a0b8" alt="Twilio" loading="lazy">Twilio</div>
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/slack/a0a0b8" alt="Slack" loading="lazy">Slack</div>
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/jira/a0a0b8" alt="Jira" loading="lazy">Jira</div>
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/snowflake/a0a0b8" alt="Snowflake" loading="lazy">Snowflake</div>
+            <div class="mock-logo-tile"><img src="https://cdn.simpleicons.org/stripe/a0a0b8" alt="Stripe" loading="lazy">Stripe</div>
+          </div>
         </div>
       </div>
     </div>
@@ -276,24 +294,10 @@
     </div>
   </div>
   <div class="marquee-wrap reveal">
-    <div class="marquee">
-      <span class="int-pill">HubSpot</span><span class="int-pill">Salesforce</span><span class="int-pill">Zendesk</span>
-      <span class="int-pill">Freshdesk</span><span class="int-pill">Pipedrive</span><span class="int-pill">Dynamics 365</span>
-      <span class="int-pill">Zoho</span><span class="int-pill">Help Scout</span><span class="int-pill">Front</span>
-      <span class="int-pill">Twilio</span><span class="int-pill">Amazon Connect</span><span class="int-pill">Five9</span>
-      <span class="int-pill">Genesys</span><span class="int-pill">Talkdesk</span><span class="int-pill">Zoom</span>
-      <span class="int-pill">Vonage</span><span class="int-pill">RingCentral</span><span class="int-pill">Snowflake</span>
-    </div>
+    <div class="marquee" id="logoMarqueeA"></div>
   </div>
   <div class="marquee-wrap reveal">
-    <div class="marquee reverse">
-      <span class="int-pill">BigQuery</span><span class="int-pill">Tableau</span><span class="int-pill">Power BI</span>
-      <span class="int-pill">Amplitude</span><span class="int-pill">Workday</span><span class="int-pill">BambooHR</span>
-      <span class="int-pill">ADP</span><span class="int-pill">Gusto</span><span class="int-pill">Jira</span>
-      <span class="int-pill">Asana</span><span class="int-pill">Monday</span><span class="int-pill">Linear</span>
-      <span class="int-pill">PagerDuty</span><span class="int-pill">n8n</span><span class="int-pill">Zapier</span>
-      <span class="int-pill">Epic</span><span class="int-pill">Copper</span><span class="int-pill">Azure DevOps</span>
-    </div>
+    <div class="marquee reverse" id="logoMarqueeB"></div>
   </div>
   <div class="wrap integrations-cta reveal">
     <a href="/integrations">View all 62 integrations →</a>
@@ -377,42 +381,45 @@
   <div class="wrap">
     <div class="section-head reveal">
       <div class="section-eyebrow">Deploy anywhere</div>
-      <h2 class="section-title">From $0 to enterprise</h2>
-      <p class="section-sub">Oracle Always Free, Docker Compose on any VPS, or Kubernetes at scale.</p>
+      <h2 class="section-title">Built for teams who care</h2>
+      <p class="section-sub">Start free on Nexus Cloud — request pricing when you're ready to scale voice, messaging, and enterprise features.</p>
     </div>
     <div class="deploy-grid">
       <div class="deploy-card reveal">
-        <h3>Free Tier</h3>
-        <div class="deploy-price free">$0/mo</div>
-        <p class="sub">Oracle Cloud Always Free + DuckDNS</p>
+        <h3>Start free</h3>
+        <div class="deploy-price free">Try Nexus</div>
+        <p class="sub">Chat + email · 2 agents · no card</p>
         <ul class="deploy-list">
-          <li>1 VM (4 cores, 24GB RAM)</li>
-          <li>Free TLS via Caddy</li>
-          <li>SQLite or managed Postgres</li>
-          <li>Full feature set</li>
+          <li>Instant workspace provisioning</li>
+          <li>RAG knowledge layer</li>
+          <li>Core integrations</li>
+          <li>Upgrade when you grow</li>
         </ul>
+        <a href="/signup" class="btn btn-ghost pricing-btn">Start free →</a>
       </div>
       <div class="deploy-card featured reveal reveal-delay-1">
-        <h3>Docker Compose</h3>
-        <div class="deploy-price accent">Self-host</div>
-        <p class="sub">Any VPS, any cloud provider</p>
+        <h3>Nexus Cloud</h3>
+        <div class="deploy-price accent">Hosted</div>
+        <p class="sub">Fully managed · we handle ops</p>
         <ul class="deploy-list">
-          <li>4-service stack (Caddy, Postgres, Redis, Nexus)</li>
-          <li>Health checks + auto-restart</li>
-          <li>Daily backups</li>
-          <li>systemd integration</li>
+          <li>TLS, backups, health checks</li>
+          <li>Multi-tenant security</li>
+          <li>Priority support options</li>
+          <li>Scale on demand</li>
         </ul>
+        <a href="/contact" class="btn btn-primary pricing-btn">Request pricing</a>
       </div>
       <div class="deploy-card reveal reveal-delay-2">
-        <h3>Kubernetes</h3>
-        <div class="deploy-price warm">Scale</div>
-        <p class="sub">Production clusters</p>
+        <h3>Enterprise</h3>
+        <div class="deploy-price warm">Custom</div>
+        <p class="sub">Private cloud · SSO · compliance</p>
         <ul class="deploy-list">
-          <li>Horizontal scaling</li>
-          <li>Multi-region ready</li>
-          <li>Prometheus + Grafana</li>
-          <li>SOC 2 + HIPAA checklist</li>
+          <li>Self-host or dedicated VPC</li>
+          <li>HIPAA &amp; SOC 2 paths</li>
+          <li>Dedicated support SLA</li>
+          <li>Volume licensing</li>
         </ul>
+        <a href="/contact?plan=enterprise" class="btn btn-ghost pricing-btn">Enquire →</a>
       </div>
     </div>
   </div>
@@ -421,8 +428,8 @@
 <!-- CTA -->
 <section class="cta-section">
   <div class="cta-card reveal">
-    <h2>Ready to build AI agents<br>for your CX team?</h2>
-    <p>Start free on Nexus Cloud. Upgrade when you need voice, WhatsApp, and full integrations.</p>
+    <h2>Your customers are waiting.<br>Let's answer with care.</h2>
+    <p>Start free today — or send an enquiry and we'll help you find the right plan.</p>
     <div class="cta-actions">
       <a href="/signup" class="btn btn-primary">Start free →</a>
       <a href="/contact" class="btn btn-ghost">Send enquiry</a>
@@ -444,6 +451,7 @@
   </div>
 </footer>
 
+<script src="/static/brand-logos.js" defer></script>
 <script src="/static/landing.js" defer></script>
 </body>
 </html>

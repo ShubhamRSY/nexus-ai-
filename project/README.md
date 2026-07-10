@@ -1,20 +1,27 @@
 <div align="center">
 
+<img src="static/nexus-logo.svg" alt="Nexus" width="72" height="72" />
+
 # Nexus
 
-**Purpose-built AI agents. One CX platform. (Open-source)**  
+### *Every conversation deserves to feel human.*
 
-**[Try live demo →](https://yournexus.duckdns.org/)** — or **[Start Nexus Cloud free trial](https://yournexus.duckdns.org/signup)** (provisions your workspace in ~60s).
-Nexus is an omnichannel AI agent platform for customer experience teams — one orchestrator for **Chat**, **Copilot**, **Voice**, **Email**, **WhatsApp**, **SMS**, **Messenger**, and **Instagram**, grounded with **RAG**, protected by **JWT auth + guardrails**, and built for **operations** (streaming, rate limits, logs, backups).
+**Purpose-built AI agents. One CX platform.**
 
-[![CI](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml)
+**[Try live demo →](https://yournexus.duckdns.org/)** · **[Start free](https://yournexus.duckdns.org/signup)** · **[Send enquiry](https://yournexus.duckdns.org/contact)**
+
+Nexus is a proprietary omnichannel AI platform for customer experience teams — one orchestrator for **Chat**, **Copilot**, **Voice**, **Email**, **WhatsApp**, **SMS**, **Messenger**, and **Instagram**, grounded with **RAG**, protected by **JWT auth + guardrails**, and built for teams who care about every customer moment.
+
+[![CI](https://github.com/ShubhamRSY/nexus-ai-/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ShubhamRSY/nexus-ai-/actions/workflows/ci-cd.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: AGPLv3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-215%2B%20passing-brightgreen.svg)](tests/)
+[![Proprietary](https://img.shields.io/badge/License-Proprietary-purple.svg)](project/static/legal/licensing.html)
+[![Tests](https://img.shields.io/badge/tests-215%2B%20passing-brightgreen.svg)](project/tests/)
 
 </div>
 
-**Live pilot:** [https://yournexus.duckdns.org/](https://yournexus.duckdns.org/) — chat, copilot, voice, RAG, JWT auth, and Auth0 OIDC SSO.
+**Live:** [https://yournexus.duckdns.org/](https://yournexus.duckdns.org/) — chat, copilot, voice, RAG, JWT auth, and enterprise integrations.
+
+**Pricing:** not listed publicly — [request a quote](https://yournexus.duckdns.org/contact).
 
 ---
 
@@ -71,12 +78,12 @@ Customer experience (CX) teams lose time and accuracy when chat, voice, and inte
 
 ## Nexus Cloud (hosted SaaS)
 
-Nexus Cloud is **live** at [/signup](https://yournexus.duckdns.org/signup) — self-serve workspace provisioning with 14-day trial, legal acceptance (ToS + Privacy), and optional Stripe billing.
+Nexus Cloud is **live** at [/signup](https://yournexus.duckdns.org/signup) — self-serve free tier (chat + email), legal acceptance (ToS + Privacy), and optional Stripe billing for paid plans.
 
 **Licensing**
 
-- **Open-source**: AGPLv3 (`project/LICENSE`)
-- **Commercial license**: AGPL alternative with published pricing — see [`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md) or `/legal/licensing` (Startup **$12k/yr**, Growth **$36k/yr**, Enterprise **from $96k/yr**)
+- **Nexus Cloud**: proprietary hosted service — [request pricing](https://yournexus.duckdns.org/contact)
+- **Enterprise**: private deployment, SSO, compliance — [contact sales](https://yournexus.duckdns.org/contact?plan=enterprise)
 
 **Hosted features (live now)**
 
@@ -123,13 +130,22 @@ Nexus is organized around a small set of primitives so you can reason about the 
 
 ## Recent Changes
 
+### v2.5.1 — Brand & dark marketing UI (July 2026)
+
+| Change | Description |
+|--------|-------------|
+| **Nexus brand** | Logo, tagline (*Every conversation deserves to feel human.*), and emotional copy across landing, contact, pricing, FAQ, and integrations |
+| **Dark UI** | Glass enquiry forms, feature panels (no tiny screenshots), integration logos via Simple Icons CDN |
+| **Proprietary positioning** | Public pricing removed — request quote via [`/contact`](https://yournexus.duckdns.org/contact) (`hello@nexus.com`) |
+| **README** | Brand header, tagline, and updated SaaS/enquiry links at the top |
+
 ### v2.5.0 — 62 native integrations + SaaS pricing (July 2026)
 
 | Change | Description |
 |--------|-------------|
 | **62 native integrations** | CRM, ticketing, CCaaS, telephony, BI, HRIS, knowledge, and more — each with vault credentials, status API, and proxy routes |
 | **Integrations catalog** | Public page at [`/integrations`](https://yournexus.duckdns.org/integrations) with search and category filters |
-| **Nexus Cloud pricing** | Free / **$29** Starter / **$99** Growth — see [`docs/saas-hosted.md`](docs/saas-hosted.md) |
+| **Nexus Cloud plans** | Free / Starter / Growth / Enterprise — enquire for paid tiers; see [`docs/saas-hosted.md`](docs/saas-hosted.md) |
 | **Production security** | Required `POSTGRES_PASSWORD` / `REDIS_PASSWORD`, CORS wildcard blocked in prod, Redis auth, CI Bandit + pip-audit, staging deploy on `develop` |
 | **LinkedIn deck** | `exports/linkedin/Nexus_LinkedIn_Launch.pdf` — 4K retina screenshots; upload PDF (not PPTX) |
 | **QA verified** | 215+ tests passing (unit, integration, E2E with live server); all integration routes return mock-safe responses without credentials |

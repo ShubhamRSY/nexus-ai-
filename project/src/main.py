@@ -252,6 +252,14 @@ async def portal_ui():
     return {"message": "Portal not found", "api": "/api/v1/portal"}
 
 
+@app.get("/landing")
+async def landing_ui():
+    landing = STATIC_DIR / "landing.html"
+    if landing.exists():
+        return FileResponse(landing, headers={"Cache-Control": "no-cache, must-revalidate"})
+    return {"message": "Landing page not found"}
+
+
 @app.get("/")
 async def ui():
     index = STATIC_DIR / "index.html"

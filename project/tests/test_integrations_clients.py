@@ -160,6 +160,11 @@ class TestWhatsAppMessenger:
             "twilio_auth_token": "",
             "twilio_phone_number": "",
         })())
+        # Bypass SaaS plan gates — this unit test covers messenger parsing/reply, not billing.
+        monkeypatch.setattr(
+            "src.saas.plan_gates.require_inbound_channel",
+            lambda channel: "default",
+        )
         msg = WhatsAppMessenger()
         form = {"From": "whatsapp:+15551234567", "To": "whatsapp:+18005551234", "Body": "Hi", "MessageSid": "SM123"}
         result = await msg.handle_inbound_webhook(form)
@@ -173,6 +178,10 @@ class TestWhatsAppMessenger:
             "twilio_auth_token": "",
             "twilio_phone_number": "",
         })())
+        monkeypatch.setattr(
+            "src.saas.plan_gates.require_inbound_channel",
+            lambda channel: "default",
+        )
         msg = WhatsAppMessenger()
         form = {"From": "+15551234567", "To": "+18005551234", "Body": "Hello via SMS", "MessageSid": "SM456"}
         result = await msg.handle_inbound_webhook(form)

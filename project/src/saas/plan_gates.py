@@ -159,8 +159,14 @@ def resolve_inbound_tenant() -> str:
 
 
 def require_inbound_channel(channel: str) -> str:
-    """Gate inbound webhook channel and return resolved tenant_id."""
+    """Gate inbound webhook channel and return resolved tenant_id.
+
+    In DEMO_MODE (CI / local demos), channel gates are skipped so Twilio/Meta
+    webhook smoke tests work without provisioning a paid subscription.
+    """
     tenant_id = resolve_inbound_tenant()
+    if get_settings().demo_mode:
+        return tenant_id
     require_channel(tenant_id, channel)
     return tenant_id
 

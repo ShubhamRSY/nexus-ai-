@@ -191,7 +191,8 @@ class VectorStore:
             with warnings.catch_warnings():
                 warnings.filterwarnings(
                     "ignore",
-                    message="Relevance scores must be between 0 and 1",
+                    message=r".*Relevance scores must be between 0 and 1.*",
+                    category=UserWarning,
                 )
                 results = self.store.similarity_search_with_relevance_scores(query, k=k)
             return _filter_vector_hits(results, threshold=threshold)

@@ -1651,7 +1651,7 @@ class Database:
             row = conn.execute("SELECT * FROM tenant_subscriptions WHERE tenant_id=?", (tenant_id,)).fetchone()
             if row:
                 return dict(row)
-            return {"tenant_id": tenant_id, "plan_id": "starter", "status": "active"}
+            return {"tenant_id": tenant_id, "plan_id": "free", "status": "active"}
 
     def set_tenant_subscription(
         self,

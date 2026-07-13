@@ -145,35 +145,40 @@ def seed_demo_data() -> None:
     from src.database import db
 
     tenant = db.get_tenant(DEMO_TENANT_ID)
-    if tenant:
-        return
+    created = False
+    if not tenant:
+        db.create_tenant(DEMO_TENANT_ID, "Acme Corporation", "acme-corp", {
+            "plan": "enterprise",
+            "channels": ["chat", "voice", "copilot", "whatsapp", "sms", "messenger", "instagram"],
+        })
+        for u in DEMO_USERS:
+            db.create_user(u["id"], DEMO_TENANT_ID, u["email"], hash_password(u["password"]), u["name"], u["role"])
+        articles = [
+            {"title": "How to reset your password", "content": "To reset your password, go to the login page and click 'Forgot Password'. Enter your registered email address and check your inbox for a reset link. Follow the link to create a new password. Your new password must be at least 8 characters long and include a number and a special character.", "tags": "password,account,security", "category": "account"},
+            {"title": "Understanding your billing cycle", "content": "Acme bills on a monthly cycle starting from your sign-up date. Invoices are generated on the 1st of each month. You can view your billing history and download invoices from the Billing section in your account settings. Payments are processed via secure credit card or ACH transfer.", "tags": "billing,payment,invoice", "category": "billing"},
+            {"title": "How to request a refund", "content": "Refunds are available within 30 days of purchase for annual plans and within 7 days for monthly plans. To request a refund, contact support with your account email and reason for cancellation. Refunds are processed within 5-7 business days and credited back to the original payment method.", "tags": "refund,billing,cancellation", "category": "billing"},
+            {"title": "Managing team members", "content": "Account owners can invite team members from the Team page in Settings. Enter their email address and select a role (Admin, Member, or Viewer). Each plan has a team member limit. You can remove members or change roles at any time. Team members receive an invitation email to join.", "tags": "team,members,users,admin", "category": "account"},
+            {"title": "API rate limits and best practices", "content": "The Acme API allows 1,000 requests per minute for enterprise plans and 100 requests per minute for standard plans. Implement exponential backoff for retries. Cache responses where possible. Include your API key in the X-API-Key header. Monitor your usage from the Developer Dashboard.", "tags": "api,developer,rate-limit", "category": "technical"},
+            {"title": "Supported browsers", "content": "Acme Platform supports the latest two major versions of Chrome, Firefox, Safari, and Edge. For the best experience, enable JavaScript and cookies. Internet Explorer is not supported.", "tags": "browser,support,technical", "category": "technical"},
+            {"title": "Data export options", "content": "You can export your data from Settings > Data Export. Choose between CSV, JSON, or PDF formats. Exports include conversations, tickets, and analytics. Large exports are sent via email as a download link. Data is retained for 90 days after account cancellation.", "tags": "export,data,privacy", "category": "account"},
+            {"title": "Troubleshooting 403 errors", "content": "A 403 Forbidden error means your request lacks proper authorization. Check that your API key is valid and included in the request header. Verify your permissions for the requested resource. If using SSO, ensure your session hasn't expired. Contact support if the issue persists.", "tags": "error,api,403,troubleshooting", "category": "troubleshooting"},
+            {"title": "Performance optimization tips", "content": "For optimal platform performance: clear your browser cache regularly, limit concurrent API requests, use our CDN-hosted SDKs, enable compression, and batch API calls where possible. Enterprise customers can request a performance audit from their account manager.", "tags": "performance,optimization,tips", "category": "technical"},
+            {"title": "Contacting Acme Support", "content": "Acme Support is available 24/7 via chat, email, and phone. Chat: click the chat icon in the bottom-right corner. Email: support@acme.com. Phone: +1-800-ACME-HELP. Enterprise customers have a dedicated account manager and priority phone line. Average response time is under 2 minutes for chat and under 4 hours for email.", "tags": "support,contact,help", "category": "general"},
+        ]
+        for art in articles:
+            db.create_article(DEMO_TENANT_ID, art["title"], art["content"], art["tags"], art["category"])
+        _seed_demo_conversations()
+        created = True
 
-    db.create_tenant(DEMO_TENANT_ID, "Acme Corporation", "acme-corp", {
-        "plan": "enterprise",
-        "channels": ["chat", "voice", "copilot", "whatsapp"],
-    })
+    # Always ensure demo + webhook tenants have an enterprise subscription so
+    # inbound WhatsApp/voice demos are not blocked by free/starter channel gates.
+    if not db.get_tenant("default"):
+        db.create_tenant("default", "Default Workspace", "default", {"plan": "enterprise"})
+    db.set_tenant_subscription(DEMO_TENANT_ID, "enterprise", "active")
+    db.set_tenant_subscription("default", "enterprise", "active")
 
-    for u in DEMO_USERS:
-        db.create_user(u["id"], DEMO_TENANT_ID, u["email"], hash_password(u["password"]), u["name"], u["role"])
-
-    articles = [
-        {"title": "How to reset your password", "content": "To reset your password, go to the login page and click 'Forgot Password'. Enter your registered email address and check your inbox for a reset link. Follow the link to create a new password. Your new password must be at least 8 characters long and include a number and a special character.", "tags": "password,account,security", "category": "account"},
-        {"title": "Understanding your billing cycle", "content": "Acme bills on a monthly cycle starting from your sign-up date. Invoices are generated on the 1st of each month. You can view your billing history and download invoices from the Billing section in your account settings. Payments are processed via secure credit card or ACH transfer.", "tags": "billing,payment,invoice", "category": "billing"},
-        {"title": "How to request a refund", "content": "Refunds are available within 30 days of purchase for annual plans and within 7 days for monthly plans. To request a refund, contact support with your account email and reason for cancellation. Refunds are processed within 5-7 business days and credited back to the original payment method.", "tags": "refund,billing,cancellation", "category": "billing"},
-        {"title": "Managing team members", "content": "Account owners can invite team members from the Team page in Settings. Enter their email address and select a role (Admin, Member, or Viewer). Each plan has a team member limit. You can remove members or change roles at any time. Team members receive an invitation email to join.", "tags": "team,members,users,admin", "category": "account"},
-        {"title": "API rate limits and best practices", "content": "The Acme API allows 1,000 requests per minute for enterprise plans and 100 requests per minute for standard plans. Implement exponential backoff for retries. Cache responses where possible. Include your API key in the X-API-Key header. Monitor your usage from the Developer Dashboard.", "tags": "api,developer,rate-limit", "category": "technical"},
-        {"title": "Supported browsers", "content": "Acme Platform supports the latest two major versions of Chrome, Firefox, Safari, and Edge. For the best experience, enable JavaScript and cookies. Internet Explorer is not supported.", "tags": "browser,support,technical", "category": "technical"},
-        {"title": "Data export options", "content": "You can export your data from Settings > Data Export. Choose between CSV, JSON, or PDF formats. Exports include conversations, tickets, and analytics. Large exports are sent via email as a download link. Data is retained for 90 days after account cancellation.", "tags": "export,data,privacy", "category": "account"},
-        {"title": "Troubleshooting 403 errors", "content": "A 403 Forbidden error means your request lacks proper authorization. Check that your API key is valid and included in the request header. Verify your permissions for the requested resource. If using SSO, ensure your session hasn't expired. Contact support if the issue persists.", "tags": "error,api,403,troubleshooting", "category": "troubleshooting"},
-        {"title": "Performance optimization tips", "content": "For optimal platform performance: clear your browser cache regularly, limit concurrent API requests, use our CDN-hosted SDKs, enable compression, and batch API calls where possible. Enterprise customers can request a performance audit from their account manager.", "tags": "performance,optimization,tips", "category": "technical"},
-        {"title": "Contacting Acme Support", "content": "Acme Support is available 24/7 via chat, email, and phone. Chat: click the chat icon in the bottom-right corner. Email: support@acme.com. Phone: +1-800-ACME-HELP. Enterprise customers have a dedicated account manager and priority phone line. Average response time is under 2 minutes for chat and under 4 hours for email.", "tags": "support,contact,help", "category": "general"},
-    ]
-    for art in articles:
-        db.create_article(DEMO_TENANT_ID, art["title"], art["content"], art["tags"], art["category"])
-
-    _seed_demo_conversations()
-
-    logger.info("demo_data_seeded", tenant=DEMO_TENANT_ID, users=len(DEMO_USERS), articles=len(articles))
+    if created:
+        logger.info("demo_data_seeded", tenant=DEMO_TENANT_ID, users=len(DEMO_USERS), articles=10)
 
 
 def _seed_demo_conversations() -> None:

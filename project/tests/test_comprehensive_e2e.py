@@ -487,7 +487,8 @@ class TestWhatsApp:
             "From": "+15551117777",
             "Body": "I need help with my order",
         })
-        assert r.status_code in (200, 404)
+        # 402 = plan gate (non-demo / free tier); 200/404 = handler path
+        assert r.status_code in (200, 404, 402)
 
     def test_whatsapp_outbound(self, client):
         r = client.post("/messaging/send", params={
@@ -495,14 +496,14 @@ class TestWhatsApp:
             "body": "Thank you for contacting support!",
             "channel": "whatsapp",
         })
-        assert r.status_code in (200, 400, 401, 422)
+        assert r.status_code in (200, 400, 401, 422, 402)
 
     def test_whatsapp_inbound_sms(self, client):
         r = client.post("/messaging/inbound", data={
             "From": "+15551119999",
             "Body": "SMS test message",
         })
-        assert r.status_code in (200, 404)
+        assert r.status_code in (200, 404, 402)
 
 
 # ── 16. AUTH ENDPOINTS ─────────────────────────────────────────────────

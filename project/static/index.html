@@ -431,11 +431,15 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       background: rgba(17, 24, 32, 0.95);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
     }
     .channel-bar .tab {
-      flex: 1;
+      flex: 0 0 auto;
       min-height: 40px;
       touch-action: manipulation;
+      padding-inline: 0.9rem;
     }
     @media (max-width: 640px) {
       .channel-bar { display: flex; }
@@ -684,6 +688,40 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
     .tabs, .header-modes {
       display: flex;
       gap: 0.35rem;
+    }
+    /* Sidebar channel pills: horizontal scroll so Analytics/Email aren't cut off */
+    .sidebar .tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--mode-accent) 55%, transparent) transparent;
+      padding: 0.15rem 0 0.45rem;
+      margin: 0 -0.15rem;
+      mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 1.25rem), transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 1.25rem), transparent 100%);
+    }
+    .sidebar .tabs::-webkit-scrollbar {
+      height: 4px;
+    }
+    .sidebar .tabs::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--mode-accent) 50%, transparent);
+      border-radius: 999px;
+    }
+    .sidebar .tabs .tab {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      padding: 0.55rem 0.9rem;
+    }
+    .channel-scroll-hint {
+      display: block;
+      margin: -0.15rem 0 0.55rem;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
     }
     @media (min-width: 900px) {
       .sidebar .tabs { display: flex; }
@@ -2550,7 +2588,7 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
         <label class="field" style="display:block">
           <span style="display:block;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.45rem">Channel</span>
         </label>
-        <div class="tabs" id="sidebarTabs">
+        <div class="tabs" id="sidebarTabs" role="tablist" aria-label="Console channels">
           <button class="tab active" data-mode="chat" type="button">Chat</button>
           <button class="tab" data-mode="copilot" type="button">Copilot</button>
           <button class="tab" data-mode="voice" type="button">Voice</button>
@@ -2561,11 +2599,12 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           <button class="tab" data-mode="workflows" type="button">Flows</button>
           <button class="tab" data-mode="enterprise" type="button">Enterprise</button>
         </div>
+        <span class="channel-scroll-hint">Swipe / scroll sideways for more →</span>
       </div>
 
       <div id="chatSidebar">
         <div class="field" id="chatAgentField">
-          <label for="agentSelect">Agent</label>
+          <label for="agentSelect">AI agent (chat only)</label>
           <select id="agentSelect">
             <option value="chat_support">Chat Support</option>
             <option value="voice_support">Voice Support</option>
@@ -3893,17 +3932,21 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
 
       const isVoice = mode === 'voice';
       const isCopilot = mode === 'copilot';
+      const isChat = mode === 'chat';
+      const isOpsPanel = ['inbox', 'analytics', 'email', 'tickets', 'workflows', 'enterprise'].includes(mode);
 
-      chatSidebar.style.display = isVoice ? 'none' : 'block';
+      chatSidebar.style.display = (isVoice || isOpsPanel) ? 'none' : 'block';
       voiceSidebar.classList.toggle('active', isVoice);
-      chatInput.classList.toggle('composer-active', !isVoice);
+      chatInput.classList.toggle('composer-active', !isVoice && !isOpsPanel);
       voiceInput.classList.toggle('composer-active', isVoice);
       copilotCtx.style.display = isCopilot ? 'block' : 'none';
-      chatAgentField.style.display = isCopilot ? 'none' : 'block';
-      sessionField.style.display = isCopilot ? 'none' : 'block';
+      // Agent picker only for Chat — Copilot locks agent; Voice has its own sidebar; Ops panels hide it
+      chatAgentField.style.display = isChat ? 'block' : 'none';
+      sessionField.style.display = isChat ? 'block' : 'none';
 
       if (isCopilot) agent.value = 'copilot';
-      else if (mode === 'chat') agent.value = 'chat_support';
+      else if (isChat) agent.value = 'chat_support';
+      else if (isVoice) agent.value = 'voice_support';
 
       input.placeholder = isCopilot
         ? 'Ask copilot: draft a reply, summarize thread, or flag escalation...'
@@ -3913,8 +3956,14 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       filterMessagesByMode();
       refreshEmptyModeView();
 
+      // Keep active channel tab scrolled into view in the sidebar rail
+      const activeSidebarTab = document.querySelector(`#sidebarTabs .tab[data-mode="${mode}"]`);
+      if (activeSidebarTab) {
+        activeSidebarTab.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+      }
+
       if (isVoice) document.getElementById('voiceInputText').focus();
-      else document.getElementById('input').focus();
+      else if (!isOpsPanel) document.getElementById('input').focus();
 
       if (isMobile()) closeSidebar();
       updateScrollButton();

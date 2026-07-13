@@ -18,11 +18,20 @@ bash scripts/recover-production.sh
 
 This script:
 
-1. Stops and **disables system Caddy** (avoids port 80 conflict with Docker Caddy)
-2. Sets `GUNICORN_WORKERS=1` for 1GB RAM
-3. `git pull` + `docker compose pull nexus` + `up -d --force-recreate`
-4. Recreates Docker Caddy if ports 80/443 were not mapped
-5. Verifies health inside Nexus and through port 80
+1. Creates/enables **2GB swap** if none exists (reduces OOM freezes on 1GB VMs)
+2. Stops and **disables system Caddy** (avoids port 80 conflict with Docker Caddy)
+3. Sets `GUNICORN_WORKERS=1` for 1GB RAM
+4. `git pull` + `docker compose pull nexus` + `up -d --force-recreate`
+5. Recreates Docker Caddy if ports 80/443 were not mapped
+6. Verifies health inside Nexus and through port 80
+
+Docker Compose now sets **memory limits** per container (Nexus 512m, Postgres 256m, Redis 128m, Caddy 64m).
+
+After recovery, from your Mac:
+
+```bash
+BASE_URL=https://yournexus.duckdns.org bash scripts/pre-launch-check.sh
+```
 
 ---
 

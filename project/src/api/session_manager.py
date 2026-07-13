@@ -21,11 +21,14 @@ class SessionManager:
         self.ttl_seconds = ttl_seconds
         self.max_sessions = max_sessions
 
-    def get(self, session_id: str, agent_id: str) -> AgentOrchestrator:
+    def get(self, session_id: str, agent_id: str, tenant_id: str = "default") -> AgentOrchestrator:
         self.evict_stale()
         entry = self._sessions.get(session_id)
         if entry is None or entry.agent_id != agent_id:
-            entry = SessionEntry(orchestrator=AgentOrchestrator(agent_id), agent_id=agent_id)
+            entry = SessionEntry(
+                orchestrator=AgentOrchestrator(agent_id, tenant_id=tenant_id),
+                agent_id=agent_id,
+            )
             self._sessions[session_id] = entry
         entry.last_access = time.time()
         return entry.orchestrator

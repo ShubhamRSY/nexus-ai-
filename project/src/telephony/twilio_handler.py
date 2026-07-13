@@ -8,6 +8,7 @@ from fastapi import Request, Response
 from twilio.twiml.voice_response import Gather, VoiceResponse
 
 from src.config import get_settings, load_agent_config
+from src.saas.plan_gates import require_inbound_channel, resolve_inbound_tenant
 from src.telephony.ccaas_base import CallFormData, CcaasSessionEntry, CcaasVoiceHandler
 from src.workflows.orchestrator import AgentOrchestrator
 
@@ -34,11 +35,13 @@ class TwilioVoiceHandler(CcaasVoiceHandler):
             speech_result=str(speech) if speech else None,
         )
 
-    def _get_orchestrator(self, call_sid: str) -> AgentOrchestrator:
+    def _get_orchestrator(self, call_sid: str, tenant_id: str = "default") -> AgentOrchestrator:
         self._evict_stale_sessions()
         entry = self.sessions.get(call_sid)
         if entry is None:
-            entry = CcaasSessionEntry(orchestrator=AgentOrchestrator(self.agent_id))
+            entry = CcaasSessionEntry(
+                orchestrator=AgentOrchestrator(self.agent_id, tenant_id=tenant_id),
+            )
             self.sessions[call_sid] = entry
         entry.last_access = time.time()
         return entry.orchestrator
@@ -75,10 +78,16 @@ class TwilioVoiceHandler(CcaasVoiceHandler):
         if data.speech_result:
             return await self.handle_process(request, data)
 
+        from src.telephony.ivr_engine import get_active_engine
+
+        tenant_id = require_inbound_channel("voice")
+        ivr = get_active_engine(tenant_id)
+        greeting = self.telephony_config.get("greeting", "Hello, how can I help you?")
+        if ivr:
+            greeting, _ = ivr.render_twiml_prompt(ivr.entry)
+
         response = VoiceResponse()
-        gather = self._build_gather(
-            self.telephony_config.get("greeting", "Hello, how can I help you?")
-        )
+        gather = self._build_gather(greeting)
         response.append(gather)
         response.say(self.telephony_config.get("fallback_message", "I didn't catch that."))
         response.redirect(self._webhook_url("/telephony/voice/inbound"))
@@ -101,7 +110,10 @@ class TwilioVoiceHandler(CcaasVoiceHandler):
             response.redirect(self._webhook_url("/telephony/voice/process"))
             return Response(content=str(response), media_type="application/xml")
 
-        orchestrator = self._get_orchestrator(data.call_sid)
+        orchestrator = self._get_orchestrator(
+            data.call_sid,
+            tenant_id=resolve_inbound_tenant(),
+        )
         customer_info = f"Caller phone: {data.from_number}"
 
         result = await orchestrator.invoke(

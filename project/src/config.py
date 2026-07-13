@@ -345,6 +345,14 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
 
+    # Resource limits (tune down on 1GB VMs)
+    session_max_count: int = 50
+    session_ttl_seconds: int = 3600
+    db_pool_minconn: int = 1
+    db_pool_maxconn: int = 8
+    # Inbound webhook tenant when channel credentials are global (Twilio/Meta)
+    default_webhook_tenant_id: str = "default"
+
     @property
     def is_production(self) -> bool:
         return self.app_env.strip().lower() == "production"

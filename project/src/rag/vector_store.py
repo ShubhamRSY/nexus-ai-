@@ -9,6 +9,7 @@ Supports both:
 import src.sqlite_compat  # noqa: F401
 
 import hashlib
+import re
 import warnings
 from pathlib import Path
 
@@ -22,6 +23,16 @@ from langchain_core.documents import Document
 from src.config import get_settings, load_agent_config
 
 logger = structlog.get_logger()
+
+_shared_local_embeddings: "LocalHashEmbeddings | None" = None
+
+
+def tenant_collection_name(tenant_id: str) -> str:
+    """Per-tenant Chroma collection; default tenant keeps legacy name."""
+    if not tenant_id or tenant_id == "default":
+        return "knowledge_base"
+    safe = re.sub(r"[^a-z0-9_-]", "_", tenant_id.lower())[:48]
+    return f"kb_{safe}"
 
 
 def _normalize_relevance_scores(
@@ -118,18 +129,24 @@ class LocalHashEmbeddings:
         return self._hash_embed(text)
 
 
-class VectorStore:
-    def __init__(self, collection_name: str = "knowledge_base"):
-        settings = get_settings()
+def get_embedding_function():
+    """Shared embedding function — loads local ML model once per process."""
+    global _shared_local_embeddings
+    settings = get_settings()
+    if settings.openai_api_key:
+        return OpenAIEmbeddings(
+            model=settings.embedding_model,
+            api_key=settings.openai_api_key or None,
+        )
+    if _shared_local_embeddings is None:
+        _shared_local_embeddings = LocalHashEmbeddings()
+    return _shared_local_embeddings
 
-        self.embeddings: OpenAIEmbeddings | LocalHashEmbeddings
-        if settings.openai_api_key:
-            self.embeddings = OpenAIEmbeddings(
-                model=settings.embedding_model,
-                api_key=settings.openai_api_key or None,
-            )
-        else:
-            self.embeddings = LocalHashEmbeddings()
+
+class VectorStore:
+    def __init__(self, collection_name: str = "knowledge_base", tenant_id: str = ""):
+        settings = get_settings()
+        self.embeddings = get_embedding_function()
 
         if settings.chroma_server_url:
             self.client = chromadb.HttpClient(url=settings.chroma_server_url)
@@ -140,7 +157,7 @@ class VectorStore:
             self.client = chromadb.PersistentClient(path=str(persist_dir))
             logger.info("chroma_client_persistent", path=str(persist_dir))
 
-        self.collection_name = collection_name
+        self.collection_name = collection_name or tenant_collection_name(tenant_id)
         self._store: Chroma | None = None
 
     @property

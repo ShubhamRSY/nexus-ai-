@@ -56,7 +56,9 @@ class MetaMessenger:
         results = []
         obj_type = payload.get("object", "page")
         channel = "instagram" if obj_type == "instagram" else "messenger"
-        tenant_id = "default"
+        from src.saas.plan_gates import require_inbound_channel
+
+        tenant_id = require_inbound_channel(channel)
 
         for entry in payload.get("entry", []):
             for event in entry.get("messaging", []):

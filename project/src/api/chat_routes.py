@@ -17,6 +17,11 @@ from src.api.deps import (
     ChatRequest, ChatResponse, CopilotRequest, CSATRequest,
     _sessions, integration_router, require_auth, get_session,
 )
+from src.saas.plan_gates import (
+    agent_channel,
+    require_agent_for_context,
+    require_channel_for_context,
+)
 
 logger = get_logger()
 router = APIRouter()
@@ -30,6 +35,8 @@ async def chat(request: ChatRequest, ctx: Any = Depends(require_auth)) -> ChatRe
         raise HTTPException(status_code=400, detail=f"Unknown agent: {request.agent_id}")
 
     tenant_id = ctx.tenant_id if ctx else "default"
+    require_agent_for_context(ctx, request.agent_id)
+    require_channel_for_context(ctx, agent_channel(request.agent_id))
     session_id = request.session_id or f"session-{uuid.uuid4().hex[:12]}"
     orchestrator = get_session(session_id, request.agent_id, tenant_id)
 
@@ -79,7 +86,10 @@ async def chat(request: ChatRequest, ctx: Any = Depends(require_auth)) -> ChatRe
 
 @router.post("/copilot")
 async def copilot(request: CopilotRequest, ctx: Any = Depends(require_auth)) -> dict[str, Any]:
-    orchestrator = AgentOrchestrator(request.agent_id)
+    require_agent_for_context(ctx, request.agent_id)
+    require_channel_for_context(ctx, "copilot")
+    tenant_id = ctx.tenant_id if ctx else "default"
+    orchestrator = AgentOrchestrator(request.agent_id, tenant_id=tenant_id)
     result = await orchestrator.invoke(
         user_input=request.message,
         extra_context=request.conversation_summary,
@@ -102,6 +112,8 @@ async def chat_stream_sse(
         raise HTTPException(status_code=400, detail=f"Unknown agent: {agent_id}")
 
     tenant_id = ctx.tenant_id if ctx else "default"
+    require_agent_for_context(ctx, agent_id)
+    require_channel_for_context(ctx, agent_channel(agent_id))
     sid = session_id or f"session-{uuid.uuid4().hex[:12]}"
 
     async def event_stream():

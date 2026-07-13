@@ -128,11 +128,15 @@ def _get_pg_pool():
             import psycopg2.pool
             settings = get_settings()
             _pg_pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn=2,
-                maxconn=10,
+                minconn=settings.db_pool_minconn,
+                maxconn=settings.db_pool_maxconn,
                 dsn=settings.database_url,
             )
-            logger.info("postgres_pool_initialized", minconn=2, maxconn=10)
+            logger.info(
+                "postgres_pool_initialized",
+                minconn=settings.db_pool_minconn,
+                maxconn=settings.db_pool_maxconn,
+            )
         except Exception as exc:
             logger.error("postgres_pool_init_failed", error=str(exc))
             raise

@@ -298,7 +298,7 @@ async def reset_demo(ctx: Any = Depends(require_auth_dep)) -> dict:
 
     seed_demo_data()
     import src.api.deps as deps
-    deps._sessions = deps.SessionManager(ttl_seconds=3600, max_sessions=1000)
+    deps._sessions = deps._session_manager()
 
     logger.info("demo_reset", tenant=tenant_id)
     return {"status": "demo_reset", "message": "Demo data has been reset. All sessions cleared, KB re-seeded."}

@@ -26,13 +26,14 @@ logger = structlog.get_logger()
 class AgentOrchestrator:
     """Orchestrates agent workflows with RAG, tools, and prompt management."""
 
-    def __init__(self, agent_id: str):
+    def __init__(self, agent_id: str, tenant_id: str = "default"):
         self.agent_id = agent_id
+        self.tenant_id = tenant_id
         self.full_config = load_agent_config()
         self.config = self.full_config["agents"][agent_id]
         self.llm_params = resolve_llm_params(self.config, self.full_config.get("llm_defaults"))
         self.guardrails_enabled = self.full_config.get("guardrails", {}).get("enabled", True)
-        self.retriever = KnowledgeRetriever()
+        self.retriever = KnowledgeRetriever(tenant_id=tenant_id)
         self.chat_history: list = []
         self._agent = None if self._is_mock_mode() else self._build_agent()
 

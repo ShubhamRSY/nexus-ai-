@@ -69,6 +69,7 @@ async def register(request: RegisterRequest) -> dict[str, Any]:
 
     db.create_tenant(tenant_id, request.tenant_name, tenant_id)
     db.create_user(user_id, tenant_id, request.email, hash_password(request.password), request.name, "admin")
+    db.set_tenant_subscription(tenant_id, "free", "active")
     db.log_audit(tenant_id, user_id, "tenant.created", "tenant", {"tenant_name": request.tenant_name})
 
     token = create_jwt({

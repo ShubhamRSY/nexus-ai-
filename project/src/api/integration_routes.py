@@ -422,6 +422,8 @@ async def save_credentials(
     require_settings_token(request)
     vault = get_secrets_vault()
     updates = body.model_dump(exclude_unset=True)
+    from src.saas.plan_gates import require_integration_capacity
+    require_integration_capacity(ctx.tenant_id, updates, vault.get_credentials())
     vault.set_credentials(updates)
     from src.database import db
     db.log_audit(ctx.tenant_id, ctx.user_id, "integrations.credentials.updated", "integrations", {"updated": list(updates.keys())})

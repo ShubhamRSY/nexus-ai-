@@ -9,19 +9,24 @@ from langchain_core.tools import tool
 from src.integrations.crm import get_crm_client
 from src.llm.factory import get_llm
 from src.rag.retriever import KnowledgeRetriever
+from src.request_context import get_request_tenant_id
 
 logger = structlog.get_logger()
 
-_retriever: KnowledgeRetriever | None = None
+_retrievers: dict[str, KnowledgeRetriever] = {}
+_MAX_RETRIEVER_CACHE = 32
 _crm = get_crm_client()
 _draft_llm = None
 
 
 def _get_retriever() -> KnowledgeRetriever:
-    global _retriever
-    if _retriever is None:
-        _retriever = KnowledgeRetriever()
-    return _retriever
+    tid = get_request_tenant_id() or "default"
+    if tid not in _retrievers:
+        if len(_retrievers) >= _MAX_RETRIEVER_CACHE:
+            oldest = next(iter(_retrievers))
+            del _retrievers[oldest]
+        _retrievers[tid] = KnowledgeRetriever(tenant_id=tid)
+    return _retrievers[tid]
 
 
 def _get_draft_llm():

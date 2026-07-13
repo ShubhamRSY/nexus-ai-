@@ -236,7 +236,16 @@ _call_router = CallRouter()
 _call_router.add_rule(RoutingRule("vip", "from:+1555", "+15559999999", priority=10))
 _call_router.set_fallback("+15551111111")
 
-_sessions = SessionManager(ttl_seconds=3600, max_sessions=1000)
+def _session_manager() -> SessionManager:
+    from src.config import get_settings
+    settings = get_settings()
+    return SessionManager(
+        ttl_seconds=settings.session_ttl_seconds,
+        max_sessions=settings.session_max_count,
+    )
+
+
+_sessions = _session_manager()
 integration_router = IntegrationRouter()
 voice_handler = TwilioVoiceHandler()
 whatsapp = WhatsAppMessenger()
@@ -255,7 +264,7 @@ async def require_auth(ctx: AuthContext | None = Depends(get_auth_context)) -> A
 
 
 def get_session(session_id: str, agent_id: str, tenant_id: str = "default") -> Any:
-    return _sessions.get(session_id, agent_id)
+    return _sessions.get(session_id, agent_id, tenant_id)
 
 
 def require_settings_token(request: Request) -> None:

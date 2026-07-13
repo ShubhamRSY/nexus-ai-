@@ -235,12 +235,16 @@ async def message_feedback(message_id: int, body: MessageFeedbackRequest, ctx: A
 
 @router.post("/email/send")
 async def send_email(body: EmailSendRequest, ctx: Any = Depends(require_auth)) -> dict:
+    from src.saas.plan_gates import require_channel_for_context
+    require_channel_for_context(ctx, "email")
     tenant_id = ctx.tenant_id if ctx else "default"
     return await email_channel.send_email(body.to, body.subject, body.body, body.session_id, tenant_id)
 
 
 @router.post("/email/inbound")
 async def email_inbound(body: EmailInboundRequest, ctx: Any = Depends(require_auth)) -> dict:
+    from src.saas.plan_gates import require_channel_for_context
+    require_channel_for_context(ctx, "email")
     tenant_id = ctx.tenant_id if ctx else "default"
     payload = body.model_dump(by_alias=True)
     return await email_channel.handle_inbound(payload, tenant_id)

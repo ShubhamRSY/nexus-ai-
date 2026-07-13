@@ -11,6 +11,18 @@ cd "$ROOT"
 echo "==> Nexus production recovery"
 echo "    path: $ROOT"
 
+# 2GB swap helps 1GB VMs survive chat/RAG memory spikes
+if ! swapon --show 2>/dev/null | grep -q .; then
+  if [[ ! -f /swapfile ]]; then
+    echo "==> Creating 2GB swapfile (one-time)..."
+    sudo fallocate -l 2G /swapfile 2>/dev/null || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048 status=progress
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+  fi
+  echo "==> Enabling swap..."
+  sudo swapon /swapfile 2>/dev/null || echo "WARN: could not enable swap"
+fi
+
 # 1GB VMs: one Gunicorn worker (also set in config/environment/.env)
 export GUNICORN_WORKERS="${GUNICORN_WORKERS:-1}"
 

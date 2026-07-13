@@ -79,7 +79,9 @@ class WhatsAppMessenger:
         message_sid = form_data.get("MessageSid", "")
 
         channel = "whatsapp" if "whatsapp:" in from_number else "sms"
-        tenant_id = "default"
+        from src.saas.plan_gates import require_inbound_channel
+
+        tenant_id = require_inbound_channel(channel)
         session_id = f"msg-{hashlib.md5(from_number.encode(), usedforsecurity=False).hexdigest()[:12]}"
         locale = detect_locale(body)
 

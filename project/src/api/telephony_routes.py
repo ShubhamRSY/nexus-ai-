@@ -20,7 +20,7 @@ from src.api.deps import (
     _call_router, voice_handler, whatsapp,
     require_auth,
 )
-from src.saas.plan_gates import require_channel_for_context
+from src.saas.plan_gates import require_channel_for_context, require_inbound_channel
 
 logger = get_logger()
 router = APIRouter()
@@ -35,6 +35,8 @@ async def voice_inbound(
     request: Request,
     _: None = Depends(require_twilio_signature),
 ):
+    # Real PSTN is plan-gated; browser /telephony/simulate is not.
+    require_inbound_channel("voice")
     return await voice_handler.handle_inbound(request)
 
 
@@ -43,6 +45,7 @@ async def voice_process(
     request: Request,
     _: None = Depends(require_twilio_signature),
 ):
+    require_inbound_channel("voice")
     return await voice_handler.handle_process(request)
 
 
@@ -101,12 +104,15 @@ async def speak_agent(request: SpeakRequest, ctx: Any = Depends(require_auth)) -
 
 @router.post("/telephony/simulate")
 async def telephony_simulate(request: VoiceSimulateRequest, ctx: Any = Depends(require_auth)) -> dict[str, Any]:
-    require_channel_for_context(ctx, "voice")
+    """Browser voice demo — always available (does not place a real PSTN call).
+
+    Real Twilio PSTN remains gated on /telephony/voice/* webhooks.
+    """
     sip_meta = _call_router.extract_sip_headers(request.sip_headers)
     metadata = CallMetadata(
         call_sid=request.call_sid,
         from_number=request.from_number,
-        to_number="+1800ACME",
+        to_number="+1800NEXUS",
         custom_fields=sip_meta,
     )
     route_destination = _call_router.route(metadata)
@@ -128,6 +134,7 @@ async def telephony_simulate(request: VoiceSimulateRequest, ctx: Any = Depends(r
         "transfer_to": parsed["transfer_to"],
         "listening": parsed["listening"],
         "call_actions": parsed["actions"],
+        "simulation": True,
         "routing": {
             "destination": route_destination,
             "sip_headers": sip_meta,

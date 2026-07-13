@@ -2637,7 +2637,7 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           Answer Incoming Call
         </button>
         <div class="call-info">
-          Simulates PSTN inbound via Twilio webhooks — voice agent, speech gather, and human transfer routing.
+          Browser demo only — simulates an inbound call (no real phone line). Type caller speech and tap <strong>Send</strong>, or use the mic to record. Real PSTN needs Twilio + a paid voice plan.
         </div>
       </div>
 
@@ -2851,13 +2851,13 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
 
       <div class="composer" id="voiceInput">
         <div class="composer-inner">
-          <textarea id="voiceInputText" rows="1" placeholder="Type caller speech or tap mic..." aria-label="Voice input" onkeydown="handleVoiceKey(event)"></textarea>
-          <button class="btn btn-primary" id="voiceMicBtn" type="button" onclick="startMicInput()" title="Tap to record, tap again to stop" style="background:var(--surface-2);color:var(--voice);border:1px solid rgba(16,185,129,0.35);min-width:48px">
+          <textarea id="voiceInputText" rows="1" placeholder="Type what the caller says, then Send — or tap mic to record…" aria-label="Caller speech input" onkeydown="handleVoiceKey(event)"></textarea>
+          <button class="btn btn-primary" id="voiceMicBtn" type="button" onclick="startMicInput()" title="Record with microphone (tap again to stop)" style="background:var(--surface-2);color:var(--voice);border:1px solid rgba(16,185,129,0.35);min-width:48px">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
           </button>
-          <button class="btn btn-primary" id="voiceSendBtn" type="button" onclick="sendVoiceSpeech()" style="background:var(--voice)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
-            <span>Speak</span>
+          <button class="btn btn-primary" id="voiceSendBtn" type="button" onclick="sendVoiceSpeech()" style="background:var(--voice)" title="Send typed caller speech to the voice agent">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span>Send</span>
           </button>
         </div>
       </div>
@@ -2999,6 +2999,21 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       return localStorage.getItem(AUTH_TOKEN_KEY) || '';
     }
 
+    function formatApiDetail(detail) {
+      if (detail == null || detail === '') return '';
+      if (typeof detail === 'string') return detail;
+      if (Array.isArray(detail)) {
+        return detail.map((item) => {
+          if (typeof item === 'string') return item;
+          return item?.msg || item?.message || JSON.stringify(item);
+        }).join('; ');
+      }
+      if (typeof detail === 'object') {
+        return detail.message || detail.msg || detail.code || JSON.stringify(detail);
+      }
+      return String(detail);
+    }
+
     function getAuthHeaders(extra = {}) {
       const headers = { ...extra };
       const token = getAuthToken();
@@ -3089,7 +3104,7 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       if (res.ok) return res;
       const text = await res.text().catch(() => '');
       let detail = text;
-      try { const j = JSON.parse(text); detail = j.detail || j.message || text; } catch {}
+      try { const j = JSON.parse(text); detail = formatApiDetail(j.detail || j.message || text); } catch {}
       if (res.status === 429) {
         showToast('Rate limit hit — wait a moment then retry', 'error');
         throw new Error('Rate limit exceeded');
@@ -3099,16 +3114,16 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           clearAuthSession();
           showAuthGate();
         }
-        showToast(detail || 'Authentication required — please sign in', 'error');
-        throw new Error(detail || 'Authentication failed');
+        showToast(formatApiDetail(detail) || 'Authentication required — please sign in', 'error');
+        throw new Error(formatApiDetail(detail) || 'Authentication failed');
       }
       if (res.status >= 500) {
         showToast(`Server error (${res.status}) — try again later`, 'error');
-        throw new Error(detail || `Server error (${res.status})`);
+        throw new Error(formatApiDetail(detail) || `Server error (${res.status})`);
       }
       if (!res.ok) {
-        showToast(detail || `Request failed (${res.status})`, 'error');
-        throw new Error(detail || `Request failed (${res.status})`);
+        showToast(formatApiDetail(detail) || `Request failed (${res.status})`, 'error');
+        throw new Error(formatApiDetail(detail) || `Request failed (${res.status})`);
       }
       return res;
     }
@@ -4548,8 +4563,8 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       document.getElementById('welcome')?.remove();
       startCallTimer();
       updateVoiceHud();
-      addSystemMessage('Incoming PSTN call — connecting to voice agent...');
-      showToast('Call connected', 'success');
+      addSystemMessage('Simulated inbound call connected — type what the caller says and tap Send (or use the mic).');
+      showToast('Call connected (browser demo)', 'success');
       return simulateVoice(null);
     }
 
@@ -4791,7 +4806,7 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           throw new Error(raw.slice(0, 200) || `Server error (${res.status})`);
         }
 
-        if (!res.ok) throw new Error(data.detail || data.message || 'Simulation failed');
+        if (!res.ok) throw new Error(formatApiDetail(data.detail) || data.message || 'Simulation failed');
         if (epoch !== sessionEpoch) return;
 
         const spoken = data.spoken_responses || [];
@@ -4801,7 +4816,7 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
           addMessage(primary, 'voice-agent', null, [], { stream: true });
           speakAgentResponse(primary);
         } else if (speech === null) {
-          addSystemMessage('Call connected. Enter caller speech below and tap Send.');
+          addSystemMessage('Call connected. Type caller speech below and tap Send — or use the mic.');
         }
 
         updateVoiceHud();
@@ -4814,7 +4829,7 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       } catch (err) {
         hideTyping();
         if (epoch !== sessionEpoch) return;
-        addMessage(`Error: ${err.message}`, 'agent');
+        addMessage(`Error: ${formatApiDetail(err.message) || 'Voice simulation failed'}`, 'agent');
       }
     }
 

@@ -8,7 +8,7 @@ from fastapi import Request, Response
 from twilio.twiml.voice_response import Gather, VoiceResponse
 
 from src.config import get_settings, load_agent_config
-from src.saas.plan_gates import require_inbound_channel, resolve_inbound_tenant
+from src.saas.plan_gates import resolve_inbound_tenant
 from src.telephony.ccaas_base import CallFormData, CcaasSessionEntry, CcaasVoiceHandler
 from src.workflows.orchestrator import AgentOrchestrator
 
@@ -80,7 +80,7 @@ class TwilioVoiceHandler(CcaasVoiceHandler):
 
         from src.telephony.ivr_engine import get_active_engine
 
-        tenant_id = require_inbound_channel("voice")
+        tenant_id = resolve_inbound_tenant()
         ivr = get_active_engine(tenant_id)
         greeting = self.telephony_config.get("greeting", "Hello, how can I help you?")
         if ivr:

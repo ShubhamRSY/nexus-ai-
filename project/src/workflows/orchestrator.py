@@ -204,13 +204,14 @@ class AgentOrchestrator:
             else:
                 # Try broader FAQ search
                 faq_results = search_faq(user_input, top_k=1)
-                if faq_results:
+                if faq_results and faq_results[0].get("score", 0) >= 0.35:
                     tool_calls.append({"name": "search_knowledge_base", "args": {"query": user_input}})
                     response_text = faq_results[0]["answer"]
                 else:
                     response_text = (
-                        "I'm not sure about that one. I can help with password resets, billing, "
-                        "API issues, refunds, and account lookups. What would you like help with?"
+                        "I don't have a specific answer for that in the Nexus knowledge base yet. "
+                        "Try asking: What is Nexus?, What makes Nexus different?, How do I start free?, "
+                        "How do I reset my password?, or Is the service down?"
                     )
 
         self.chat_history.append(HumanMessage(content=user_input))

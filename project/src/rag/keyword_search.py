@@ -12,7 +12,7 @@ def load_faq_entries() -> tuple[dict[str, str], ...]:
     if not kb_dir.exists():
         return tuple()
 
-    for path in kb_dir.glob("**/*"):
+    for path in sorted(kb_dir.glob("**/*")):
         if path.suffix not in {".md", ".txt"}:
             continue
         text = path.read_text(encoding="utf-8")
@@ -26,7 +26,11 @@ def load_faq_entries() -> tuple[dict[str, str], ...]:
 
 
 def _tokenize(text: str) -> set[str]:
-    stop = {"a", "an", "the", "to", "my", "i", "do", "how", "can", "you", "is", "are", "for", "me"}
+    stop = {
+        "a", "an", "the", "to", "my", "i", "do", "how", "can", "you", "is", "are",
+        "for", "me", "what", "when", "where", "why", "with", "your", "our", "and",
+        "or", "of", "in", "on", "at", "it", "this", "that",
+    }
     return {w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in stop and len(w) > 2}
 
 
@@ -41,9 +45,11 @@ def search_faq(query: str, top_k: int = 3) -> list[dict]:
         a_tokens = _tokenize(entry["answer"])
         overlap_q = len(query_tokens & q_tokens)
         overlap_a = len(query_tokens & a_tokens)
-        score = overlap_q * 2 + overlap_a
-        if score > 0:
-            scored.append((score, entry))
+        # Require at least one question-token hit so answer-body noise can't win.
+        if overlap_q == 0:
+            continue
+        score = overlap_q * 4.0 + overlap_a * 0.35
+        scored.append((score, entry))
 
     scored.sort(key=lambda x: x[0], reverse=True)
     results = []
@@ -51,14 +57,18 @@ def search_faq(query: str, top_k: int = 3) -> list[dict]:
         results.append({
             "content": f"Q: {entry['question']}\nA: {entry['answer']}",
             "metadata": {"source": entry["source"], "question": entry["question"]},
-            "score": min(score / max(len(query_tokens), 1), 1.0),
+            "score": min(score / max(len(query_tokens) * 4.0, 1.0), 1.0),
             "answer": entry["answer"],
+            "raw_score": score,
         })
     return results
 
 
-def best_answer(query: str) -> str | None:
+def best_answer(query: str, *, min_score: float = 0.35) -> str | None:
+    """Return the best FAQ answer only when match quality is strong enough."""
     results = search_faq(query, top_k=1)
-    if results:
-        return results[0]["answer"]
-    return None
+    if not results:
+        return None
+    if results[0]["score"] < min_score:
+        return None
+    return results[0]["answer"]

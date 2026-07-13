@@ -69,21 +69,27 @@ SAAS_PLANS: list[dict[str, Any]] = [
 STARTER_KB = [
     {
         "title": "Welcome to Nexus Cloud",
-        "content": "Your workspace is live. Use Chat for AI support, Inbox for human handoffs, and Analytics to track CSAT and containment.",
-        "tags": "onboarding",
+        "content": "Nexus is an AI customer experience platform for chat, voice, email, and messaging. Start free at /signup — Free includes 2 AI agents, Chat + Email, and 5 integrations.",
+        "tags": "onboarding,nexus",
+        "category": "general",
+    },
+    {
+        "title": "What makes Nexus different",
+        "content": "Omnichannel from day one, $0 per-agent fees on Free, multi-LLM (GPT-4o, Claude, Gemini), 62 integrations, RAG knowledge grounding, and enterprise SSO options. Tagline: every conversation deserves to feel human.",
+        "tags": "product,positioning",
         "category": "general",
     },
     {
         "title": "Connect your channels",
-        "content": "Add Twilio for voice/WhatsApp, SMTP for email, and Meta webhooks for Messenger. Open Integrations in the sidebar.",
+        "content": "Add Twilio for voice/WhatsApp, SMTP for email, and Meta webhooks for Messenger/Instagram. Open Integrations in the sidebar. Free locks paid messaging until you upgrade.",
         "tags": "onboarding,channels",
         "category": "technical",
     },
     {
-        "title": "Invite your team",
-        "content": "Share the console URL with agents. Each user signs in with their work email. Admins manage integrations and billing.",
-        "tags": "onboarding,team",
-        "category": "account",
+        "title": "Order tracking on Nexus demos",
+        "content": "Commerce order lookup needs Shopify/WooCommerce connected under Integrations. Until then, ask product questions like What is Nexus? or How do I start free?",
+        "tags": "orders,demo",
+        "category": "general",
     },
 ]
 

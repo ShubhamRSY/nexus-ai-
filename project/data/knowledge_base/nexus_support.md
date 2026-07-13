@@ -1,79 +1,80 @@
-# Nexus Support Knowledge Base
+# Nexus Cloud — Product Knowledge Base
 
-## Billing & Payments
+## Getting started
 
-Q: How do I update my payment method?
-A: To update your payment method, log into your Nexus Cloud account and navigate to Settings > Billing > Payment Methods. You can add a new credit card, set a default payment method, or remove expired cards. Changes take effect immediately for future billing cycles. Enterprise accounts can also set up ACH transfers by contacting their account manager.
+Q: What is Nexus?
+A: Nexus is an AI customer experience platform. One engine for chat, voice, email, WhatsApp, SMS, Messenger, Instagram, and Agent Copilot — with 62 integrations, a RAG knowledge layer, and Nexus Cloud hosting so teams can start free without managing servers.
 
-Q: When is my billing date?
-A: Nexus bills on a monthly cycle starting from your sign-up date. You can view your next billing date and invoice history in Settings > Billing. Annual plans are billed once per year on your anniversary date. Invoices are typically generated within 24 hours of the billing date and emailed to the account owner.
+Q: What makes Nexus different?
+A: Nexus is omnichannel from day one (not one-channel-only bots), has $0 per-agent fees on the free tier, supports multi-LLM (GPT-4o, Claude, Gemini) without lock-in, and is enterprise-ready with JWT multi-tenant security, analytics, and private deployment options. Every conversation deserves to feel human.
 
-Q: How do I request a refund?
-A: Refunds are available within 30 days of purchase for annual plans and within 7 days for monthly plans. To request a refund, contact our support team with your account email and reason for cancellation. Refunds are processed within 5-7 business days and credited back to the original payment method. Partial refunds are available for annual plans used for less than 6 months.
+Q: How do I start free?
+A: Open https://yournexus.duckdns.org/signup — no credit card. Free includes 2 AI agents, Chat + Email channels, and 5 integrations. Upgrade via /contact when you need Voice, WhatsApp, SMS, or all 62 integrations.
 
-Q: What happens if a payment fails?
-A: If a payment fails, we'll send you an email notification and retry the payment up to 3 times over 5 days. Your account will remain active during this grace period. After 5 days without successful payment, access to paid features will be limited. To restore full access, update your payment method in Settings > Billing and contact support to clear any outstanding balance.
+Q: What channels does Nexus support?
+A: Nexus supports 8 channels: Web Chat, Agent Copilot, Voice (PSTN), Email, WhatsApp, SMS, Facebook Messenger, and Instagram DMs. All channels share the same AI orchestrator and guardrails.
 
-## Account Management
+Q: How many integrations does Nexus have?
+A: Nexus ships 62 native integrations spanning CRM (HubSpot, Salesforce), ticketing (Zendesk, Freshdesk, Jira), telephony (Twilio), messaging (Slack, Teams), and more. Credentials are encrypted in a per-workspace vault.
+
+## Account & access
 
 Q: How do I reset my password?
-A: To reset your password, go to the login page and click 'Forgot Password'. Enter your registered email address and check your inbox for a reset link. The link expires after 1 hour. Follow the link to create a new password that must be at least 8 characters long and include a number and a special character. If you don't receive the email, check your spam folder or contact support for assistance.
+A: On the Nexus login page, click Forgot Password, enter your work email, and follow the reset link (expires in 1 hour). New passwords must be at least 8 characters with a number and a special character. If no email arrives, check spam or contact hello@nexus.com.
 
 Q: How do I add team members?
-A: Account owners and admins can invite team members from Settings > Team. Click 'Invite Member', enter their email address, and select a role: Admin (full access), Member (standard access), or Viewer (read-only). The invitee will receive an email with a link to join. You can manage roles, remove members, or resend invitations from the same page. Your plan determines the maximum number of team members.
-
-Q: How do I export my data?
-A: You can export your data from Settings > Data Export. Choose your preferred format: CSV (spreadsheets), JSON (developers), or PDF (reports). Select the data types to include: conversations, tickets, analytics, or all data. Exports are prepared asynchronously — you'll receive a download link via email when ready. Large exports may take up to 24 hours. Data is retained for 90 days after account cancellation.
-
-Q: What happens when I upgrade or downgrade my plan?
-A: Upgrading takes effect immediately and you'll be charged a prorated amount for the remainder of the billing cycle. Downgrading takes effect at the end of your current billing cycle. When downgrading, ensure your usage is within the new plan limits. Enterprise plan changes require contacting your account manager. You can view and compare plans in Settings > Subscription.
-
-## Technical Support
-
-Q: Which browsers are supported?
-A: Nexus Cloud supports the latest two major versions of Chrome, Firefox, Safari, and Edge. For the best experience, enable JavaScript and cookies in your browser settings. We recommend keeping your browser updated to the latest version. Internet Explorer is not supported. Mobile browsers are supported on iOS Safari and Android Chrome with a responsive interface designed for touch interaction.
-
-Q: What are the API rate limits?
-A: The Nexus API allows 1,000 requests per minute for enterprise plans and 100 requests per minute for standard plans. Rate limits are applied per API key. Exceeded requests receive a 429 Too Many Requests response. Implement exponential backoff with jitter for retries. You can monitor your current usage and limits from the Developer Dashboard. Contact support to request a rate limit increase for your plan.
-
-Q: How do I authenticate API requests?
-A: Include your API key in the X-API-Key header for all API requests. You can generate and manage API keys from the Developer Dashboard. API keys inherit the permissions of the user who created them. Rotate keys regularly and never expose them in client-side code. For OAuth 2.0 support, enterprise customers can configure SSO integration. Invalid or expired keys will receive a 401 Unauthorized response.
-
-Q: What is the API base URL?
-A: The production API base URL is https://yournexus.duckdns.org/api/v1. For local development, use http://127.0.0.1:8001/api/v1. All endpoints return JSON responses. The OpenAPI specification is available at /docs when running the platform locally. Webhook events are delivered to your configured endpoint URL with HMAC-SHA256 signatures for verification.
-
-## Troubleshooting
+A: Admins invite teammates from Settings > Team. Choose Admin, Member, or Viewer roles. Plan limits control how many seats you can add. Invitees receive an email join link.
 
 Q: Why am I getting a 403 Forbidden error?
-A: A 403 Forbidden error means your request lacks proper authorization. Check that your API key is valid, active, and included in the X-API-Key header. Verify that your API key has the required permissions for the requested resource. If using SSO, ensure your session hasn't expired — try logging out and back in. Contact your account admin if you believe you should have access.
+A: A 403 means your request lacks permission. For the API, confirm your API key is valid and sent in the X-API-Key header. For the console, confirm you are signed in and your role allows the action. If using SSO, re-login and ask your admin to check role mapping.
 
 Q: Why is the platform running slowly?
-A: Platform performance can be affected by browser cache, network connectivity, and concurrent usage. Try clearing your browser cache and cookies. Check your internet connection speed. Reduce the number of concurrent API requests. Close unused browser tabs. If the issue persists, contact hello@nexus.com. Enterprise customers can request a performance audit.
+A: Clear browser cache, check network speed, reduce concurrent API calls, and close unused tabs. Nexus Cloud runs on a lean demo VM — heavy concurrent chat can slow responses. For sustained production load, enquire about a larger Always Free Oracle shape or enterprise hosting at hello@nexus.com.
 
-Q: How do I report a bug?
-A: To report a bug, contact support with a detailed description including: steps to reproduce, expected vs actual behavior, browser/device info, and any error messages or screenshots. Critical bugs (system down, data loss) are prioritized for same-day response. You can also submit feedback via Settings > Help or email hello@nexus.com.
+## Billing & plans
 
-Q: How do I contact Nexus Support?
-A: Nexus Support is available via chat, email, and enquiry form. Chat: use the in-app console chat. Email: hello@nexus.com. For enterprise needs, send an enquiry from /contact — dedicated support SLAs are available on Growth and Enterprise plans. Average chat response time on Nexus Cloud demos is under 2 minutes when the platform is healthy.
+Q: When is my billing date?
+A: Nexus Free is $0/month. Paid Starter and Growth tiers are billed monthly from signup; annual plans bill on anniversary. Exact dollar pricing is by enquiry — open /pricing or /contact for a quote.
 
-## Integrations & Developer
+Q: How do I request a refund?
+A: For paid plans, request a refund within 30 days (annual) or 7 days (monthly) by emailing hello@nexus.com with your account email and reason. Refunds typically post in 5–7 business days to the original payment method.
 
-Q: How do I set up a webhook?
-A: Configure webhooks from Settings > Developer > Webhooks. Enter your endpoint URL and select the events you want to receive. We'll send a verification ping to confirm the endpoint is reachable. Webhook payloads are signed with HMAC-SHA256 using your webhook signing secret. Verify signatures on your end before processing. Retry logic: failed deliveries are retried up to 5 times with exponential backoff.
+Q: What happens if a payment fails?
+A: We notify you by email and retry up to 3 times over 5 days. Your workspace stays active during the grace period. After that, paid features may lock until billing is updated in Settings > Billing.
 
-Q: Does Nexus support SSO?
-A: Yes, Nexus supports SAML 2.0 and OIDC-based SSO for enterprise plans. Supported providers include Okta, Azure AD, Google Workspace, and OneLogin. Set up SSO from Settings > Security > Single Sign-On. You'll need your provider's metadata URL or XML. SSO is enforced at the organization level — once configured, all team members must log in via SSO. Contact hello@nexus.com for assistance with custom SSO configurations.
+Q: What happens when I upgrade or downgrade my plan?
+A: Upgrades take effect immediately with prorated charges. Downgrades apply at the end of the current cycle. Match usage to new agent/channel/integration limits before downgrading. Enterprise changes go through sales via /contact.
 
-Q: What iPaaS integrations are available?
-A: Nexus integrates with n8n and Zapier for workflow automation. Pre-built templates are available for common workflows: create ticket from conversation, sync contacts to CRM, send Slack notifications for escalations, and more. Browse the integrations catalog from Settings > Integrations. Custom webhook events can be consumed in any automation platform that supports JSON webhooks.
+## Orders & delivery (demo scenarios)
 
-## Product & Features
+Q: Where is my order?
+A: In this Nexus demo there is no live Shopify/WooCommerce storefront connected yet. For a real customer deployment you would connect your order system under Integrations, then ask for an order number so the agent can look it up. For this demo, say you want a product FAQ — try "What makes Nexus different?" or "How do I start free?"
+
+Q: How do I track my order?
+A: Order tracking requires a connected commerce or fulfillment integration (for example Shopify). Once connected, provide your order ID and the agent can retrieve status and tracking. On this demo workspace, connect Shopify from Integrations and add your credentials — until then ask about Nexus plans, channels, or password reset.
+
+Q: How do I cancel my order?
+A: Cancellation policies come from your commerce system once integrated. Without a connected order database, Nexus cannot cancel a real order. Connect Shopify/WooCommerce or your OMS, then ask again with the order number. Meanwhile I can explain Nexus Free vs Growth plans if that helps.
+
+## Product & reliability
+
+Q: Is the service down?
+A: Check https://yournexus.duckdns.org/landing and /api/v1/health. If both load, Nexus Cloud is up. Temporary slowdowns on the demo VM are usually memory pressure, not a full outage. Email hello@nexus.com if health fails for more than a few minutes.
 
 Q: What AI models does Nexus use?
-A: Nexus uses GPT-4o-mini by default for chat and voice agents, with support for Claude and Gemini as alternative providers. The AI orchestrator uses LangGraph for ReAct agent loops. Responses are grounded in your knowledge base to reduce hallucination risk. Voice agents use speech-to-text and text-to-speech providers configured in your workspace. All AI features work offline in mock mode for development.
+A: By default Nexus uses GPT-4o-mini for chat and voice agents, with Claude and Gemini as alternatives you can assign per agent. Without API keys the console runs in offline mock mode using the knowledge base FAQ so demos still work.
 
 Q: Can I use my own LLM API key?
-A: Yes, you can configure your own OpenAI, Anthropic, or Gemini API keys in Settings > Integrations. Your keys are encrypted at rest using Fernet (AES) encryption and never exposed in API responses. You can switch between providers per agent in the agent configuration. Without API keys, the platform runs in mock mode with deterministic responses — all demos and tests work without any keys.
+A: Yes. Add OpenAI, Anthropic, or Gemini keys under Settings > Integrations. Keys are encrypted at rest and never returned in API responses. You can switch providers per agent. Without keys, Nexus uses mock mode grounded in this knowledge base.
 
-Q: How is conversation data handled?
-A: Conversation data is stored in your tenant database and vector knowledge layer. You can export or delete your data at any time from Settings > Data Export. We never use your conversation data for model training. API keys are encrypted at rest using Fernet symmetric encryption. Audit logs track all configuration changes. For enterprise deployments, you can configure private cloud or VPC hosting.
+Q: Does Nexus support SSO?
+A: Yes. Enterprise plans support SAML 2.0 and OIDC (Okta, Azure AD, Google Workspace, OneLogin). Configure under Settings > Security > Single Sign-On, or enquire via /contact for enterprise setup.
+
+Q: What is the API base URL?
+A: Production API base URL: https://yournexus.duckdns.org/api/v1. Health probe: GET /api/v1/health. OpenAPI docs are available at /docs in non-production environments.
+
+Q: What are the API rate limits?
+A: The Nexus API allows about 1,000 requests per minute on enterprise plans and 100 on standard/demo tiers, applied per API key or IP. Exceeded calls return HTTP 429 — use exponential backoff with jitter. Contact hello@nexus.com to raise limits.
+
+Q: How do I contact Nexus Support?
+A: Email hello@nexus.com, use the console Chat, or send an enquiry at https://yournexus.duckdns.org/contact. For partnership or enterprise pricing, prefer /contact so we can match the right plan.

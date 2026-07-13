@@ -190,21 +190,24 @@ docker compose -f deploy/docker/docker-compose.yml up -d
 ## Useful commands
 
 ```bash
-cd ~/voice-agents
+cd /opt/nexus/project
+
+# Full recovery after reboot/OOM (recommended)
+bash scripts/recover-production.sh
 
 # View logs
 docker compose -f deploy/docker/docker-compose.yml logs -f nexus
 
-# Restart everything
-docker compose -f deploy/docker/docker-compose.yml restart
-
 # Stop
 docker compose -f deploy/docker/docker-compose.yml down
 
-# Update to latest code
+# Update (no build on 1GB VM — pull image only)
 git pull
-docker compose -f deploy/docker/docker-compose.yml up -d --build
+docker compose -f deploy/docker/docker-compose.yml pull nexus
+docker compose -f deploy/docker/docker-compose.yml up -d --force-recreate
 ```
+
+See **[ops-vm-recovery.md](ops-vm-recovery.md)** for SSH key path, Caddy port-80 conflict, and step-by-step recovery.
 
 ---
 
@@ -212,8 +215,10 @@ docker compose -f deploy/docker/docker-compose.yml up -d --build
 
 | Problem | Fix |
 |---------|-----|
-| **Can't SSH** | Check Security List has port 22 open; use `ubuntu` user |
-| **Site won't load** | Check ports 80/443 in Security List + Ubuntu iptables |
+| **Can't SSH** | Use `ssh -i ~/Downloads/ssh-key-*.key opc@YOUR_IP` (not plain `ssh`) |
+| **Site timeout / VM hung** | Oracle Console → Stop → Start; run `bash scripts/recover-production.sh` |
+| **Port 80 already in use** | `sudo systemctl stop caddy && sudo systemctl disable caddy`; recreate Docker Caddy |
+| **Site won't load** | Check ports 80/443 in Security List + `docker port docker-caddy-1` |
 | **HTTPS certificate error** | Wait 2 min; ensure DuckDNS IP matches VM IP |
 | **"Out of capacity" on Oracle** | Try another Availability Domain or region |
 | **DuckDNS IP changed** | Oracle free VMs keep IP until you stop/delete instance; update DuckDNS if IP changes |

@@ -141,11 +141,30 @@
     });
   });
 
-  // Integration lake: pills are baked into HTML (62 names × 2 rows, duplicated for loop).
-  // JS only pauses on hover — no innerHTML replacement (avoids empty rows if API/cache fails).
-  $$('.marquee').forEach((track) => {
+  // ── What Nexus delivers — tab switching ──
+  const showcaseTabs = $$('#showcase .showcase-tab');
+  const deliverPanels = $$('#showcase .deliver-panel');
+  const activateDeliverTab = (idx) => {
+    showcaseTabs.forEach((tab, i) => {
+      const on = i === idx;
+      tab.classList.toggle('active', on);
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    deliverPanels.forEach((panel, i) => {
+      panel.classList.toggle('active', i === idx);
+    });
+  };
+  showcaseTabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => activateDeliverTab(i));
+  });
+  if (showcaseTabs.length && deliverPanels.length) {
+    activateDeliverTab(0);
+  }
+
+  // Integration lake — pause on hover
+  $$('.marquee-track').forEach((track) => {
     track.addEventListener('mouseenter', () => { track.style.animationPlayState = 'paused'; });
-    track.addEventListener('mouseleave', () => { track.style.animationPlayState = ''; });
+    track.addEventListener('mouseleave', () => { track.style.animationPlayState = 'running'; });
   });
 
   // ── Architecture layer explorer ──

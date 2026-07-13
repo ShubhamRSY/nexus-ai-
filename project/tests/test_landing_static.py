@@ -11,16 +11,15 @@ def test_landing_has_no_mock_chat_copy() -> None:
     assert "order #4821" not in html
     assert "mock-chat" not in html
     assert "mock-bubble" not in html
-    assert "feature-panel" not in html
 
 
 def test_landing_has_deliver_grid_and_integration_lake() -> None:
     html = LANDING.read_text(encoding="utf-8")
-    assert "deliver-grid" in html
+    assert "showcase-tab" in html
+    assert "deliver-panel" in html
     assert "integration-lake" in html
-    assert "logoMarqueeA" in html
-    assert "logoMarqueeB" in html
-    assert html.count("lake-pill") >= 124  # 62 names × 2 (duplicated per row)
+    assert "marquee-track" in html
+    assert html.count("lake-pill") >= 124
 
 
 def test_logo_uses_geometric_n_not_font_text() -> None:

@@ -6,15 +6,33 @@
 <title>Nexus — AI Ops Console for Customer Experience</title>
 <meta name="description" content="Nexus Cloud — AI agents for customer experience. Start free. Upgrade for voice, WhatsApp, and 62 integrations.">
 <meta name="theme-color" content="#030014">
-<link rel="preload" href="/static/landing.css?v=5" as="style">
-<link rel="stylesheet" href="/static/landing.css?v=5">
+<link rel="preload" href="/static/landing.css?v=6" as="style">
+<link rel="stylesheet" href="/static/landing.css?v=6">
 <style>
-  /* Integration lake — works even if external CSS is cached */
-  .integration-lake .marquee-wrap{overflow:hidden;width:100%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-  .integration-lake .marquee{display:flex;gap:1.25rem;width:max-content;animation:lake-scroll 50s linear infinite;padding:.5rem 0}
-  .integration-lake .marquee.reverse{animation-direction:reverse}
-  .integration-lake .lake-pill{flex-shrink:0;padding:.55rem 1.15rem;border-radius:999px;font-size:.88rem;font-weight:600;color:#f4f4f8;background:rgba(255,255,255,.07);border:1px solid rgba(139,92,246,.3);white-space:nowrap}
-  @keyframes lake-scroll{to{transform:translateX(-50%)}}
+  /* Critical UI — survives cached landing.css */
+  #showcase .showcase{display:grid;grid-template-columns:minmax(220px,280px) 1fr;gap:2rem;align-items:stretch}
+  #showcase .showcase-tab{display:flex;align-items:flex-start;gap:1rem;width:100%;padding:1rem 1.1rem;border-radius:16px;border:1px solid transparent;text-align:left;cursor:pointer;background:transparent;color:inherit}
+  #showcase .showcase-tab.active{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.4)}
+  #showcase .showcase-tab h4{font-size:.95rem;font-weight:700;margin:0 0 .2rem}
+  #showcase .showcase-tab p{font-size:.78rem;color:#9b9bb8;margin:0}
+  #showcase .showcase-detail{position:relative;min-height:320px;border-radius:24px;border:1px solid rgba(139,92,246,.22);background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(139,92,246,.05));overflow:hidden}
+  #showcase .deliver-panel{display:none;padding:2rem;height:100%;box-sizing:border-box}
+  #showcase .deliver-panel.active{display:block}
+  #showcase .deliver-panel .deliver-icon{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;font-size:1.35rem;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);margin-bottom:1rem}
+  #showcase .deliver-panel h3{font-size:1.3rem;font-weight:800;margin:0 0 .5rem}
+  #showcase .deliver-lead{color:#9b9bb8;line-height:1.6;margin:0 0 1rem}
+  #showcase .deliver-list{list-style:none;margin:0;padding:0}
+  #showcase .deliver-list li{font-size:.88rem;padding:.35rem 0 .35rem 1.25rem;position:relative}
+  #showcase .deliver-list li::before{content:'✓';position:absolute;left:0;color:#34d399;font-weight:700}
+  .integration-lake .marquee-wrap{overflow:hidden;width:100%;position:relative;z-index:2;padding:.35rem 0}
+  .integration-lake .marquee-track{display:flex;width:max-content;will-change:transform}
+  .integration-lake .marquee-track--a{animation:nexus-lake-a 55s linear infinite}
+  .integration-lake .marquee-track--b{animation:nexus-lake-b 55s linear infinite}
+  .integration-lake .marquee-group{display:flex;gap:1.1rem;padding-right:1.1rem}
+  .integration-lake .lake-pill{flex-shrink:0;padding:.55rem 1.1rem;border-radius:999px;font-size:.88rem;font-weight:600;color:#f4f4f8;background:rgba(255,255,255,.08);border:1px solid rgba(139,92,246,.35);white-space:nowrap}
+  @keyframes nexus-lake-a{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes nexus-lake-b{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+  @media(max-width:900px){#showcase .showcase{grid-template-columns:1fr}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -219,47 +237,71 @@
       <h2 class="section-title">What Nexus delivers</h2>
       <p class="section-sub">Four pillars of modern customer experience — explained clearly, no mock chat windows.</p>
     </div>
-    <div class="deliver-grid reveal">
-      <article class="deliver-card">
-        <div class="deliver-icon">💬</div>
-        <h3>AI Chat</h3>
-        <p class="deliver-lead">Streaming conversations grounded in your knowledge base, with citations your team can trust.</p>
-        <ul class="deliver-list">
-          <li>SSE &amp; WebSocket real-time replies</li>
-          <li>RAG citations to policy &amp; KB articles</li>
-          <li>Session history &amp; human handoff</li>
-        </ul>
-      </article>
-      <article class="deliver-card">
-        <div class="deliver-icon">🤖</div>
-        <h3>Agent Copilot</h3>
-        <p class="deliver-lead">Assist frontline agents with drafts, summaries, and next-best actions in the moment.</p>
-        <ul class="deliver-list">
-          <li>Transcript-to-draft in seconds</li>
-          <li>Escalation &amp; summary assist</li>
-          <li>CRM-aware suggestions</li>
-        </ul>
-      </article>
-      <article class="deliver-card">
-        <div class="deliver-icon">📞</div>
-        <h3>Voice (PSTN)</h3>
-        <p class="deliver-lead">Real phone lines powered by the same AI brain — Twilio, Amazon Connect, or SIP.</p>
-        <ul class="deliver-list">
-          <li>Live speech-to-text &amp; neural TTS</li>
-          <li>IVR, transfer &amp; voicemail flows</li>
-          <li>Shared guardrails with chat</li>
-        </ul>
-      </article>
-      <article class="deliver-card">
-        <div class="deliver-icon">🔌</div>
-        <h3>62 Integrations</h3>
-        <p class="deliver-lead">Native connectors to CRM, ticketing, telephony, BI &amp; HRIS — encrypted credential vault.</p>
-        <ul class="deliver-list">
-          <li>HubSpot, Salesforce, Zendesk &amp; more</li>
-          <li>Tenant-isolated secrets</li>
-          <li>Webhooks, n8n &amp; Zapier bridges</li>
-        </ul>
-      </article>
+    <div class="showcase reveal visible" id="showcase-tabs">
+      <div class="showcase-tabs" role="tablist" aria-label="What Nexus delivers">
+        <button type="button" class="showcase-tab active" data-tab="0" role="tab" aria-selected="true">
+          <span class="showcase-tab-icon">💬</span>
+          <div><h4>AI Chat</h4><p>Streaming with RAG citations</p></div>
+        </button>
+        <button type="button" class="showcase-tab" data-tab="1" role="tab" aria-selected="false">
+          <span class="showcase-tab-icon">🤖</span>
+          <div><h4>Agent Copilot</h4><p>Drafts, summaries, escalations</p></div>
+        </button>
+        <button type="button" class="showcase-tab" data-tab="2" role="tab" aria-selected="false">
+          <span class="showcase-tab-icon">📞</span>
+          <div><h4>Voice</h4><p>PSTN via Twilio / Connect</p></div>
+        </button>
+        <button type="button" class="showcase-tab" data-tab="3" role="tab" aria-selected="false">
+          <span class="showcase-tab-icon">🔌</span>
+          <div><h4>Integrations</h4><p>62 connectors, encrypted vault</p></div>
+        </button>
+      </div>
+      <div class="showcase-detail">
+        <article class="deliver-panel active" data-panel="0" role="tabpanel">
+          <div class="deliver-icon">💬</div>
+          <h3>AI Chat with grounded answers</h3>
+          <p class="deliver-lead">Real-time streaming conversations powered by your knowledge base — every reply can cite the exact source your team trusts.</p>
+          <ul class="deliver-list">
+            <li>SSE &amp; WebSocket streaming for instant responses</li>
+            <li>RAG citations link back to policy docs and KB articles</li>
+            <li>Full session history and handoff to human agents</li>
+            <li>Embeddable widget for web and mobile apps</li>
+          </ul>
+        </article>
+        <article class="deliver-panel" data-panel="1" role="tabpanel">
+          <div class="deliver-icon">🤖</div>
+          <h3>Agent Copilot — assist in the moment</h3>
+          <p class="deliver-lead">Give frontline agents the right words, context, and next steps while the customer is still on the line.</p>
+          <ul class="deliver-list">
+            <li>Draft replies from live transcripts in seconds</li>
+            <li>Summarize long threads before escalation</li>
+            <li>Suggest next-best actions from CRM context</li>
+            <li>Tone-aware responses that match your brand voice</li>
+          </ul>
+        </article>
+        <article class="deliver-panel" data-panel="2" role="tabpanel">
+          <div class="deliver-icon">📞</div>
+          <h3>Voice on real phone lines</h3>
+          <p class="deliver-lead">Customers call your number — Nexus listens, understands, and speaks back with the same intelligence as chat.</p>
+          <ul class="deliver-list">
+            <li>PSTN via Twilio, Amazon Connect, or SIP/CCaaS</li>
+            <li>Live speech-to-text and neural text-to-speech</li>
+            <li>IVR flows, warm transfer, and voicemail capture</li>
+            <li>Same orchestrator and guardrails as digital channels</li>
+          </ul>
+        </article>
+        <article class="deliver-panel" data-panel="3" role="tabpanel">
+          <div class="deliver-icon">🔌</div>
+          <h3>62 native integrations</h3>
+          <p class="deliver-lead">Connect CRM, ticketing, telephony, BI, and HRIS — credentials stay encrypted in a tenant-isolated vault.</p>
+          <ul class="deliver-list">
+            <li>HubSpot, Salesforce, Zendesk, Twilio, Slack, Jira &amp; more</li>
+            <li>Encrypted credential vault per workspace</li>
+            <li>Signed webhooks and n8n / Zapier bridges</li>
+            <li>Request custom connectors from our team</li>
+          </ul>
+        </article>
+      </div>
     </div>
   </div>
 </section>
@@ -275,13 +317,15 @@
   </div>
   <div class="lake-surface" aria-hidden="true"></div>
   <div class="marquee-wrap lake-row">
-    <div class="marquee" id="logoMarqueeA" aria-label="Integration partners row one">
-      <span class="lake-pill">HubSpot</span><span class="lake-pill">Salesforce</span><span class="lake-pill">Zendesk</span><span class="lake-pill">Freshworks Freshdesk</span><span class="lake-pill">ServiceNow</span><span class="lake-pill">Intercom</span><span class="lake-pill">Slack</span><span class="lake-pill">Atlassian Jira</span><span class="lake-pill">Asana</span><span class="lake-pill">Monday.com</span><span class="lake-pill">GitHub</span><span class="lake-pill">Notion</span><span class="lake-pill">Twilio</span><span class="lake-pill">WhatsApp</span><span class="lake-pill">Amazon Connect</span><span class="lake-pill">Meta Messenger / Instagram</span><span class="lake-pill">n8n</span><span class="lake-pill">Zapier</span><span class="lake-pill">Pipedrive</span><span class="lake-pill">Microsoft Teams</span><span class="lake-pill">Snowflake</span><span class="lake-pill">PagerDuty</span><span class="lake-pill">Linear</span><span class="lake-pill">Google BigQuery</span><span class="lake-pill">Help Scout</span><span class="lake-pill">ClickUp</span><span class="lake-pill">Atlassian Trello</span><span class="lake-pill">Front</span><span class="lake-pill">Amplitude</span><span class="lake-pill">Microsoft Azure DevOps</span><span class="lake-pill">Shopify</span><span class="lake-pill">HubSpot</span><span class="lake-pill">Salesforce</span><span class="lake-pill">Zendesk</span><span class="lake-pill">Freshworks Freshdesk</span><span class="lake-pill">ServiceNow</span><span class="lake-pill">Intercom</span><span class="lake-pill">Slack</span><span class="lake-pill">Atlassian Jira</span><span class="lake-pill">Asana</span><span class="lake-pill">Monday.com</span><span class="lake-pill">GitHub</span><span class="lake-pill">Notion</span><span class="lake-pill">Twilio</span><span class="lake-pill">WhatsApp</span><span class="lake-pill">Amazon Connect</span><span class="lake-pill">Meta Messenger / Instagram</span><span class="lake-pill">n8n</span><span class="lake-pill">Zapier</span><span class="lake-pill">Pipedrive</span><span class="lake-pill">Microsoft Teams</span><span class="lake-pill">Snowflake</span><span class="lake-pill">PagerDuty</span><span class="lake-pill">Linear</span><span class="lake-pill">Google BigQuery</span><span class="lake-pill">Help Scout</span><span class="lake-pill">ClickUp</span><span class="lake-pill">Atlassian Trello</span><span class="lake-pill">Front</span><span class="lake-pill">Amplitude</span><span class="lake-pill">Microsoft Azure DevOps</span><span class="lake-pill">Shopify</span>
+    <div class="marquee-track marquee-track--a" id="logoMarqueeA" aria-label="Integration row a">
+      <div class="marquee-group"><span class="lake-pill">HubSpot</span><span class="lake-pill">Salesforce</span><span class="lake-pill">Zendesk</span><span class="lake-pill">Freshworks Freshdesk</span><span class="lake-pill">ServiceNow</span><span class="lake-pill">Intercom</span><span class="lake-pill">Slack</span><span class="lake-pill">Atlassian Jira</span><span class="lake-pill">Asana</span><span class="lake-pill">Monday.com</span><span class="lake-pill">GitHub</span><span class="lake-pill">Notion</span><span class="lake-pill">Twilio</span><span class="lake-pill">WhatsApp</span><span class="lake-pill">Amazon Connect</span><span class="lake-pill">Meta Messenger / Instagram</span><span class="lake-pill">n8n</span><span class="lake-pill">Zapier</span><span class="lake-pill">Pipedrive</span><span class="lake-pill">Microsoft Teams</span><span class="lake-pill">Snowflake</span><span class="lake-pill">PagerDuty</span><span class="lake-pill">Linear</span><span class="lake-pill">Google BigQuery</span><span class="lake-pill">Help Scout</span><span class="lake-pill">ClickUp</span><span class="lake-pill">Atlassian Trello</span><span class="lake-pill">Front</span><span class="lake-pill">Amplitude</span><span class="lake-pill">Microsoft Azure DevOps</span><span class="lake-pill">Shopify</span></div>
+      <div class="marquee-group" aria-hidden="true"><span class="lake-pill">HubSpot</span><span class="lake-pill">Salesforce</span><span class="lake-pill">Zendesk</span><span class="lake-pill">Freshworks Freshdesk</span><span class="lake-pill">ServiceNow</span><span class="lake-pill">Intercom</span><span class="lake-pill">Slack</span><span class="lake-pill">Atlassian Jira</span><span class="lake-pill">Asana</span><span class="lake-pill">Monday.com</span><span class="lake-pill">GitHub</span><span class="lake-pill">Notion</span><span class="lake-pill">Twilio</span><span class="lake-pill">WhatsApp</span><span class="lake-pill">Amazon Connect</span><span class="lake-pill">Meta Messenger / Instagram</span><span class="lake-pill">n8n</span><span class="lake-pill">Zapier</span><span class="lake-pill">Pipedrive</span><span class="lake-pill">Microsoft Teams</span><span class="lake-pill">Snowflake</span><span class="lake-pill">PagerDuty</span><span class="lake-pill">Linear</span><span class="lake-pill">Google BigQuery</span><span class="lake-pill">Help Scout</span><span class="lake-pill">ClickUp</span><span class="lake-pill">Atlassian Trello</span><span class="lake-pill">Front</span><span class="lake-pill">Amplitude</span><span class="lake-pill">Microsoft Azure DevOps</span><span class="lake-pill">Shopify</span></div>
     </div>
   </div>
   <div class="marquee-wrap lake-row">
-    <div class="marquee reverse" id="logoMarqueeB" aria-label="Integration partners row two">
-      <span class="lake-pill">Stripe</span><span class="lake-pill">Mailchimp</span><span class="lake-pill">Zoho CRM</span><span class="lake-pill">BambooHR</span><span class="lake-pill">RingCentral</span><span class="lake-pill">Atlassian Confluence</span><span class="lake-pill">Copper</span><span class="lake-pill">Adobe Marketo Engage</span><span class="lake-pill">Klaviyo</span><span class="lake-pill">Guru</span><span class="lake-pill">Document360</span><span class="lake-pill">Five9</span><span class="lake-pill">Genesys</span><span class="lake-pill">NiCE</span><span class="lake-pill">Zoom</span><span class="lake-pill">Vonage</span><span class="lake-pill">Dialpad</span><span class="lake-pill">Aircall</span><span class="lake-pill">Workday</span><span class="lake-pill">ADP Workforce Now</span><span class="lake-pill">Tableau</span><span class="lake-pill">Microsoft Power BI</span><span class="lake-pill">Microsoft Dynamics 365</span><span class="lake-pill">Creatio</span><span class="lake-pill">Salesloft</span><span class="lake-pill">Microsoft SharePoint</span><span class="lake-pill">Talkdesk</span><span class="lake-pill">Ujet</span><span class="lake-pill">8x8</span><span class="lake-pill">Gusto</span><span class="lake-pill">Epic</span><span class="lake-pill">Stripe</span><span class="lake-pill">Mailchimp</span><span class="lake-pill">Zoho CRM</span><span class="lake-pill">BambooHR</span><span class="lake-pill">RingCentral</span><span class="lake-pill">Atlassian Confluence</span><span class="lake-pill">Copper</span><span class="lake-pill">Adobe Marketo Engage</span><span class="lake-pill">Klaviyo</span><span class="lake-pill">Guru</span><span class="lake-pill">Document360</span><span class="lake-pill">Five9</span><span class="lake-pill">Genesys</span><span class="lake-pill">NiCE</span><span class="lake-pill">Zoom</span><span class="lake-pill">Vonage</span><span class="lake-pill">Dialpad</span><span class="lake-pill">Aircall</span><span class="lake-pill">Workday</span><span class="lake-pill">ADP Workforce Now</span><span class="lake-pill">Tableau</span><span class="lake-pill">Microsoft Power BI</span><span class="lake-pill">Microsoft Dynamics 365</span><span class="lake-pill">Creatio</span><span class="lake-pill">Salesloft</span><span class="lake-pill">Microsoft SharePoint</span><span class="lake-pill">Talkdesk</span><span class="lake-pill">Ujet</span><span class="lake-pill">8x8</span><span class="lake-pill">Gusto</span><span class="lake-pill">Epic</span>
+    <div class="marquee-track marquee-track--b" id="logoMarqueeB" aria-label="Integration row b">
+      <div class="marquee-group"><span class="lake-pill">Stripe</span><span class="lake-pill">Mailchimp</span><span class="lake-pill">Zoho CRM</span><span class="lake-pill">BambooHR</span><span class="lake-pill">RingCentral</span><span class="lake-pill">Atlassian Confluence</span><span class="lake-pill">Copper</span><span class="lake-pill">Adobe Marketo Engage</span><span class="lake-pill">Klaviyo</span><span class="lake-pill">Guru</span><span class="lake-pill">Document360</span><span class="lake-pill">Five9</span><span class="lake-pill">Genesys</span><span class="lake-pill">NiCE</span><span class="lake-pill">Zoom</span><span class="lake-pill">Vonage</span><span class="lake-pill">Dialpad</span><span class="lake-pill">Aircall</span><span class="lake-pill">Workday</span><span class="lake-pill">ADP Workforce Now</span><span class="lake-pill">Tableau</span><span class="lake-pill">Microsoft Power BI</span><span class="lake-pill">Microsoft Dynamics 365</span><span class="lake-pill">Creatio</span><span class="lake-pill">Salesloft</span><span class="lake-pill">Microsoft SharePoint</span><span class="lake-pill">Talkdesk</span><span class="lake-pill">Ujet</span><span class="lake-pill">8x8</span><span class="lake-pill">Gusto</span><span class="lake-pill">Epic</span></div>
+      <div class="marquee-group" aria-hidden="true"><span class="lake-pill">Stripe</span><span class="lake-pill">Mailchimp</span><span class="lake-pill">Zoho CRM</span><span class="lake-pill">BambooHR</span><span class="lake-pill">RingCentral</span><span class="lake-pill">Atlassian Confluence</span><span class="lake-pill">Copper</span><span class="lake-pill">Adobe Marketo Engage</span><span class="lake-pill">Klaviyo</span><span class="lake-pill">Guru</span><span class="lake-pill">Document360</span><span class="lake-pill">Five9</span><span class="lake-pill">Genesys</span><span class="lake-pill">NiCE</span><span class="lake-pill">Zoom</span><span class="lake-pill">Vonage</span><span class="lake-pill">Dialpad</span><span class="lake-pill">Aircall</span><span class="lake-pill">Workday</span><span class="lake-pill">ADP Workforce Now</span><span class="lake-pill">Tableau</span><span class="lake-pill">Microsoft Power BI</span><span class="lake-pill">Microsoft Dynamics 365</span><span class="lake-pill">Creatio</span><span class="lake-pill">Salesloft</span><span class="lake-pill">Microsoft SharePoint</span><span class="lake-pill">Talkdesk</span><span class="lake-pill">Ujet</span><span class="lake-pill">8x8</span><span class="lake-pill">Gusto</span><span class="lake-pill">Epic</span></div>
     </div>
   </div>
   <div class="wrap integrations-cta reveal">
@@ -436,6 +480,6 @@
   </div>
 </footer>
 
-<script src="/static/landing.js?v=5" defer></script>
+<script src="/static/landing.js?v=6" defer></script>
 </body>
 </html>

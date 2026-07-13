@@ -2604,9 +2604,15 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
 
       <div id="chatSidebar">
         <div class="field" id="chatAgentField">
-          <label for="agentSelect">AI agent (chat only)</label>
-          <select id="agentSelect">
-            <option value="chat_support">Chat Support</option>
+          <label>AI mode</label>
+          <div class="agent-lock" id="agentLockLabel" style="padding:0.75rem 0.9rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font-size:0.88rem;font-weight:600">
+            Chat Support
+          </div>
+          <p style="margin:0.45rem 0 0;font-size:0.72rem;color:var(--text-muted);line-height:1.4">
+            Use the <strong>Channel</strong> tabs above to switch: Chat (customers), Copilot (helps your agents), Voice (phone).
+          </p>
+          <select id="agentSelect" hidden aria-hidden="true">
+            <option value="chat_support" selected>Chat Support</option>
             <option value="voice_support">Voice Support</option>
             <option value="copilot">Agent Copilot</option>
           </select>
@@ -3947,6 +3953,11 @@ body[data-theme="light"] .auth-card input:-webkit-autofill:focus {
       if (isCopilot) agent.value = 'copilot';
       else if (isChat) agent.value = 'chat_support';
       else if (isVoice) agent.value = 'voice_support';
+
+      const agentLock = document.getElementById('agentLockLabel');
+      if (agentLock) {
+        agentLock.textContent = isChat ? 'Chat Support' : isCopilot ? 'Agent Copilot' : isVoice ? 'Voice Support' : '—';
+      }
 
       input.placeholder = isCopilot
         ? 'Ask copilot: draft a reply, summarize thread, or flag escalation...'

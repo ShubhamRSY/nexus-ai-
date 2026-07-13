@@ -57,7 +57,7 @@ def check_output(text: str) -> GuardrailResult:
             return GuardrailResult(
                 allowed=True,
                 reason="System prompt leakage trimmed.",
-                sanitized_output="I'm here to help with Acme support. What can I assist you with?",
+                sanitized_output="I'm here to help with Nexus support. What can I assist you with?",
             )
     if len(text) > 4000:
         return GuardrailResult(

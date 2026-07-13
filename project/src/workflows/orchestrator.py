@@ -114,7 +114,7 @@ class AgentOrchestrator:
 
             if kb_hit:
                 draft = (
-                    f"Hi — thanks for contacting Acme Support. {kb_hit.split('.')[0].strip()}. "
+                    f"Hi — thanks for contacting Nexus Support. {kb_hit.split('.')[0].strip()}. "
                     "Let me know if you need anything else."
                 )
                 kb_section = kb_hit

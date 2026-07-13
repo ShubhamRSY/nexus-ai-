@@ -22,7 +22,7 @@ agents:
       - create_ticket
       - transfer_to_human
     telephony:
-      greeting: "Hello, thank you for calling Acme Support. How can I help you today?"
+      greeting: "Hello, thank you for calling Nexus Support. How can I help you today?"
       fallback_message: "I'm having trouble understanding. Let me connect you with a specialist."
       max_silence_seconds: 5
       transfer_number: "+15551234567"

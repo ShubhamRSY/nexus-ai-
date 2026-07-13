@@ -8,7 +8,7 @@
 
 **Purpose-built AI agents. One CX platform.**
 
-**[Try live demo →](https://yournexus.duckdns.org/)** · **[Start free](https://yournexus.duckdns.org/signup)** · **[Send enquiry](https://yournexus.duckdns.org/contact)**
+**[Try live demo →](https://yournexus.duckdns.org/landing)** · **[Start free](https://yournexus.duckdns.org/signup)** · **[Plans](https://yournexus.duckdns.org/pricing)** · **[Send enquiry](https://yournexus.duckdns.org/contact)**
 
 Nexus is a proprietary omnichannel AI platform for customer experience teams — one orchestrator for **Chat**, **Copilot**, **Voice**, **Email**, **WhatsApp**, **SMS**, **Messenger**, and **Instagram**, grounded with **RAG**, protected by **JWT auth + guardrails**, and built for teams who care about every customer moment.
 
@@ -19,15 +19,16 @@ Nexus is a proprietary omnichannel AI platform for customer experience teams —
 
 </div>
 
-**Live:** [https://yournexus.duckdns.org/](https://yournexus.duckdns.org/) — chat, copilot, voice, RAG, JWT auth, and enterprise integrations.
+**Live:** [https://yournexus.duckdns.org/landing](https://yournexus.duckdns.org/landing) — marketing site, console, signup, and 62-connector integrations catalog.
 
-**Pricing:** not listed publicly — [request a quote](https://yournexus.duckdns.org/contact).
+**Plans:** Free tier (2 agents, chat + email, 5 integrations) — paid tiers via [request a quote](https://yournexus.duckdns.org/contact). See [pricing](https://yournexus.duckdns.org/pricing) and [FAQ](https://yournexus.duckdns.org/faq).
 
 ---
 
 ## Table of Contents
 
 - [What Is Nexus?](#what-is-nexus)
+- [Nexus Cloud](#nexus-cloud-hosted-saas)
 - [Nexus Concepts](#nexus-concepts)
 - [Recent Changes](#recent-changes)
 - [Prerequisites](#prerequisites)
@@ -35,7 +36,7 @@ Nexus is a proprietary omnichannel AI platform for customer experience teams —
 - [Production Deployment](#production-deployment)
 - [Architecture](#architecture)
 - [Features](#features)
-- [API Overview](#api-overview)
+- [API & Docs](#api--docs)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [Keeping `main` Safe](#keeping-main-safe)
@@ -78,7 +79,16 @@ Customer experience (CX) teams lose time and accuracy when chat, voice, and inte
 
 ## Nexus Cloud (hosted SaaS)
 
-Nexus Cloud is **live** at [/signup](https://yournexus.duckdns.org/signup) — self-serve free tier (chat + email), legal acceptance (ToS + Privacy), and optional Stripe billing for paid plans.
+Nexus Cloud is **live** at [/signup](https://yournexus.duckdns.org/signup) — self-serve **Free** tier (no card), legal acceptance (ToS + Privacy), and optional Stripe billing for paid plans.
+
+**Plan limits (Nexus Cloud)**
+
+| Plan | Agents | Channels | Integrations | Price |
+|------|--------|----------|--------------|-------|
+| **Free** | 2 | Chat, Email | 5 | $0/mo |
+| **Starter** | 10 | Chat, Voice, Email | 20 | [Request quote](https://yournexus.duckdns.org/contact?plan=starter) |
+| **Growth** | 50 | + WhatsApp, SMS | 62 | [Request quote](https://yournexus.duckdns.org/contact?plan=growth) |
+| **Enterprise** | 999+ | All 8 channels | 62 + custom | [Custom quote](https://yournexus.duckdns.org/contact?plan=enterprise) |
 
 **Licensing**
 
@@ -87,10 +97,12 @@ Nexus Cloud is **live** at [/signup](https://yournexus.duckdns.org/signup) — s
 
 **Hosted features (live now)**
 
+- **Marketing site** — `/landing`, `/pricing`, `/faq`, `/contact` (dark UI, numbered plan specs, interactive plan cards)
 - **Nexus Cloud sign-up** — tenant + admin + subscription + starter KB in ~60s
 - **Legal pages** — `/legal/terms`, `/legal/privacy` (required at sign-up)
 - **Enterprise CX** — inbox, analytics, tickets, workflows, IVR, supervisor tools, customer portal
 - OIDC SSO (Auth0) + JWT auth, encrypted integrations vault, **62 native connectors** ([`/integrations`](https://yournexus.duckdns.org/integrations)), daily backups
+- **Docker static volume** — marketing assets update on `git pull` without rebuilding the image
 
 **Enterprise add-ons** (docs + API; contact for dedicated infra)
 
@@ -130,6 +142,20 @@ Nexus is organized around a small set of primitives so you can reason about the 
 
 ## Recent Changes
 
+<details>
+<summary><strong>Recent Changes</strong> — click to expand version history</summary>
+
+### v2.5.2 — Marketing UI & deploy fixes (July 2026)
+
+| Change | Description |
+|--------|-------------|
+| **Showcase tabs** | “What Nexus delivers” tabs switch panels correctly (AI Chat, Copilot, Voice, Integrations) |
+| **Integration marquee** | Dual scrolling rows (62 names, opposite directions) with inline critical CSS |
+| **Plan cards** | Click-to-select glow on `/pricing` and landing deploy section; `?plan=` URL support |
+| **FAQ & pricing** | Upgraded masthead, spaced FAQ, numbered plan limits matching `SAAS_PLANS` |
+| **Static deploy** | Docker volume mount for `/static`; shorter cache on marketing pages |
+| **CI fix** | Valid `setup-python` action SHA; `workflow_dispatch` for manual re-runs |
+
 ### v2.5.1 — Brand & dark marketing UI (July 2026)
 
 | Change | Description |
@@ -165,7 +191,7 @@ Nexus is organized around a small set of primitives so you can reason about the 
 | **RAG / HF cache** | Auto-fix invalid `HF_HOME` paths (e.g. `/Volumes/<YourDriveName>`); hash fallback if model load fails |
 | **Vault diagnostics** | `/health` reports `vault.decrypt_ok` — fix `INTEGRATIONS_ENCRYPTION_KEY` mismatch |
 | **Legal** | `/legal/terms`, `/legal/privacy`, `/legal/licensing` — required on SaaS sign-up |
-| **Commercial license** | Published pricing: Startup $12k, Growth $36k, Enterprise from $96k/yr |
+| **Commercial license** | Commercial licensing page at `/legal/licensing` (pricing by enquiry since v2.5.1) |
 | **Restart script** | `bash scripts/restart_local.sh` after deploy |
 
 ### v2.3.1 — Live SaaS sign-up (July 2026)
@@ -236,6 +262,8 @@ Nexus is organized around a small set of primitives so you can reason about the 
 | **Dockerfile optimized** | Multi-stage build -> gunicorn config, COPY safety, non-root user |
 | **109+ tests** | Full coverage: unit, integration, E2E, non-functional, security, concurrency |
 
+</details>
+
 ---
 
 ## Prerequisites
@@ -252,8 +280,8 @@ Nexus is organized around a small set of primitives so you can reason about the 
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/ShubhamRSY/voice-agents.git
-cd voice-agents/project
+git clone https://github.com/ShubhamRSY/nexus-ai-.git
+cd nexus-ai-/project
 
 # 2. Create and activate a virtual environment
 python3 -m venv .venv
@@ -480,181 +508,21 @@ Scripts: `scripts/restore-drill.sh` · `scripts/loadtest/k6-smoke.js` · `script
 
 ---
 
-## API Overview
+## API & Docs
 
-### Auth & Identity
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register a new tenant + admin user |
-| POST | `/api/v1/auth/login` | Login, receive JWT |
-| GET | `/api/v1/auth/me` | Current user info |
-| POST | `/api/v1/auth/demo-login` | One-click demo login |
-| GET | `/api/v1/auth/oidc/config` | OIDC SSO enabled flag (public) |
-| GET | `/api/v1/auth/oidc/login` | Start OIDC SSO redirect |
-| GET | `/api/v1/auth/oidc/callback` | OIDC callback (issues JWT) |
-| POST | `/api/v1/admin/users` | Create user (admin) |
+Use the **interactive OpenAPI UI** when the server is running — no need to duplicate endpoint tables in this README.
 
-### Chat & Copilot
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/chat` | Send message, get AI response |
-| GET | `/api/v1/chat/sse` | SSE streaming chat (token-by-token) |
-| WS | `/api/v1/chat/stream` | WebSocket streaming chat |
-| POST | `/api/v1/copilot` | Agent-assist: transcript → suggested reply |
-| DELETE | `/api/v1/chat/{session_id}` | End a session |
-| GET | `/api/v1/sessions/stats` | Active session count |
-| GET | `/api/v1/sessions/{id}/history` | Session message history |
+| Resource | URL |
+|----------|-----|
+| **Swagger UI** | `http://127.0.0.1:8001/docs` (local) · disabled in production when `APP_ENV=production` |
+| **ReDoc** | `http://127.0.0.1:8001/redoc` |
+| **Health** | `GET /api/v1/health` |
+| **SaaS plans** | `GET /api/v1/saas/plans` |
+| **Integrations catalog** | [`/integrations`](https://yournexus.duckdns.org/integrations) · `GET /api/v1/integrations/catalog` |
 
-### Voice & Telephony
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/telephony/voice/inbound` | Twilio inbound call webhook |
-| POST | `/api/v1/telephony/voice/process` | Twilio call process/gather |
-| POST | `/api/v1/telephony/voice/status` | Twilio call status callback |
-| POST | `/api/v1/telephony/simulate` | Simulate voice call (dev) |
-| GET | `/api/v1/telephony/voice/stream` | SSE voice stream |
-| POST | `/api/v1/messaging/inbound` | Twilio messaging inbound (WhatsApp/SMS) |
-| POST | `/api/v1/messaging/send` | Send outbound WhatsApp/SMS |
+**Marketing pages:** `/landing` · `/pricing` · `/faq` · `/contact` · `/signup`
 
-### Knowledge Base & RAG
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/kb/articles` | List KB articles |
-| POST | `/api/v1/kb/articles` | Create KB article |
-| PUT | `/api/v1/kb/articles/{id}` | Update KB article |
-| DELETE | `/api/v1/kb/articles/{id}` | Delete KB article |
-| POST | `/api/v1/kb/upload` | Upload document to KB |
-| POST | `/api/v1/rag/search` | Search knowledge base |
-| POST | `/api/v1/rag/ingest` | Ingest documents into vector store |
-
-### Agent Inbox & Handoff
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/inbox` | List escalated conversations |
-| POST | `/api/v1/inbox/{id}/claim` | Claim a conversation |
-| POST | `/api/v1/inbox/{id}/reply` | Reply as human agent |
-| POST | `/api/v1/inbox/{id}/resolve` | Resolve handoff |
-| POST | `/api/v1/handoff/{session_id}` | Escalate session to human |
-
-### Ticketing
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/tickets` | List tickets |
-| POST | `/api/v1/tickets` | Create ticket |
-| PATCH | `/api/v1/tickets/{id}` | Update ticket status |
-
-### CX Dashboard & Feedback
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/cx/dashboard` | CX analytics dashboard |
-| POST | `/api/v1/csat` | Submit CSAT rating (1-5) |
-| GET | `/api/v1/csat/stats` | CSAT statistics |
-| POST | `/api/v1/nps` | Submit NPS rating (0-10) |
-| GET | `/api/v1/nps/stats` | NPS statistics |
-| POST | `/api/v1/messages/{id}/feedback` | Thumbs up/down feedback |
-
-### Workflows & Automation
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/workflows` | List workflow rules |
-| POST | `/api/v1/workflows` | Create workflow rule |
-| DELETE | `/api/v1/workflows/{id}` | Delete workflow rule |
-
-### Email
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/email/send` | Send email via SMTP |
-| POST | `/api/v1/email/inbound` | Inbound email webhook |
-
-### Meta (Messenger / Instagram)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/meta/webhook` | Meta webhook verification |
-| POST | `/api/v1/meta/webhook` | Meta inbound message webhook |
-
-### Translation
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/translate` | Auto-detect and translate text |
-
-### Enterprise (IVR, Supervisor, QM, Co-browse)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/agents/status` | Update agent presence |
-| GET | `/api/v1/agents/team` | List team presence |
-| GET | `/api/v1/ivr/flows` | List IVR flows |
-| POST | `/api/v1/ivr/flows` | Save IVR flow |
-| POST | `/api/v1/supervisor/action` | Monitor/whisper/barge |
-| GET | `/api/v1/qm/reviews` | List quality reviews |
-| POST | `/api/v1/qm/reviews` | Submit quality review |
-| POST | `/api/v1/cobrowse/start` | Start co-browsing session |
-| WS | `/api/v1/cobrowse/ws/{id}` | Co-browsing WebSocket |
-
-### Integrations
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/integrations/catalog` | Public catalog (62 native connectors, searchable) |
-| GET | `/api/v1/integrations/status` | Provider connection status |
-| PUT | `/api/v1/integrations/credentials` | Save encrypted credential |
-| DELETE | `/api/v1/integrations/credentials/{key}` | Remove credential |
-| POST | `/api/v1/integrations/webhooks` | Register webhook URL |
-| DELETE | `/api/v1/integrations/webhooks/{type}` | Remove webhook |
-| POST | `/api/v1/integrations/{provider}/…` | 55+ provider proxy routes (Zendesk, Salesforce, PagerDuty, Snowflake, Epic, etc.) |
-
-See [`/integrations`](https://yournexus.duckdns.org/integrations) for the full connector list.
-
-### Customer Portal
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/portal/kb/search` | Search knowledge base |
-| POST | `/api/v1/portal/tickets` | Submit support ticket |
-| POST | `/api/v1/portal/tickets/lookup` | Look up ticket status |
-| GET | `/api/v1/portal/tickets/{id}` | Get ticket details |
-| POST | `/api/v1/portal/cobrowse/start` | Start co-browse from portal |
-
-### SaaS / Subscription
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/saas/plans` | List available plans |
-| GET | `/api/v1/saas/subscription` | Current subscription |
-| POST | `/api/v1/saas/subscribe` | Change subscription |
-| POST | `/api/v1/saas/signup` | Sign up new tenant |
-| GET | `/api/v1/saas/signup/config` | Sign-up configuration |
-
-### Observability & Ops
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/health` | Health check (no auth) |
-| GET | `/api/v1/metrics` | Prometheus metrics |
-| GET | `/api/v1/observability/health` | Detailed runtime snapshot |
-| GET | `/api/v1/analytics/dashboard` | Conversation analytics |
-| GET | `/api/v1/analytics/agents` | Agent scorecard |
-| GET | `/api/v1/analytics/timeline` | Hourly volume timeline |
-| GET | `/api/v1/feedback/{agent}/report` | Feedback report |
-| GET | `/api/v1/feedback/{agent}/suggestions` | Improvement suggestions |
-| POST | `/api/v1/events` | Ingest external event |
-| GET | `/api/v1/agents` | List configured agents |
-| GET | `/api/v1/llm/config` | LLM configuration |
-| POST | `/api/v1/evaluation/run` | Run evaluation suite |
-| POST | `/api/v1/demo/reset` | Reset demo data |
-
-### Multi-region HA
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/ha/status` | HA region health and failover status |
-
-### Frontend Pages
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/` | Agent console (SPA) |
-| GET | `/signup` | SaaS sign-up page |
-| GET | `/integrations` | Integrations catalog (62 native connectors) |
-| GET | `/portal` | Customer self-service portal |
-| GET | `/legal/terms` | Terms of service |
-| GET | `/legal/privacy` | Privacy policy |
-| GET | `/legal/licensing` | Commercial licensing info |
-
-Full reference at `/docs` when the server is running.
+Architecture, SaaS, and ops runbooks → [`docs/`](docs/) · [`docs/saas-hosted.md`](docs/saas-hosted.md)
 
 ---
 
@@ -727,4 +595,10 @@ If you’re collaborating (or deploying from this repo), these practices help pr
 
 ## License
 
-[AGPL-3.0](LICENSE) © [Shubham RSY](https://github.com/ShubhamRSY)
+**Nexus Cloud** is proprietary software operated as a hosted service. Redistribution of the product is not permitted under a public open-source license.
+
+- **Commercial / enterprise terms:** [`COMMERCIAL_LICENSE.md`](COMMERCIAL_LICENSE.md)
+- **Public licensing page:** [yournexus.duckdns.org/legal/licensing](https://yournexus.duckdns.org/legal/licensing)
+- **Trademarks:** [`TRADEMARKS.md`](TRADEMARKS.md)
+
+© [Shubham RSY](https://github.com/ShubhamRSY)

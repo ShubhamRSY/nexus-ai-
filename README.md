@@ -1,12 +1,16 @@
 # Nexus
 
-**Purpose-built AI agents. One CX platform. (Open-source)**
+### *Every conversation deserves to feel human.*
 
-Omnichannel AI agent platform for customer experience teams — Chat, Copilot, Voice, Email, WhatsApp, SMS, Messenger, Instagram. **62 native integrations**, RAG knowledge layer, JWT auth + guardrails.
+**Purpose-built AI agents. One CX platform.**
 
-The project source lives in [`project/`](project/). See the [full README](project/README.md) for setup, deployment, architecture, and API docs.
+**[Live demo](https://yournexus.duckdns.org/landing)** · **[Start free](https://yournexus.duckdns.org/signup)** · **[Plans](https://yournexus.duckdns.org/pricing)** · **[Enquire](https://yournexus.duckdns.org/contact)**
 
-[![CI](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ShubhamRSY/voice-agents/actions/workflows/ci.yml)
+Nexus is a **proprietary** omnichannel AI platform for customer experience teams — Chat, Copilot, Voice, Email, WhatsApp, SMS, Messenger, and Instagram, grounded with **RAG**, protected by **JWT auth + guardrails**, and **62 native integrations**.
+
+The application source lives in [`project/`](project/). See the [full README](project/README.md) for setup, deployment, and architecture.
+
+[![CI](https://github.com/ShubhamRSY/nexus-ai-/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ShubhamRSY/nexus-ai-/actions/workflows/ci-cd.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: AGPLv3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](project/LICENSE)
+[![Proprietary](https://img.shields.io/badge/License-Proprietary-purple.svg)](project/static/legal/licensing.html)
 [![Tests](https://img.shields.io/badge/tests-215%2B%20passing-brightgreen.svg)](project/tests/)

@@ -153,9 +153,11 @@ section{padding:6rem 0}
   background:linear-gradient(135deg,#fff 0%,var(--accent-3) 40%,var(--accent-2) 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-.hero-rotate{display:inline-block;min-width:5ch;text-align:left;
+.hero-rotate{
+  display:inline-block;white-space:nowrap;
   background:linear-gradient(135deg,var(--accent-2),var(--accent));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  transition:opacity .28s ease,transform .28s ease;
 }
 .hero p{
   font-size:clamp(1rem,2vw,1.2rem);color:var(--fg-muted);max-width:620px;

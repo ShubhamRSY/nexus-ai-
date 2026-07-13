@@ -70,7 +70,7 @@
 
   // ── Rotating hero words ──
   const rotateEl = $('.hero-rotate');
-  const words = ['Cares', 'Listens', 'Resolves', 'Supports', 'Connects'];
+  const words = ['Cares.', 'Listens.', 'Resolves.', 'Supports.', 'Connects.'];
   let wordIdx = 0;
   if (rotateEl) {
     const cycle = () => {
